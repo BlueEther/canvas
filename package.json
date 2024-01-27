@@ -1,0 +1,29 @@
+{
+  "name": "sc07-canvas",
+  "version": "1.0.0",
+  "description": "",
+  "workspaces": [
+    "packages/client",
+    "packages/server",
+    "packages/lib"
+  ],
+  "main": "src/index.ts",
+  "scripts": {
+    "dev:server": "cd packages/server && npm run dev",
+    "dev:client": "cd packages/client && npm run dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.2",
+    "dotenv": "^16.3.1",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@quixo3/prisma-session-store": "^3.1.13"
+  }
+}
