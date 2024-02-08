@@ -1,6 +1,8 @@
 packages/server/prisma/dev.db
 packages/client/public/**/*.css
 packages/client/public/**/*.js
+packages/client-next/public/**/*.css
+packages/client-next/public/**/*.js
 
 # Logs
 logs

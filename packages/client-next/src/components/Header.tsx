@@ -1,0 +1,19 @@
+import React from "react";
+
+export const Header = () => {
+  return (
+    <header>
+      <div></div>
+      <div className="spacer"></div>
+      <div>
+        <div className="user-card">
+          <div className="user-card--overview">
+            <div className="user-name"></div>
+            <div className="user-instance"></div>
+          </div>
+          <img src="#" alt="User Avatar" className="user-avatar" />
+        </div>
+      </div>
+    </header>
+  );
+};

@@ -1,0 +1,78 @@
+#pallete {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+
+  background-color: #fff;
+
+  .pallete-colors {
+    // display: flex;
+    // width: 100%;
+    // justify-content: center;
+    // gap: 10px;
+    flex-grow: 1;
+    text-align: center;
+    padding: 10px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+
+    .pallete-color {
+      margin-left: 10px;
+    }
+  }
+
+  .pallete-color--deselect {
+    display: flex-inline;
+    justify-content: center;
+    align-items: center;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+
+    vertical-align: top;
+    font-size: 2rem;
+    line-height: 1;
+    color: #000;
+
+    border: 0;
+    background: transparent;
+  }
+
+  .pallete-color {
+    width: 36px;
+    height: 36px;
+    border: 2px solid #000;
+    border-radius: 3px;
+    transition: transform 0.25s;
+    cursor: pointer;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    &.active {
+      transform: scale(1.3);
+    }
+  }
+
+  .pallete-user-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}

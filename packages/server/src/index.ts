@@ -50,7 +50,7 @@ const io = new Server<
     user: (user: SUserPacket) => void;
     config: (config: any) => void;
     pixel: (data: SPixelPacket) => void;
-    canvas: (data: SCanvasPacket) => void;
+    canvas: (pixels: string[]) => void;
     online: (data: { count: number }) => void;
   }
 >(server);
@@ -109,11 +109,7 @@ io.on("connection", (socket) => {
   });
 
   Canvas.getPixelsArray().then((pixels) => {
-    socket.emit("canvas", {
-      _direction: "server->client",
-      type: "canvas",
-      pixels,
-    });
+    socket.emit("canvas", pixels);
   });
 
   socket.on(
@@ -182,7 +178,7 @@ io.on("connection", (socket) => {
 });
 
 app.use(session);
-app.use(express.static("../client/public"));
+app.use(express.static("../client-next/public"));
 app.use("/api", APIRoutes);
 
 server.listen(parseInt(process.env.PORT!), () => {
