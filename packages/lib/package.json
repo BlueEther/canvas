@@ -1,5 +1,8 @@
 {
   "name": "@sc07-canvas/lib",
   "version": "1.0.0",
-  "main": "./src/index.ts"
+  "main": "./src/index.ts",
+  "dependencies": {
+    "eventemitter3": "^5.0.1"
+  }
 }

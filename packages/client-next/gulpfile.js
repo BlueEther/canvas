@@ -20,7 +20,15 @@ gulp.task("js", function () {
 gulp.task(
   "watch",
   gulp.series("js", "css", function () {
-    gulp.watch(["src/**/*.ts", "src/**/*.tsx"], gulp.series("js"));
+    gulp.watch(
+      [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "../lib/src/**/*.ts",
+        "../lib/src/**/*.tsx",
+      ],
+      gulp.series("js")
+    );
     gulp.watch("src/**/*.scss", gulp.series("css"));
   })
 );
