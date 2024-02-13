@@ -250,6 +250,7 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
 
     this.debug(midPoint.x, midPoint.y, "midpoint");
 
+    // TODO: this might be css zoom specific, I have no way to test this
     this.transform.x = midPoint.x / newScale - midPoint.x / scale;
     this.transform.y = midPoint.y / newScale - midPoint.x / scale;
     this.transform.scale = newScale;
@@ -322,22 +323,26 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
       { passive: false }
     );
 
-    this.$wrapper.addEventListener(
+    // mouse move should not be tied to the element, in case the mouse exits the window
+    document.addEventListener(
       "mousemove",
       (e) => {
+        if (!this.panning.enabled) return;
+
         e.preventDefault();
         e.stopPropagation();
-
-        if (!this.panning.enabled) return;
 
         this.panning.move(e.clientX, e.clientY);
       },
       { passive: false }
     );
 
-    this.$wrapper.addEventListener(
+    // mouse up should not be tied to the element, in case the mouse releases outside of the window
+    document.addEventListener(
       "mouseup",
       (e) => {
+        if (!this.panning.enabled) return;
+
         e.preventDefault();
         e.stopPropagation();
 

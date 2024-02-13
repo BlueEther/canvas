@@ -20,12 +20,19 @@ header {
 
   display: flex;
   flex-direction: row;
-  padding: 10px;
   box-sizing: border-box;
   z-index: 9999;
+  touch-action: none;
+  pointer-events: none;
 
   .spacer {
     flex-grow: 1;
+  }
+
+  .box {
+    padding: 10px;
+    touch-action: initial;
+    pointer-events: initial;
   }
 }
 

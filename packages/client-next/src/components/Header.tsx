@@ -5,7 +5,7 @@ export const Header = () => {
     <header>
       <div></div>
       <div className="spacer"></div>
-      <div>
+      <div className="box">
         <div className="user-card">
           <div className="user-card--overview">
             <div className="user-name"></div>
