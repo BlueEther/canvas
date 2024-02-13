@@ -1,6 +1,11 @@
 import EventEmitter from "eventemitter3";
 import { ClientConfig, IPalleteContext, Pixel } from "../types";
 import Network from "./network";
+import {
+  ClickEvent,
+  HoverEvent,
+  PanZoom,
+} from "@sc07-canvas/lib/src/renderer/PanZoom";
 
 export class Canvas extends EventEmitter {
   static instance: Canvas | undefined;
@@ -8,6 +13,7 @@ export class Canvas extends EventEmitter {
   private _destroy = false;
   private config: ClientConfig;
   private canvas: HTMLCanvasElement;
+  private PanZoom: PanZoom;
   private ctx: CanvasRenderingContext2D;
 
   private cursor = { x: -1, y: -1 };
@@ -16,24 +22,27 @@ export class Canvas extends EventEmitter {
   } = {};
   private lastPlace: number | undefined;
 
-  constructor(config: ClientConfig, canvas: HTMLCanvasElement) {
+  constructor(
+    config: ClientConfig,
+    canvas: HTMLCanvasElement,
+    PanZoom: PanZoom
+  ) {
     super();
     Canvas.instance = this;
 
     this.config = config;
     this.canvas = canvas;
+    this.PanZoom = PanZoom;
     this.ctx = canvas.getContext("2d")!;
 
     canvas.width = config.canvas.size[0];
     canvas.height = config.canvas.size[1];
 
-    canvas.addEventListener("mousemove", this.handleMouseMove.bind(this));
-    canvas.addEventListener("mouseup", this.handleMouseClick.bind(this));
-    canvas.addEventListener("mousedown", this.handleMouseDown.bind(this));
+    this.PanZoom.addListener("hover", this.handleMouseMove.bind(this));
+    this.PanZoom.addListener("click", this.handleMouseDown.bind(this));
 
     this.on("pallete", this.updatePallete.bind(this));
 
-    // Network.on("canvas", this.handleBatch.bind(this));
     Network.waitFor("canvas").then(([pixels]) => this.handleBatch(pixels));
 
     this.draw();
@@ -42,53 +51,24 @@ export class Canvas extends EventEmitter {
   destroy() {
     this._destroy = true;
 
-    this.canvas.removeEventListener(
-      "mousemove",
-      this.handleMouseMove.bind(this)
-    );
-    this.canvas.removeEventListener(
-      "mouseup",
-      this.handleMouseClick.bind(this)
-    );
-    this.canvas.removeEventListener(
-      "mousedown",
-      this.handleMouseDown.bind(this)
-    );
+    this.PanZoom.removeListener("hover", this.handleMouseMove.bind(this));
+    this.PanZoom.removeListener("click", this.handleMouseDown.bind(this));
 
     Network.off("canvas", this.handleBatch.bind(this));
   }
 
-  private downTime: number | undefined;
-  private dragOrigin: { x: number; y: number } = { x: 0, y: 0 };
-
-  handleMouseClick(e: MouseEvent) {
-    const downDelta = Date.now() - this.downTime!;
-    const delta = [
-      Math.abs(this.dragOrigin.x - e.clientX),
-      Math.abs(this.dragOrigin.y - e.clientY),
-    ];
-    if (downDelta < 500) {
-      // mouse was down for less than 500ms
-
-      if (delta[0] < 5 && delta[1] < 5) {
-        const [x, y] = this.screenToPos(e.clientX, e.clientY);
-        this.place(x, y);
-      }
-    }
+  handleMouseDown(e: ClickEvent) {
+    const [x, y] = this.screenToPos(e.clientX, e.clientY);
+    this.place(x, y);
   }
 
-  handleMouseDown(e: MouseEvent) {
-    this.downTime = Date.now();
-    this.dragOrigin = { x: e.pageX, y: e.pageY };
-  }
-
-  handleMouseMove(e: MouseEvent) {
+  handleMouseMove(e: HoverEvent) {
     const canvasRect = this.canvas.getBoundingClientRect();
     if (
-      canvasRect.left <= e.pageX &&
-      canvasRect.right >= e.pageX &&
-      canvasRect.top <= e.pageY &&
-      canvasRect.bottom >= e.pageY
+      canvasRect.left <= e.clientX &&
+      canvasRect.right >= e.clientX &&
+      canvasRect.top <= e.clientY &&
+      canvasRect.bottom >= e.clientY
     ) {
       const [x, y] = this.screenToPos(e.clientX, e.clientY);
       this.cursor.x = x;
@@ -101,8 +81,8 @@ export class Canvas extends EventEmitter {
 
   handleBatch(pixels: string[]) {
     pixels.forEach((hex, index) => {
-      const x = index / this.config.canvas.size[0];
-      const y = index % this.config.canvas.size[0];
+      const x = index % this.config.canvas.size[0];
+      const y = index / this.config.canvas.size[1];
       const color = this.Pallete.getColorFromHex(hex);
 
       this.pixels[x + "_" + y] = {
@@ -169,14 +149,35 @@ export class Canvas extends EventEmitter {
   }
 
   screenToPos(x: number, y: number) {
+    // the rendered dimentions in the browser
     const rect = this.canvas.getBoundingClientRect();
-    const scale = [
-      this.canvas.width / rect.width,
-      this.canvas.height / rect.height,
-    ];
-    return [x - rect.left, y - rect.top]
-      .map((v, i) => v * scale[i])
-      .map((v) => v >> 0);
+
+    let output = {
+      x: 0,
+      y: 0,
+    };
+
+    if (this.PanZoom.flags.useZoom) {
+      const scale = this.PanZoom.transform.scale;
+
+      output.x = x / scale - rect.left;
+      output.y = y / scale - rect.top;
+    } else {
+      // get the ratio
+      const scale = [
+        this.canvas.width / rect.width,
+        this.canvas.height / rect.height,
+      ];
+
+      output.x = (x - rect.left) * scale[0];
+      output.y = (y - rect.top) * scale[1];
+    }
+
+    // floor it, we're getting canvas coords, which can't have decimals
+    output.x >>= 0;
+    output.y >>= 0;
+
+    return [output.x, output.y];
   }
 
   draw() {

@@ -1,14 +1,8 @@
-import React, { createRef, useEffect } from "react";
-import {
-  TransformComponent,
-  TransformWrapper,
-  useControls,
-  useTransformEffect,
-} from "react-zoom-pan-pinch";
+import React, { createRef, useContext, useEffect } from "react";
 import { Canvas } from "../lib/canvas";
 import { useAppContext } from "../contexts/AppContext";
-import throttle from "lodash.throttle";
 import { PanZoomWrapper } from "@sc07-canvas/lib/src/renderer";
+import { RendererContext } from "@sc07-canvas/lib/src/renderer/RendererContext";
 
 export const CanvasWrapper = () => {
   // to prevent safari from blurring things, use the zoom css property
@@ -24,6 +18,7 @@ export const CanvasWrapper = () => {
 const CanvasInner = () => {
   const canvasRef = createRef<HTMLCanvasElement>();
   const { config } = useAppContext();
+  const PanZoom = useContext(RendererContext);
   // const { centerView } = useControls();
 
   // useTransformEffect(
@@ -39,7 +34,7 @@ const CanvasInner = () => {
   useEffect(() => {
     if (!config.canvas || !canvasRef.current) return;
     const canvas = canvasRef.current!;
-    const canvasInstance = new Canvas(config, canvas);
+    const canvasInstance = new Canvas(config, canvas, PanZoom);
     // centerView();
 
     return () => {

@@ -11,31 +11,94 @@ import {
 import { Panning } from "./lib/panning.utils";
 
 interface TransformState {
+  /**
+   * Zoom scale
+   *
+   * < 0 : zoomed out
+   * > 0 : zoomed in
+   */
   scale: number;
+
+  /**
+   * X position of canvas
+   */
   x: number;
+
+  /**
+   * Y position of canvas
+   */
   y: number;
 }
 
 interface Flags {
+  /**
+   * If CSS Zoom is used
+   *
+   * CSS Zoom is not supported on Firefox, as it's not a standard
+   * But on iOS, <canvas> is fuzzy (ignoring other css rules) when transform: scale()'d up
+   *
+   * @see https://caniuse.com/css-zoom
+   */
   useZoom: boolean;
 }
 
 interface TouchState {
+  /**
+   * Timestamp of last touch
+   */
   lastTouch: number | null;
+
+  /**
+   * Distance between each finger when pinch starts
+   */
   pinchStartDistance: number | null;
+
+  /**
+   * previous distance between each finger
+   */
   lastDistance: number | null;
+
+  /**
+   * scale when pinch starts
+   */
   pinchStartScale: number | null;
+
+  /**
+   * middle coord of pinch
+   */
   pinchMidpoint: { x: number; y: number } | null;
 }
 
-interface MouseState {}
+interface MouseState {
+  /**
+   * timestamp of mouse down
+   */
+  mouseDown: number | null;
+}
 
 interface ISetup {
+  /**
+   * Scale limits
+   * [minimum scale, maximum scale]
+   */
   scale: [number, number];
+}
+
+// TODO: move these event interfaces out
+export interface ClickEvent {
+  clientX: number;
+  clientY: number;
+}
+
+export interface HoverEvent {
+  clientX: number;
+  clientY: number;
 }
 
 interface PanZoomEvents {
   doubleTap: (e: TouchEvent) => void;
+  click: (e: ClickEvent) => void;
+  hover: (e: HoverEvent) => void;
 }
 
 export class PanZoom extends EventEmitter<PanZoomEvents> {
@@ -68,7 +131,9 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
       pinchMidpoint: null,
     };
 
-    this.mouse = {};
+    this.mouse = {
+      mouseDown: null,
+    };
 
     this.panning = new Panning(this);
 
@@ -318,6 +383,8 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
         e.preventDefault();
         e.stopPropagation();
 
+        this.mouse.mouseDown = Date.now();
+
         this.panning.start(e.clientX, e.clientY);
       },
       { passive: false }
@@ -327,12 +394,18 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
     document.addEventListener(
       "mousemove",
       (e) => {
-        if (!this.panning.enabled) return;
+        if (this.panning.enabled) {
+          e.preventDefault();
+          e.stopPropagation();
 
-        e.preventDefault();
-        e.stopPropagation();
-
-        this.panning.move(e.clientX, e.clientY);
+          this.panning.move(e.clientX, e.clientY);
+        } else {
+          // not panning
+          this.emit("hover", {
+            clientX: e.clientX,
+            clientY: e.clientY,
+          });
+        }
       },
       { passive: false }
     );
@@ -341,12 +414,32 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
     document.addEventListener(
       "mouseup",
       (e) => {
-        if (!this.panning.enabled) return;
+        if (this.mouse.mouseDown && Date.now() - this.mouse.mouseDown <= 500) {
+          // if the mouse was down for less than a half a second, it's a click
+          // this can't depend on this.panning.enabled because that'll always be true when mouse is down
 
-        e.preventDefault();
-        e.stopPropagation();
+          const delta = [
+            Math.abs(this.panning.x - e.clientX),
+            Math.abs(this.panning.y - e.clientY),
+          ];
 
-        this.panning.end(e.clientX, e.clientY);
+          if (delta[0] < 5 && delta[1] < 5) {
+            // difference from the start position to the up position is very very slow,
+            // so it's most likely intended to be a click
+            this.emit("click", {
+              clientX: e.clientX,
+              clientY: e.clientY,
+            });
+          }
+        }
+
+        if (this.panning.enabled) {
+          // currently panning
+          e.preventDefault();
+          e.stopPropagation();
+
+          this.panning.end(e.clientX, e.clientY);
+        }
       },
       { passive: false }
     );
