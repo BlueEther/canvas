@@ -1,8 +1,12 @@
-import React, { createRef, useContext, useEffect } from "react";
+import React, { createRef, useCallback, useContext, useEffect } from "react";
 import { Canvas } from "../lib/canvas";
 import { useAppContext } from "../contexts/AppContext";
 import { PanZoomWrapper } from "@sc07-canvas/lib/src/renderer";
 import { RendererContext } from "@sc07-canvas/lib/src/renderer/RendererContext";
+import { ViewportMoveEvent } from "@sc07-canvas/lib/src/renderer/PanZoom";
+import throttle from "lodash.throttle";
+import { ICanvasPosition } from "../types";
+import { Routes } from "../lib/routes";
 
 export const CanvasWrapper = () => {
   // to prevent safari from blurring things, use the zoom css property
@@ -17,19 +21,9 @@ export const CanvasWrapper = () => {
 
 const CanvasInner = () => {
   const canvasRef = createRef<HTMLCanvasElement>();
-  const { config } = useAppContext();
+  const { config, setCanvasPosition } = useAppContext();
   const PanZoom = useContext(RendererContext);
   // const { centerView } = useControls();
-
-  // useTransformEffect(
-  //   throttle(({ state, instance }) => {
-  //     const params = new URLSearchParams();
-  //     params.set("x", state.positionX + "");
-  //     params.set("y", state.positionY + "");
-  //     params.set("zoom", state.scale + "");
-  //     window.location.hash = params.toString();
-  //   }, 1000)
-  // );
 
   useEffect(() => {
     if (!config.canvas || !canvasRef.current) return;
@@ -37,10 +31,27 @@ const CanvasInner = () => {
     const canvasInstance = new Canvas(config, canvas, PanZoom);
     // centerView();
 
+    const handleViewportMove = throttle((state: ViewportMoveEvent) => {
+      const pos = canvasInstance.panZoomTransformToCanvas();
+
+      const canvasPosition: ICanvasPosition = {
+        x: pos.canvasX,
+        y: pos.canvasY,
+        zoom: state.scale >> 0,
+      };
+
+      setCanvasPosition(canvasPosition);
+
+      window.location.replace(Routes.canvas(canvasPosition));
+    }, 1000);
+
+    PanZoom.addListener("viewportMove", handleViewportMove);
+
     return () => {
       canvasInstance.destroy();
+      PanZoom.removeListener("viewportMove", handleViewportMove);
     };
-  }, [canvasRef, config]);
+  }, [PanZoom, canvasRef, config, setCanvasPosition]);
 
   return (
     <canvas

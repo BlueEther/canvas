@@ -122,5 +122,19 @@ main {
   image-rendering: crisp-edges;
 }
 
+.btn-link {
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  text-decoration: underline;
+
+  &:active {
+    opacity: 0.5;
+  }
+}
+
 @import "./components/Pallete.scss";
 @import "./board.scss";

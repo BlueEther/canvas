@@ -18,10 +18,18 @@ export interface ClientToServerEvents {
 export interface IAppContext {
   config: ClientConfig;
   user?: AuthSession;
+  canvasPosition?: ICanvasPosition;
+  setCanvasPosition: (v: ICanvasPosition) => void;
 }
 
 export interface IPalleteContext {
   color?: number;
+}
+
+export interface ICanvasPosition {
+  x: number;
+  y: number;
+  zoom: number;
 }
 
 // other

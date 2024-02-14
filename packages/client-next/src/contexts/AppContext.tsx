@@ -6,7 +6,12 @@ import React, {
   useState,
 } from "react";
 import { Socket } from "socket.io-client";
-import { ClientConfig, IAppContext, IPalleteContext } from "../types";
+import {
+  ClientConfig,
+  IAppContext,
+  ICanvasPosition,
+  IPalleteContext,
+} from "../types";
 import { AuthSession } from "@sc07-canvas/lib/src/net";
 import { number } from "prop-types";
 import Network from "../lib/network";
@@ -18,6 +23,7 @@ export const useAppContext = () => useContext(appContext);
 export const AppContext = ({ children }: PropsWithChildren) => {
   const [config, setConfig] = useState<ClientConfig>(undefined as any);
   const [auth, setAuth] = useState<AuthSession>();
+  const [canvasPosition, setCanvasPosition] = useState<ICanvasPosition>();
 
   useEffect(() => {
     function handleConfig(config: ClientConfig) {
@@ -41,7 +47,9 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   }, []);
 
   return (
-    <appContext.Provider value={{ config, user: auth }}>
+    <appContext.Provider
+      value={{ config, user: auth, canvasPosition, setCanvasPosition }}
+    >
       {config ? children : "Loading..."}
     </appContext.Provider>
   );

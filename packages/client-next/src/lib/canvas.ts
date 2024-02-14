@@ -148,6 +148,46 @@ export class Canvas extends EventEmitter {
       });
   }
 
+  panZoomTransformToCanvas() {
+    const { x, y, scale: zoom } = this.PanZoom.transform;
+    const rect = this.canvas.getBoundingClientRect();
+
+    let canvasX = 0;
+    let canvasY = 0;
+
+    if (this.PanZoom.flags.useZoom) {
+      // css zoom doesn't change the bounding client rect
+      // therefore dividing by zoom doesn't return the correct output
+      canvasX = this.canvas.width - (x + rect.width / 2);
+      canvasY = this.canvas.height - (y + rect.height / 2);
+    } else {
+      canvasX = this.canvas.width / 2 - (x + rect.width / zoom);
+      canvasY = this.canvas.height / 2 - (y + rect.height / zoom);
+
+      canvasX += this.canvas.width;
+      canvasY += this.canvas.height;
+    }
+
+    canvasX >>= 0;
+    canvasY >>= 0;
+
+    return { canvasX, canvasY };
+  }
+
+  debug(x: number, y: number, id?: string) {
+    if (document.getElementById("debug-" + id)) {
+      document.getElementById("debug-" + id)!.style.top = y + "px";
+      document.getElementById("debug-" + id)!.style.left = x + "px";
+      return;
+    }
+    let el = document.createElement("div");
+    if (id) el.id = "debug-" + id;
+    el.classList.add("debug-point");
+    el.style.setProperty("top", y + "px");
+    el.style.setProperty("left", x + "px");
+    document.body.appendChild(el);
+  }
+
   screenToPos(x: number, y: number) {
     // the rendered dimentions in the browser
     const rect = this.canvas.getBoundingClientRect();

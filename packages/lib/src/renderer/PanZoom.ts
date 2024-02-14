@@ -95,10 +95,17 @@ export interface HoverEvent {
   clientY: number;
 }
 
+export interface ViewportMoveEvent {
+  scale: number;
+  x: number;
+  y: number;
+}
+
 interface PanZoomEvents {
   doubleTap: (e: TouchEvent) => void;
   click: (e: ClickEvent) => void;
   hover: (e: HoverEvent) => void;
+  viewportMove: (e: ViewportMoveEvent) => void;
 }
 
 export class PanZoom extends EventEmitter<PanZoomEvents> {
@@ -446,6 +453,12 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
   }
 
   update() {
+    this.emit("viewportMove", {
+      scale: this.transform.scale,
+      x: this.transform.x,
+      y: this.transform.y,
+    });
+
     if (this.flags.useZoom) {
       this.$zoom.style.setProperty("zoom", this.transform.scale * 100 + "%");
     } else {

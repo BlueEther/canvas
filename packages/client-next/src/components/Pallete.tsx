@@ -68,8 +68,17 @@ export const Pallete = () => {
 };
 
 export const CanvasMeta = () => {
+  const { canvasPosition } = useAppContext();
+
   return (
     <div id="canvas-meta">
+      {canvasPosition && (
+        <span>
+          <button className="btn-link">
+            ({canvasPosition.x}, {canvasPosition.y})
+          </button>
+        </span>
+      )}
       <span>
         Pixels: <span>123</span>
       </span>
