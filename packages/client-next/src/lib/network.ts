@@ -18,9 +18,12 @@ type SentEventValue<K extends keyof INetworkEvents> = EventEmitter.ArgumentMap<
 >[Extract<K, keyof INetworkEvents>];
 
 class Network extends EventEmitter<INetworkEvents> {
-  socket: Socket<ServerToClientEvents, ClientToServerEvents> = io({
-    autoConnect: false,
-  });
+  socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
+    import.meta.env.VITE_API_HOST,
+    {
+      autoConnect: false,
+    }
+  );
   private online_count = 0;
   private sentEvents: {
     [key in keyof INetworkEvents]?: SentEventValue<key>;

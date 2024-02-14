@@ -1,4 +1,3 @@
-import React from "react";
 import { Header } from "./Header";
 import { AppContext } from "../contexts/AppContext";
 import { CanvasWrapper } from "./CanvasWrapper";

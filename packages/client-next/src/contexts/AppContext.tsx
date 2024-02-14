@@ -1,19 +1,12 @@
-import React, {
+import {
   PropsWithChildren,
   createContext,
   useContext,
   useEffect,
   useState,
 } from "react";
-import { Socket } from "socket.io-client";
-import {
-  ClientConfig,
-  IAppContext,
-  ICanvasPosition,
-  IPalleteContext,
-} from "../types";
+import { ClientConfig, IAppContext, ICanvasPosition } from "../types";
 import { AuthSession } from "@sc07-canvas/lib/src/net";
-import { number } from "prop-types";
 import Network from "../lib/network";
 
 const appContext = createContext<IAppContext>({} as any);

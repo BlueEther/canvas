@@ -1,4 +1,4 @@
-import React, { createRef, useCallback, useContext, useEffect } from "react";
+import { createRef, useContext, useEffect } from "react";
 import { Canvas } from "../lib/canvas";
 import { useAppContext } from "../contexts/AppContext";
 import { PanZoomWrapper } from "@sc07-canvas/lib/src/renderer";

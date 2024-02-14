@@ -1,7 +1,3 @@
 {
-  "extends": "@tsconfig/recommended/tsconfig.json",
-  "compilerOptions": {
-    "sourceMap": true,
-    "jsx": "react",
-  },
+  "extends": "@tsconfig/vite-react/tsconfig.json",
 }

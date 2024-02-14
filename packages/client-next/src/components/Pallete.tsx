@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppContext } from "../contexts/AppContext";
 import { Canvas } from "../lib/canvas";
 import { IPalleteContext } from "../types";

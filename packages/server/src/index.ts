@@ -53,7 +53,11 @@ const io = new Server<
     canvas: (pixels: string[]) => void;
     online: (data: { count: number }) => void;
   }
->(server);
+>(server, {
+  cors: {
+    origin: "*",
+  },
+});
 
 var PALLETE: PalleteColor[] = [];
 const PIXEL_TIMEOUT_MS = 1000;
