@@ -10,13 +10,11 @@ html,
 body {
   overscroll-behavior: contain;
   touch-action: none;
+
+  background-color: #ddd !important;
 }
 
-body {
-  background-color: #ddd;
-}
-
-header {
+header#main-header {
   position: fixed;
   top: 0;
   left: 0;

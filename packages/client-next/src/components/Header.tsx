@@ -2,7 +2,7 @@ import React from "react";
 
 export const Header = () => {
   return (
-    <header>
+    <header id="main-header">
       <div></div>
       <div className="spacer"></div>
       <div className="box">

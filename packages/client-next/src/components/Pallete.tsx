@@ -4,6 +4,7 @@ import { Canvas } from "../lib/canvas";
 import { IPalleteContext } from "../types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { CanvasMeta } from "./CanvasMeta";
 
 export const Pallete = () => {
   const { config, user } = useAppContext();
@@ -63,28 +64,6 @@ export const Pallete = () => {
           </a>
         </div>
       )}
-    </div>
-  );
-};
-
-export const CanvasMeta = () => {
-  const { canvasPosition } = useAppContext();
-
-  return (
-    <div id="canvas-meta">
-      {canvasPosition && (
-        <span>
-          <button className="btn-link">
-            ({canvasPosition.x}, {canvasPosition.y})
-          </button>
-        </span>
-      )}
-      <span>
-        Pixels: <span>123</span>
-      </span>
-      <span>
-        Users Online: <span>321</span>
-      </span>
     </div>
   );
 };
