@@ -310,12 +310,12 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
 
     if (newScale === scale) return;
 
-    const { x, y } = handleCalculateZoomPositions(
-      this,
-      midPoint.x,
-      midPoint.y,
-      newScale
-    );
+    // const { x, y } = handleCalculateZoomPositions(
+    //   this,
+    //   midPoint.x,
+    //   midPoint.y,
+    //   newScale
+    // );
 
     this.touch.pinchMidpoint = midPoint;
     this.touch.lastDistance = currentDistance;
@@ -367,7 +367,8 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
             break;
         }
 
-        this.nudgeScale(delta);
+        // TODO: move this to settings
+        this.nudgeScale(delta / 2);
 
         const scale = this.transform.scale;
         if (oldScale !== scale) {
