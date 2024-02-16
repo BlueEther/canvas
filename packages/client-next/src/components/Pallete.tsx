@@ -13,7 +13,7 @@ export const Pallete = () => {
   useEffect(() => {
     if (!Canvas.instance) return;
 
-    Canvas.instance.emit("pallete", pallete);
+    Canvas.instance.updatePallete(pallete);
   }, [pallete]);
 
   return (

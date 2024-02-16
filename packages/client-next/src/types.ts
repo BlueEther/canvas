@@ -20,6 +20,8 @@ export interface IAppContext {
   user?: AuthSession;
   canvasPosition?: ICanvasPosition;
   setCanvasPosition: (v: ICanvasPosition) => void;
+  cursorPosition?: IPosition;
+  setCursorPosition: (v?: IPosition) => void;
 }
 
 export interface IPalleteContext {
@@ -30,6 +32,11 @@ export interface ICanvasPosition {
   x: number;
   y: number;
   zoom: number;
+}
+
+export interface IPosition {
+  x: number;
+  y: number;
 }
 
 // other

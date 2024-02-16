@@ -1,5 +1,5 @@
 import EventEmitter from "eventemitter3";
-import { ClientConfig, IPalleteContext, Pixel } from "../types";
+import { ClientConfig, IPalleteContext, IPosition, Pixel } from "../types";
 import Network from "./network";
 import {
   ClickEvent,
@@ -7,7 +7,17 @@ import {
   PanZoom,
 } from "@sc07-canvas/lib/src/renderer/PanZoom";
 
-export class Canvas extends EventEmitter {
+interface CanvasEvents {
+  /**
+   * Cursor canvas position
+   * (-1, -1) is not on canvas
+   * @param position Canvas position
+   * @returns
+   */
+  cursorPos: (position: IPosition) => void;
+}
+
+export class Canvas extends EventEmitter<CanvasEvents> {
   static instance: Canvas | undefined;
 
   private _destroy = false;
@@ -40,8 +50,6 @@ export class Canvas extends EventEmitter {
 
     this.PanZoom.addListener("hover", this.handleMouseMove.bind(this));
     this.PanZoom.addListener("click", this.handleMouseDown.bind(this));
-
-    this.on("pallete", this.updatePallete.bind(this));
 
     Network.waitFor("canvas").then(([pixels]) => this.handleBatch(pixels));
 
@@ -77,6 +85,8 @@ export class Canvas extends EventEmitter {
       this.cursor.x = -1;
       this.cursor.y = -1;
     }
+
+    this.emit("cursorPos", this.cursor);
   }
 
   handleBatch(pixels: string[]) {
@@ -92,7 +102,7 @@ export class Canvas extends EventEmitter {
     });
   }
 
-  handlePixel({ x, y, color, ...pixel }: Pixel) {
+  handlePixel({ x, y, color }: Pixel) {
     this.pixels[x + "_" + y] = {
       color,
       type: "full",

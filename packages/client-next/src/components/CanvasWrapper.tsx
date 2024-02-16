@@ -5,7 +5,7 @@ import { PanZoomWrapper } from "@sc07-canvas/lib/src/renderer";
 import { RendererContext } from "@sc07-canvas/lib/src/renderer/RendererContext";
 import { ViewportMoveEvent } from "@sc07-canvas/lib/src/renderer/PanZoom";
 import throttle from "lodash.throttle";
-import { ICanvasPosition } from "../types";
+import { ICanvasPosition, IPosition } from "../types";
 import { Routes } from "../lib/routes";
 
 export const CanvasWrapper = () => {
@@ -21,7 +21,7 @@ export const CanvasWrapper = () => {
 
 const CanvasInner = () => {
   const canvasRef = createRef<HTMLCanvasElement>();
-  const { config, setCanvasPosition } = useAppContext();
+  const { config, setCanvasPosition, setCursorPosition } = useAppContext();
   const PanZoom = useContext(RendererContext);
   // const { centerView } = useControls();
 
@@ -45,11 +45,26 @@ const CanvasInner = () => {
       window.location.replace(Routes.canvas(canvasPosition));
     }, 1000);
 
+    const handleCursorPos = (pos: IPosition) => {
+      if (
+        pos.x < 0 ||
+        pos.y < 0 ||
+        pos.x > config.canvas.size[0] ||
+        pos.y > config.canvas.size[1]
+      ) {
+        setCursorPosition();
+      } else {
+        setCursorPosition(pos);
+      }
+    };
+
     PanZoom.addListener("viewportMove", handleViewportMove);
+    canvasInstance.on("cursorPos", handleCursorPos);
 
     return () => {
       canvasInstance.destroy();
       PanZoom.removeListener("viewportMove", handleViewportMove);
+      canvasInstance.off("cursorPos", handleCursorPos);
     };
   }, [PanZoom, canvasRef, config, setCanvasPosition]);
 

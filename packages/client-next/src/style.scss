@@ -94,6 +94,10 @@ header#main-header {
 
   display: flex;
   flex-direction: column;
+
+  .canvas-meta--cursor-pos {
+    font-style: italic;
+  }
 }
 
 main {

@@ -8,7 +8,7 @@ import {
 import { useAppContext } from "../contexts/AppContext";
 
 export const CanvasMeta = () => {
-  const { canvasPosition } = useAppContext();
+  const { canvasPosition, cursorPosition } = useAppContext();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (
@@ -19,6 +19,14 @@ export const CanvasMeta = () => {
             <button className="btn-link" onClick={onOpen}>
               ({canvasPosition.x}, {canvasPosition.y})
             </button>
+            {cursorPosition && (
+              <>
+                {" "}
+                <span className="canvas-meta--cursor-pos">
+                  (Cursor: {cursorPosition.x}, {cursorPosition.y})
+                </span>
+              </>
+            )}
           </span>
         )}
         <span>
