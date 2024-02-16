@@ -36,6 +36,10 @@ const session = expressSession({
     client: redisClient,
     prefix: "canvas_session:",
   }),
+  cookie: {
+    sameSite: "none",
+    httpOnly: false,
+  },
 });
 const app = express();
 const server = http.createServer(app);
@@ -55,7 +59,8 @@ const io = new Server<
   }
 >(server, {
   cors: {
-    origin: "*",
+    origin: "http://10.1.10.248:5173",
+    credentials: true,
   },
 });
 

@@ -22,6 +22,7 @@ class Network extends EventEmitter<INetworkEvents> {
     import.meta.env.VITE_API_HOST,
     {
       autoConnect: false,
+      withCredentials: true,
     }
   );
   private online_count = 0;
