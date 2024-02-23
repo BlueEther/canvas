@@ -3,6 +3,7 @@ import expressSession from "express-session";
 import http from "node:http";
 import { Server } from "socket.io";
 import {
+  AuthSession,
   CPixelPacket,
   PacketAck,
   SCanvasPacket,
@@ -51,7 +52,7 @@ const io = new Server<
     ) => void;
   },
   {
-    user: (user: SUserPacket) => void;
+    user: (user: AuthSession) => void;
     config: (config: any) => void;
     pixel: (data: SPixelPacket) => void;
     canvas: (pixels: string[]) => void;
@@ -103,11 +104,7 @@ io.on("connection", (socket) => {
   console.log("connection", socket.request.session.user);
 
   if (socket.request.session.user)
-    socket.emit("user", {
-      type: "user",
-      user: socket.request.session.user,
-      _direction: "server->client",
-    });
+    socket.emit("user", socket.request.session.user);
 
   socket.emit("config", {
     pallete: {

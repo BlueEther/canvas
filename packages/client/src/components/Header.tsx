@@ -1,4 +1,4 @@
-import React from "react";
+import { User } from "./Header/User";
 
 export const Header = () => {
   return (
@@ -6,13 +6,7 @@ export const Header = () => {
       <div></div>
       <div className="spacer"></div>
       <div className="box">
-        <div className="user-card">
-          <div className="user-card--overview">
-            <div className="user-name"></div>
-            <div className="user-instance"></div>
-          </div>
-          <img src="#" alt="User Avatar" className="user-avatar" />
-        </div>
+        <User />
       </div>
     </header>
   );
