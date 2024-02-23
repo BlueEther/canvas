@@ -82,6 +82,8 @@ interface ISetup {
    * [minimum scale, maximum scale]
    */
   scale: [number, number];
+
+  initialTransform?: TransformState;
 }
 
 // TODO: move these event interfaces out
@@ -106,9 +108,12 @@ interface PanZoomEvents {
   click: (e: ClickEvent) => void;
   hover: (e: HoverEvent) => void;
   viewportMove: (e: ViewportMoveEvent) => void;
+  initialize: () => void;
 }
 
 export class PanZoom extends EventEmitter<PanZoomEvents> {
+  private initialized = false;
+
   public $wrapper: HTMLDivElement = null as any;
   public $zoom: HTMLDivElement = null as any;
   public $move: HTMLDivElement = null as any;
@@ -165,6 +170,53 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
     this.detectFlags();
     this.registerMouseEvents();
     this.registerTouchEvents();
+
+    this.initialized = true;
+
+    if (this.setup.initialTransform) {
+      // use initial transform if it is set
+      // initialTransform is set from #setPosition() when PanZoom is not initalized
+
+      let { x, y, scale } = this.setup.initialTransform;
+
+      this.transform.x = x;
+      this.transform.y = y;
+      this.transform.scale = scale;
+      this.update({ suppressEmit: true });
+    }
+
+    this.emit("initialize");
+  }
+
+  /**
+   * Sets transform data
+   *
+   * @param position
+   * @param position.x Transform X
+   * @param position.y Transform Y
+   * @param position.zoom Zoom scale
+   * @param flags
+   * @param flags.suppressEmit If true, don't emit a viewport change
+   * @returns
+   */
+  setPosition(
+    { x, y, zoom }: { x: number; y: number; zoom: number },
+    { suppressEmit } = { suppressEmit: false }
+  ) {
+    if (!this.initialized) {
+      // elements are not yet available, store them to be used upon initialization
+      this.setup.initialTransform = {
+        x,
+        y,
+        scale: zoom,
+      };
+      return;
+    }
+
+    this.transform.x = x;
+    this.transform.y = y;
+    this.transform.scale = zoom;
+    this.update({ suppressEmit });
   }
 
   detectFlags() {
@@ -453,12 +505,28 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
     );
   }
 
-  update() {
-    this.emit("viewportMove", {
-      scale: this.transform.scale,
-      x: this.transform.x,
-      y: this.transform.y,
-    });
+  /**
+   * Update viewport scale and position
+   *
+   * @param flags
+   * @param flags.suppressEmit Do not emit viewportMove
+   */
+  update(
+    {
+      suppressEmit,
+    }: {
+      suppressEmit: boolean;
+    } = {
+      suppressEmit: false,
+    }
+  ) {
+    if (!suppressEmit) {
+      this.emit("viewportMove", {
+        scale: this.transform.scale,
+        x: this.transform.x,
+        y: this.transform.y,
+      });
+    }
 
     if (this.flags.useZoom) {
       this.$zoom.style.setProperty("zoom", this.transform.scale * 100 + "%");

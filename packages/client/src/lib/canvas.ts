@@ -158,6 +158,22 @@ export class Canvas extends EventEmitter<CanvasEvents> {
       });
   }
 
+  canvasToPanZoomTransform(x: number, y: number) {
+    let transformX = 0;
+    let transformY = 0;
+
+    if (this.PanZoom.flags.useZoom) {
+      // CSS Zoom does not alter this (obviously)
+      transformX = this.canvas.width / 2 - x;
+      transformY = this.canvas.height / 2 - y;
+    } else {
+      transformX = this.canvas.width / 2 - x;
+      transformY = this.canvas.height / 2 - y;
+    }
+
+    return { transformX, transformY };
+  }
+
   panZoomTransformToCanvas() {
     const { x, y, scale: zoom } = this.PanZoom.transform;
     const rect = this.canvas.getBoundingClientRect();
