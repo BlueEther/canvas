@@ -1,0 +1,96 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  sub String [pk]
+  lastPixelTime DateTime [default: `now()`, not null]
+  pixels Pixel [not null]
+  FactionMember FactionMember [not null]
+}
+
+Table PalleteColor {
+  id Int [pk, increment]
+  name String [not null]
+  hex String [unique, not null]
+  pixels Pixel [not null]
+}
+
+Table Pixel {
+  id Int [pk, increment]
+  userId String [not null]
+  x Int [not null]
+  y Int [not null]
+  color String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  user User [not null]
+  pallete PalleteColor [not null]
+}
+
+Table Faction {
+  id String [pk]
+  name String [not null]
+  image String
+  FactionMember FactionMember [not null]
+  FactionRole FactionRole [not null]
+  FactionSocial FactionSocial [not null]
+  FactionSetting FactionSetting [not null]
+}
+
+Table FactionMember {
+  id Int [pk, increment]
+  sub String [not null]
+  factionId String [not null]
+  user User [not null]
+  faction Faction [not null]
+}
+
+Table FactionRole {
+  id String [pk]
+  name String [not null]
+  level Int [not null]
+  factionId String [not null]
+  faction Faction [not null]
+}
+
+Table FactionSocial {
+  id String [pk]
+  factionId String [not null]
+  title String
+  url String [not null]
+  position Int [not null]
+  faction Faction [not null]
+}
+
+Table FactionSetting {
+  id String [pk]
+  factionId String [not null]
+  key String [not null]
+  value String [not null]
+  definition FactionSettingDefinition [not null]
+  faction Faction [not null]
+}
+
+Table FactionSettingDefinition {
+  id String [pk]
+  name String [not null]
+  type String [not null]
+  minimumLevel Int [not null]
+  FactionSetting FactionSetting [not null]
+}
+
+Ref: Pixel.userId > User.sub
+
+Ref: Pixel.color > PalleteColor.hex
+
+Ref: FactionMember.sub > User.sub
+
+Ref: FactionMember.factionId > Faction.id
+
+Ref: FactionRole.factionId > Faction.id
+
+Ref: FactionSocial.factionId > Faction.id
+
+Ref: FactionSetting.key > FactionSettingDefinition.id
+
+Ref: FactionSetting.factionId > Faction.id

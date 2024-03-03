@@ -5,6 +5,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
@@ -14,7 +18,8 @@ model User {
   sub           String   @id
   lastPixelTime DateTime @default(now())
 
-  pixels Pixel[]
+  pixels        Pixel[]
+  FactionMember FactionMember[]
 }
 
 model PalleteColor {
@@ -36,4 +41,65 @@ model Pixel {
 
   user    User         @relation(fields: [userId], references: [sub])
   pallete PalleteColor @relation(fields: [color], references: [hex])
+}
+
+model Faction {
+  id    String  @id @default(uuid())
+  name  String
+  image String?
+
+  FactionMember  FactionMember[]
+  FactionRole    FactionRole[]
+  FactionSocial  FactionSocial[]
+  FactionSetting FactionSetting[]
+}
+
+// people can be apart of multiple factions at once
+model FactionMember {
+  id        Int    @id @default(autoincrement())
+  sub       String
+  factionId String
+
+  user    User    @relation(fields: [sub], references: [sub])
+  faction Faction @relation(fields: [factionId], references: [id])
+}
+
+// future proofing maybe: different roles for the same faction
+// factions by default should have LEADER, MODERATOR, MEMBER
+model FactionRole {
+  id        String @id @default(uuid())
+  name      String
+  level     Int // permission level (similar to matrix [0 = member, 100 = leader])
+  factionId String
+
+  faction Faction @relation(fields: [factionId], references: [id])
+}
+
+model FactionSocial {
+  id        String  @id @default(uuid())
+  factionId String
+  title     String? // display name for the link
+  url       String // [!] rel=nofollow [!]
+  position  Int
+
+  faction Faction @relation(fields: [factionId], references: [id])
+}
+
+model FactionSetting {
+  id        String @id @default(uuid())
+  factionId String
+  key       String
+  value     String
+
+  definition FactionSettingDefinition @relation(fields: [key], references: [id])
+  faction    Faction                  @relation(fields: [factionId], references: [id])
+}
+
+// global definition for the faction setting
+model FactionSettingDefinition {
+  id             String           @id
+  name           String
+  type           String // enum of type of setting (eg. text, checkbox)
+  minimumLevel   Int // what level is needed to modify this setting (>=)
+  FactionSetting FactionSetting[]
 }
