@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "workspaces": [
-    "packages/client-next",
+    "packages/admin",
+    "packages/client",
     "packages/server",
     "packages/lib"
   ],
