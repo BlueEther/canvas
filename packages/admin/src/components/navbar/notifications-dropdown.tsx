@@ -6,7 +6,6 @@ import {
   DropdownTrigger,
   NavbarItem,
 } from "@nextui-org/react";
-import React from "react";
 // import { NotificationIcon } from "../icons/navbar/notificationicon";
 
 export const NotificationsDropdown = () => {

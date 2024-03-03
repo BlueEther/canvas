@@ -1,7 +1,6 @@
 import { faFile } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { BreadcrumbItem, Breadcrumbs, Button, Input } from "@nextui-org/react";
-import { TableWrapper } from "../../../components/table/TableWrapper";
 import { AccountsTable } from "./AccountsTable";
 
 export const AccountsPage = () => {

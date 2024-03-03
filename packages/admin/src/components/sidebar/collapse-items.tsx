@@ -1,10 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 // import { ChevronUpIcon } from "../icons/sidebar/chevron-up-icon";
 import { Accordion, AccordionItem } from "@nextui-org/react";
-import clsx from "clsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 
 interface Props {
   icon: React.ReactNode;
@@ -13,8 +12,6 @@ interface Props {
 }
 
 export const CollapseItems = ({ icon, items, title }: Props) => {
-  const [open, setOpen] = useState(false);
-
   return (
     <div className="flex gap-4 h-full items-center cursor-pointer">
       <Accordion className="px-0">

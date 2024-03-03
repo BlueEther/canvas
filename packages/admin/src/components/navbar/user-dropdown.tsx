@@ -4,10 +4,8 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
-  Navbar,
   NavbarItem,
 } from "@nextui-org/react";
-import React from "react";
 // import { DarkModeSwitch } from "./darkmodeswitch";
 
 export const UserDropdown = () => {
