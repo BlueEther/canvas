@@ -1,42 +1,71 @@
-export type CPixelPacket = ClientPacket & {
-  type: "place";
+// socket.io
+
+export interface ServerToClientEvents {
+  canvas: (pixels: string[]) => void;
+  user: (user: AuthSession) => void;
+  config: (config: ClientConfig) => void;
+  pixel: (pixel: Pixel) => void;
+  online: (count: { count: number }) => void;
+}
+
+export interface ClientToServerEvents {
+  place: (pixel: Pixel, ack: (_: PacketAck<Pixel>) => void) => void;
+}
+
+// app context
+
+export interface IAppContext {
+  config: ClientConfig;
+  user?: AuthSession;
+  canvasPosition?: ICanvasPosition;
+  setCanvasPosition: (v: ICanvasPosition) => void;
+  cursorPosition?: IPosition;
+  setCursorPosition: (v?: IPosition) => void;
+}
+
+export interface IPalleteContext {
+  color?: number;
+}
+
+export interface ICanvasPosition {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
+export interface IPosition {
+  x: number;
+  y: number;
+}
+
+// other
+
+export type Pixel = {
   x: number;
   y: number;
   color: number;
 };
 
-export type SCanvasPacket = ServerPacket & {
-  type: "canvas";
-  pixels: string[];
+export type PalleteColor = {
+  id: number;
+  name: string;
+  hex: string;
 };
 
-export type SPixelPacket = ServerPacket & {
-  type: "pixel";
-  x: number;
-  y: number;
-  color: number;
+export type CanvasConfig = {
+  size: [number, number];
+  zoom: number;
 };
 
-export type SUserPacket = ServerPacket & {
-  type: "user";
-  user: AuthSession;
+export type ClientConfig = {
+  pallete: {
+    colors: PalleteColor[];
+    pixel_cooldown: number;
+  };
+  canvas: CanvasConfig;
 };
 
-export type Packet = {
-  type: string;
-};
-
-// server -> client
-export type ServerPacket = Packet & {
-  _direction: "server->client";
-};
-
-// client -> server
-export type ClientPacket = Packet & {
-  _direction: "client->server";
-};
-
-export type PacketAck<T = ServerPacket> =
+export type PacketAck<T> =
   | {
       success: true;
       data: T;

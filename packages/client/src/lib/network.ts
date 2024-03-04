@@ -1,11 +1,11 @@
 import { Socket, io } from "socket.io-client";
+import EventEmitter from "eventemitter3";
 import {
+  AuthSession,
   ClientConfig,
   ClientToServerEvents,
   ServerToClientEvents,
-} from "../types";
-import EventEmitter from "eventemitter3";
-import { AuthSession } from "@sc07-canvas/lib/src/net";
+} from "@sc07-canvas/lib/src/net";
 
 export interface INetworkEvents {
   user: (user: AuthSession) => void;

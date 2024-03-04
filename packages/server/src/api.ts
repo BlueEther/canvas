@@ -7,6 +7,10 @@ const AUTH_ENDPOINT = "https://auth.fediverse.events";
 const AUTH_CLIENT = "canvas";
 const AUTH_SECRET = "secret";
 
+app.get("/me", (req, res) => {
+  res.json(req.session);
+});
+
 app.get("/login", (req, res) => {
   const params = new URLSearchParams();
   params.set("service", "canvas");

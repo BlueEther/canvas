@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { getRedis } from "./redis";
+import { Redis } from "./redis";
 
 const redis_keys = {
   pixelColor: (x: number, y: number) => `CANVAS:PIXELS[${x},${y}]:COLOR`,
@@ -24,7 +24,7 @@ class Canvas {
    * Latest database pixels -> Redis
    */
   async pixelsToRedis() {
-    const redis = await getRedis();
+    const redis = await Redis.getClient();
 
     const key = redis_keys.pixelColor;
 
@@ -52,9 +52,9 @@ class Canvas {
    * @returns 1D array of pixel values
    */
   async canvasToRedis() {
-    const redis = await getRedis();
+    const redis = await Redis.getClient();
 
-    let pixels: string[] = [];
+    const pixels: string[] = [];
 
     for (let x = 0; x < this.CANVAS_SIZE[0]; x++) {
       for (let y = 0; y < this.CANVAS_SIZE[1]; y++) {
@@ -73,11 +73,11 @@ class Canvas {
    * force an update at a specific position
    */
   async updateCanvasRedisAtPos(x: number, y: number) {
-    const redis = await getRedis();
+    const redis = await Redis.getClient();
 
-    let pixels: string[] = ((await redis.get(redis_keys.canvas())) || "").split(
-      ","
-    );
+    const pixels: string[] = (
+      (await redis.get(redis_keys.canvas())) || ""
+    ).split(",");
 
     pixels[this.CANVAS_SIZE[0] * y + x] =
       (await redis.get(redis_keys.pixelColor(x, y))) || "transparent";
@@ -86,7 +86,7 @@ class Canvas {
   }
 
   async getPixelsArray() {
-    const redis = await getRedis();
+    const redis = await Redis.getClient();
 
     if (await redis.exists(redis_keys.canvas())) {
       const cached = await redis.get(redis_keys.canvas());
@@ -97,7 +97,7 @@ class Canvas {
   }
 
   async setPixel(user: { sub: string }, x: number, y: number, hex: string) {
-    const redis = await getRedis();
+    const redis = await Redis.getClient();
 
     await prisma.pixel.create({
       data: {
