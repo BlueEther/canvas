@@ -1,10 +1,6 @@
+import { CanvasConfig } from "@sc07-canvas/lib/src/net";
 import { prisma } from "./prisma";
 import { Redis } from "./redis";
-
-const redis_keys = {
-  pixelColor: (x: number, y: number) => `CANVAS:PIXELS[${x},${y}]:COLOR`,
-  canvas: () => `CANVAS:PIXELS`,
-};
 
 class Canvas {
   private CANVAS_SIZE: [number, number];
@@ -13,10 +9,15 @@ class Canvas {
     this.CANVAS_SIZE = [100, 100];
   }
 
-  getCanvasConfig() {
+  getCanvasConfig(): CanvasConfig {
     return {
       size: this.CANVAS_SIZE,
       zoom: 7,
+      pixel: {
+        cooldown: 60,
+        multiplier: 3,
+        maxStack: 6,
+      },
     };
   }
 
@@ -26,7 +27,7 @@ class Canvas {
   async pixelsToRedis() {
     const redis = await Redis.getClient();
 
-    const key = redis_keys.pixelColor;
+    const key = Redis.keyRef("pixelColor");
 
     for (let x = 0; x < this.CANVAS_SIZE[0]; x++) {
       for (let y = 0; y < this.CANVAS_SIZE[1]; y++) {
@@ -59,12 +60,12 @@ class Canvas {
     for (let x = 0; x < this.CANVAS_SIZE[0]; x++) {
       for (let y = 0; y < this.CANVAS_SIZE[1]; y++) {
         pixels.push(
-          (await redis.get(redis_keys.pixelColor(x, y))) || "transparent"
+          (await redis.get(Redis.key("pixelColor", x, y))) || "transparent"
         );
       }
     }
 
-    await redis.set(redis_keys.canvas(), pixels.join(","), { EX: 60 * 5 });
+    await redis.set(Redis.key("canvas"), pixels.join(","), { EX: 60 * 5 });
 
     return pixels;
   }
@@ -76,20 +77,20 @@ class Canvas {
     const redis = await Redis.getClient();
 
     const pixels: string[] = (
-      (await redis.get(redis_keys.canvas())) || ""
+      (await redis.get(Redis.key("canvas"))) || ""
     ).split(",");
 
     pixels[this.CANVAS_SIZE[0] * y + x] =
-      (await redis.get(redis_keys.pixelColor(x, y))) || "transparent";
+      (await redis.get(Redis.key("pixelColor", x, y))) || "transparent";
 
-    await redis.set(redis_keys.canvas(), pixels.join(","), { EX: 60 * 5 });
+    await redis.set(Redis.key("canvas"), pixels.join(","), { EX: 60 * 5 });
   }
 
   async getPixelsArray() {
     const redis = await Redis.getClient();
 
-    if (await redis.exists(redis_keys.canvas())) {
-      const cached = await redis.get(redis_keys.canvas());
+    if (await redis.exists(Redis.key("canvas"))) {
+      const cached = await redis.get(Redis.key("canvas"));
       return cached!.split(",");
     }
 

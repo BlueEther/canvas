@@ -1,5 +1,10 @@
 import EventEmitter from "eventemitter3";
-import { ClientConfig, IPalleteContext, IPosition, Pixel } from "../types";
+import {
+  ClientConfig,
+  IPalleteContext,
+  IPosition,
+  Pixel,
+} from "@sc07-canvas/lib/src/net";
 import Network from "./network";
 import {
   ClickEvent,
@@ -30,7 +35,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
   private pixels: {
     [x_y: string]: { color: number; type: "full" | "pending" };
   } = {};
-  private lastPlace: number | undefined;
+  lastPlace: number | undefined;
 
   constructor(
     config: ClientConfig,
@@ -52,6 +57,9 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     this.PanZoom.addListener("click", this.handleMouseDown.bind(this));
 
     Network.waitFor("canvas").then(([pixels]) => this.handleBatch(pixels));
+    Network.waitFor("pixelLastPlaced").then(
+      ([time]) => (this.lastPlace = time)
+    );
 
     this.draw();
   }
@@ -133,14 +141,13 @@ export class Canvas extends EventEmitter<CanvasEvents> {
   place(x: number, y: number) {
     if (!this.Pallete.getSelectedColor()) return;
 
-    if (this.lastPlace) {
-      if (this.lastPlace + this.config.pallete.pixel_cooldown > Date.now()) {
-        console.log("cannot place; cooldown");
-        return;
-      }
-    }
-
-    this.lastPlace = Date.now();
+    // TODO: redo this as the server now verifies placements differently
+    // if (this.lastPlace) {
+    //   if (this.lastPlace + this.config.pallete.pixel_cooldown > Date.now()) {
+    //     console.log("cannot place; cooldown");
+    //     return;
+    //   }
+    // }
 
     Network.socket
       .emitWithAck("place", {
@@ -150,6 +157,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
       })
       .then((ack) => {
         if (ack.success) {
+          this.lastPlace = Date.now();
           this.handlePixel(ack.data);
         } else {
           // TODO: handle undo pixel

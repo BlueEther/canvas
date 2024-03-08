@@ -16,12 +16,14 @@ datasource db {
 
 model User {
   sub           String   @id
-  lastPixelTime DateTime @default(now())
+  lastPixelTime DateTime @default(now()) // the time the last pixel was placed at
+  pixelStack    Int      @default(0) // amount of pixels stacked for this user
 
   pixels        Pixel[]
   FactionMember FactionMember[]
 }
 
+// TODO: i cannot spell, rename this to PaletteColor
 model PalleteColor {
   id   Int    @id @default(autoincrement())
   name String

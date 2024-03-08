@@ -5,12 +5,15 @@ import {
   Pixel,
   ServerToClientEvents,
 } from "@sc07-canvas/lib/src/net";
+import { CanvasLib } from "@sc07-canvas/lib/src/canvas";
 import { Server, Socket as RawSocket } from "socket.io";
 import { session } from "./Express";
 import Canvas from "./Canvas";
 import { PalleteColor } from "@prisma/client";
 import { prisma } from "./prisma";
 import { Logger } from "./Logger";
+import { Redis } from "./redis";
+import { User } from "../models/User";
 
 /**
  * get socket.io server config, generated from environment vars
@@ -68,25 +71,95 @@ export class SocketServer {
   constructor(server: http.Server) {
     this.io = new Server(server, getSocketConfig());
 
-    this.setupOnlineTick();
+    this.setupMasterShard();
 
     this.io.engine.use(session);
     this.io.on("connection", this.handleConnection.bind(this));
+
+    // pixel stacking
+    // - needs to be exponential (takes longer to aquire more pixels stacked)
+    // - convert to config options instead of hard-coded
+    setInterval(async () => {
+      Logger.debug("Running pixel stacking...");
+      const redis = await Redis.getClient();
+      const sockets = await this.io.local.fetchSockets();
+
+      for (const socket of sockets) {
+        const sub = await redis.get(Redis.key("socketToSub", socket.id));
+        if (!sub) {
+          Logger.warn(`Socket ${socket.id} has no user`);
+          continue;
+        }
+
+        const user = await User.fromSub(sub);
+        if (!user) {
+          Logger.warn(
+            `Socket ${socket.id}'s user (${sub}) does not exist in the database`
+          );
+          continue;
+        }
+
+        // time in seconds since last pixel placement
+        // TODO: this causes a mismatch between placement times
+        //       - going from 0 stack to 6 stack has a steady increase between each
+        //       - going from 3 stack to 6 stack takes longer
+        const timeSinceLastPlace =
+          (Date.now() - user.lastPixelTime.getTime()) / 1000;
+        const cooldown = CanvasLib.getPixelCooldown(
+          user.pixelStack + 1,
+          getClientConfig()
+        );
+
+        // this impl has the side affect of giving previously offline users all the stack upon reconnecting
+        if (
+          timeSinceLastPlace >= cooldown &&
+          user.pixelStack < getClientConfig().canvas.pixel.maxStack
+        ) {
+          await user.modifyStack(1);
+          Logger.debug(sub + " has gained another pixel in their stack");
+        }
+      }
+    }, 1000);
   }
 
-  handleConnection(socket: Socket) {
-    const clientConfig = getClientConfig();
-    const user = this.getUserFromSocket(socket);
-    Logger.debug("Socket connection " + (user ? "@" + user.sub : "No Auth"));
+  async handleConnection(socket: Socket) {
+    const user =
+      socket.request.session.user &&
+      (await User.fromAuthSession(socket.request.session.user));
+    Logger.debug(
+      `Socket ${socket.id} connection ` + (user ? "@" + user.sub : "No Auth")
+    );
+
+    user?.sockets.add(socket);
+    Logger.debug("handleConnection " + user?.sockets.size);
+
+    Redis.getClient().then((redis) => {
+      if (user) redis.set(Redis.key("socketToSub", socket.id), user.sub);
+    });
 
     if (socket.request.session.user) {
       // inform the client of their session if it exists
       socket.emit("user", socket.request.session.user);
     }
 
+    if (user) {
+      socket.emit("availablePixels", user.pixelStack);
+      socket.emit("pixelLastPlaced", user.lastPixelTime.getTime());
+    }
+
     socket.emit("config", getClientConfig());
     Canvas.getPixelsArray().then((pixels) => {
       socket.emit("canvas", pixels);
+    });
+
+    socket.on("disconnect", () => {
+      Logger.debug(`Socket ${socket.id} disconnected`);
+
+      user?.sockets.delete(socket);
+
+      Redis.getClient().then((redis) => {
+        if (user) redis.del(Redis.key("socketToSub", socket.id));
+      });
     });
 
     socket.on("place", async (pixel, ack) => {
@@ -95,34 +168,40 @@ export class SocketServer {
         return;
       }
 
-      const puser = await prisma.user.findFirst({ where: { sub: user.sub } });
-      if (puser?.lastPixelTime) {
-        if (
-          puser.lastPixelTime.getTime() + clientConfig.pallete.pixel_cooldown >
-          Date.now()
-        ) {
-          ack({
-            success: false,
-            error: "pixel_cooldown",
-          });
-          return;
-        }
+      if (
+        pixel.x < 0 ||
+        pixel.y < 0 ||
+        pixel.x >= getClientConfig().canvas.size[0] ||
+        pixel.y >= getClientConfig().canvas.size[1]
+      ) {
+        ack({ success: false, error: "invalid_pixel" });
+        return;
       }
 
-      const palleteColor = await prisma.palleteColor.findFirst({
+      // force a user data update
+      await user.update(true);
+
+      if (user.pixelStack < 1) {
+        ack({ success: false, error: "pixel_cooldown" });
+        return;
+      }
+
+      await user.modifyStack(-1);
+
+      const paletteColor = await prisma.palleteColor.findFirst({
         where: {
           id: pixel.color,
         },
       });
-      if (!palleteColor) {
+      if (!paletteColor) {
         ack({
           success: false,
-          error: "pallete_color_invalid",
+          error: "palette_color_invalid",
         });
         return;
       }
 
-      await Canvas.setPixel(user, pixel.x, pixel.y, palleteColor.hex);
+      await Canvas.setPixel(user, pixel.x, pixel.y, paletteColor.hex);
 
       const newPixel: Pixel = {
         x: pixel.x,
@@ -137,25 +216,19 @@ export class SocketServer {
     });
   }
 
-  getUserFromSocket(socket: Socket) {
-    return socket.request.session.user
-      ? {
-          sub:
-            socket.request.session.user.user.username +
-            "@" +
-            socket.request.session.user.service.instance.hostname,
-          ...socket.request.session.user,
-        }
-      : undefined;
-  }
-
   /**
-   * setup the online people announcement
+   * Master Shard (need better name)
+   * This shard should be in charge of all user management, allowing for syncronized events
+   *
+   * Events:
+   * - online people announcement
    *
    * this does work with multiple socket.io instances, so this needs to only be executed by one shard
    */
-  setupOnlineTick() {
+  setupMasterShard() {
+    // online announcement event
     setInterval(async () => {
+      // possible issue: this includes every connected socket, not user count
       const sockets = await this.io.sockets.fetchSockets();
       for (const socket of sockets) {
         socket.emit("online", { count: sockets.length });

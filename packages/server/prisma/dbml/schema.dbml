@@ -5,6 +5,7 @@
 Table User {
   sub String [pk]
   lastPixelTime DateTime [default: `now()`, not null]
+  pixelStack Int [not null, default: 0]
   pixels Pixel [not null]
   FactionMember FactionMember [not null]
 }

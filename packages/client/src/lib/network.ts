@@ -11,6 +11,8 @@ export interface INetworkEvents {
   user: (user: AuthSession) => void;
   config: (user: ClientConfig) => void;
   canvas: (pixels: string[]) => void;
+  pixels: (data: { available: number }) => void;
+  pixelLastPlaced: (time: number) => void;
 }
 
 type SentEventValue<K extends keyof INetworkEvents> = EventEmitter.ArgumentMap<
@@ -43,6 +45,14 @@ class Network extends EventEmitter<INetworkEvents> {
 
     this.socket.on("canvas", (pixels) => {
       this._emit("canvas", pixels);
+    });
+
+    this.socket.on("availablePixels", (count) => {
+      this._emit("pixels", { available: count });
+    });
+
+    this.socket.on("pixelLastPlaced", (time) => {
+      this._emit("pixelLastPlaced", time);
     });
 
     // this.socket.on("config", (config) => {

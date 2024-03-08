@@ -6,12 +6,12 @@ import {
   useState,
 } from "react";
 import {
+  AuthSession,
   ClientConfig,
   IAppContext,
   ICanvasPosition,
   IPosition,
-} from "../types";
-import { AuthSession } from "@sc07-canvas/lib/src/net";
+} from "@sc07-canvas/lib/src/net";
 import Network from "../lib/network";
 
 const appContext = createContext<IAppContext>({} as any);
@@ -24,6 +24,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   const [canvasPosition, setCanvasPosition] = useState<ICanvasPosition>();
   const [cursorPosition, setCursorPosition] = useState<IPosition>();
 
+  const [pixels, setPixels] = useState({ available: 0 });
+
   useEffect(() => {
     function handleConfig(config: ClientConfig) {
       console.info("Server sent config", config);
@@ -34,14 +36,21 @@ export const AppContext = ({ children }: PropsWithChildren) => {
       setAuth(user);
     }
 
+    function handlePixels(pixels: { available: number }) {
+      setPixels(pixels);
+    }
+
     Network.on("user", handleUser);
     Network.on("config", handleConfig);
+    Network.waitFor("pixels").then(([data]) => handlePixels(data));
+    Network.on("pixels", handlePixels);
 
     Network.socket.connect();
 
     return () => {
       Network.off("user", handleUser);
       Network.off("config", handleConfig);
+      Network.off("pixels", handlePixels);
     };
   }, []);
 
@@ -54,6 +63,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         setCanvasPosition,
         cursorPosition,
         setCursorPosition,
+        pixels,
       }}
     >
       {config ? children : "Loading..."}
