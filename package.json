@@ -10,8 +10,9 @@
   ],
   "main": "src/index.ts",
   "scripts": {
-    "dev:server": "cd packages/server && npm run dev",
-    "dev:client": "cd packages/client && npm run dev"
+    "dev:client": "npm run dev -w packages/client",
+    "dev:server": "npm run dev -w packages/server",
+    "prisma:studio": "npm run prisma:studio -w packages/server"
   },
   "keywords": [],
   "author": "",
