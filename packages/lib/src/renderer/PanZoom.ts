@@ -261,56 +261,104 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
   }
 
   registerTouchEvents() {
+    console.debug("[PanZoom] Registering touch events to $wrapper");
+
     this.$wrapper.addEventListener(
       "touchstart",
-      (event) => {
-        const isDoubleTap =
-          this.touch.lastTouch && +new Date() - this.touch.lastTouch < 200;
-
-        if (isDoubleTap && event.touches.length === 1) {
-          this.emit("doubleTap", event);
-        } else {
-          this.touch.lastTouch = +new Date();
-
-          const { touches } = event;
-
-          const isPanningAction = touches.length === 1;
-          const isPinchAction = touches.length === 2;
-
-          if (isPanningAction) {
-            this.panning.start(touches[0].clientX, touches[0].clientY);
-          }
-          if (isPinchAction) {
-            this.onPinchStart(event);
-          }
-        }
-      },
-      { passive: false }
+      this._touch_touchstart.bind(this),
+      {
+        passive: false,
+      }
     );
 
-    this.$wrapper.addEventListener("touchmove", (event) => {
-      if (this.panning.enabled && event.touches.length === 1) {
-        event.preventDefault();
-        event.stopPropagation();
+    this.$wrapper.addEventListener(
+      "touchmove",
+      this._touch_touchmove.bind(this)
+    );
 
-        const touch = event.touches[0];
-
-        this.panning.move(touch.clientX, touch.clientY);
-      } else if (event.touches.length > 1) {
-        this.onPinch(event);
-      }
-    });
-
-    this.$wrapper.addEventListener("touchend", (event) => {
-      if (this.panning.enabled) {
-        this.panning.enabled = false;
-
-        const touch = event.changedTouches[0];
-
-        this.panning.end(touch.clientX, touch.clientY);
-      }
-    });
+    this.$wrapper.addEventListener("touchend", this._touch_touchend.bind(this));
   }
+
+  unregisterTouchEvents() {
+    console.debug("[PanZoom] Unregistering touch events to $wrapper");
+
+    this.$wrapper.removeEventListener(
+      "touchstart",
+      this._touch_touchstart.bind(this)
+    );
+    this.$wrapper.removeEventListener(
+      "touchmove",
+      this._touch_touchmove.bind(this)
+    );
+    this.$wrapper.removeEventListener(
+      "touchend",
+      this._touch_touchend.bind(this)
+    );
+  }
+
+  /**
+   * Handle touchstart event from touch registrations
+   * This needs to be a variable to correctly pass this context
+   *
+   * @param e
+   */
+  private _touch_touchstart = (event: TouchEvent) => {
+    const isDoubleTap =
+      this.touch.lastTouch && +new Date() - this.touch.lastTouch < 200;
+
+    if (isDoubleTap && event.touches.length === 1) {
+      this.emit("doubleTap", event);
+    } else {
+      this.touch.lastTouch = +new Date();
+
+      const { touches } = event;
+
+      const isPanningAction = touches.length === 1;
+      const isPinchAction = touches.length === 2;
+
+      if (isPanningAction) {
+        this.panning.start(touches[0].clientX, touches[0].clientY);
+      }
+      if (isPinchAction) {
+        this.onPinchStart(event);
+      }
+    }
+  };
+
+  /**
+   * Handle touchmove event from touch registrations
+   * This needs to be a variable to correctly pass this context
+   *
+   * @param e
+   */
+  private _touch_touchmove = (event: TouchEvent) => {
+    if (this.panning.enabled && event.touches.length === 1) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const touch = event.touches[0];
+
+      this.panning.move(touch.clientX, touch.clientY);
+    } else if (event.touches.length > 1) {
+      this.onPinch(event);
+    }
+  };
+
+  /**
+   * Handle touchend event from touch registrations
+   * This needs to be a variable to correctly pass this context
+   *
+   * @param e
+   */
+  private _touch_touchend = (event: TouchEvent) => {
+    if (this.panning.enabled) {
+      this.panning.enabled = false;
+
+      const touch = event.changedTouches[0];
+
+      this.panning.end(touch.clientX, touch.clientY);
+    }
+  };
 
   /// /////
   // pinch
@@ -396,114 +444,166 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
   }
 
   registerMouseEvents() {
+    console.debug("[PanZoom] Registering mouse events to $wrapper & document");
+
     // zoom
-    this.$wrapper.addEventListener(
-      "wheel",
-      (e) => {
-        // if (!self.allowDrag) return;
-        const oldScale = this.transform.scale;
+    this.$wrapper.addEventListener("wheel", this._mouse_wheel, {
+      passive: true,
+    });
 
-        let delta = -e.deltaY;
-
-        switch (e.deltaMode) {
-          case WheelEvent.DOM_DELTA_PIXEL:
-            // 53 pixels is the default chrome gives for a wheel scroll.
-            delta /= 53;
-            break;
-          case WheelEvent.DOM_DELTA_LINE:
-            // default case on Firefox, three lines is default number.
-            delta /= 3;
-            break;
-          case WheelEvent.DOM_DELTA_PAGE:
-            delta = Math.sign(delta);
-            break;
-        }
-
-        // TODO: move this to settings
-        this.nudgeScale(delta / 2);
-
-        const scale = this.transform.scale;
-        if (oldScale !== scale) {
-          const dx = e.clientX - this.$wrapper.clientWidth / 2;
-          const dy = e.clientY - this.$wrapper.clientHeight / 2;
-          this.transform.x -= dx / oldScale;
-          this.transform.x += dx / scale;
-          this.transform.y -= dy / oldScale;
-          this.transform.y += dy / scale;
-          this.update();
-          // place.update();
-        }
-      },
-      { passive: true }
-    );
-
-    this.$wrapper.addEventListener(
-      "mousedown",
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        this.mouse.mouseDown = Date.now();
-
-        this.panning.start(e.clientX, e.clientY);
-      },
-      { passive: false }
-    );
+    this.$wrapper.addEventListener("mousedown", this._mouse_mousedown, {
+      passive: false,
+    });
 
     // mouse move should not be tied to the element, in case the mouse exits the window
-    document.addEventListener(
-      "mousemove",
-      (e) => {
-        if (this.panning.enabled) {
-          e.preventDefault();
-          e.stopPropagation();
-
-          this.panning.move(e.clientX, e.clientY);
-        } else {
-          // not panning
-          this.emit("hover", {
-            clientX: e.clientX,
-            clientY: e.clientY,
-          });
-        }
-      },
-      { passive: false }
-    );
+    document.addEventListener("mousemove", this._mouse_mousemove, {
+      passive: false,
+    });
 
     // mouse up should not be tied to the element, in case the mouse releases outside of the window
-    document.addEventListener(
-      "mouseup",
-      (e) => {
-        if (this.mouse.mouseDown && Date.now() - this.mouse.mouseDown <= 500) {
-          // if the mouse was down for less than a half a second, it's a click
-          // this can't depend on this.panning.enabled because that'll always be true when mouse is down
-
-          const delta = [
-            Math.abs(this.panning.x - e.clientX),
-            Math.abs(this.panning.y - e.clientY),
-          ];
-
-          if (delta[0] < 5 && delta[1] < 5) {
-            // difference from the start position to the up position is very very slow,
-            // so it's most likely intended to be a click
-            this.emit("click", {
-              clientX: e.clientX,
-              clientY: e.clientY,
-            });
-          }
-        }
-
-        if (this.panning.enabled) {
-          // currently panning
-          e.preventDefault();
-          e.stopPropagation();
-
-          this.panning.end(e.clientX, e.clientY);
-        }
-      },
-      { passive: false }
-    );
+    document.addEventListener("mouseup", this._mouse_mouseup, {
+      passive: false,
+    });
   }
+
+  unregisterMouseEvents() {
+    console.debug(
+      "[PanZoom] Unregistering mouse events to $wrapper & document"
+    );
+
+    this.$wrapper.removeEventListener("wheel", this._mouse_wheel);
+
+    this.$wrapper.removeEventListener("mousedown", this._mouse_mousedown);
+
+    document.removeEventListener("mousemove", this._mouse_mousemove);
+
+    document.removeEventListener("mouseup", this._mouse_mouseup);
+  }
+
+  /**
+   * Handle the wheel event from the mouse event registration
+   * This needs to be a variable to correctly pass this context
+   *
+   * @param e
+   */
+  private _mouse_wheel = (e: WheelEvent) => {
+    // if (!self.allowDrag) return;
+    const oldScale = this.transform.scale;
+
+    let delta = -e.deltaY;
+
+    switch (e.deltaMode) {
+      case WheelEvent.DOM_DELTA_PIXEL:
+        // 53 pixels is the default chrome gives for a wheel scroll.
+        delta /= 53;
+        break;
+      case WheelEvent.DOM_DELTA_LINE:
+        // default case on Firefox, three lines is default number.
+        delta /= 3;
+        break;
+      case WheelEvent.DOM_DELTA_PAGE:
+        delta = Math.sign(delta);
+        break;
+    }
+
+    // TODO: move this to settings
+    this.nudgeScale(delta / 2);
+
+    const scale = this.transform.scale;
+    if (oldScale !== scale) {
+      const dx = e.clientX - this.$wrapper.clientWidth / 2;
+      const dy = e.clientY - this.$wrapper.clientHeight / 2;
+      this.transform.x -= dx / oldScale;
+      this.transform.x += dx / scale;
+      this.transform.y -= dy / oldScale;
+      this.transform.y += dy / scale;
+      this.update();
+      // place.update();
+    }
+  };
+
+  /**
+   * Handle mousedown event from mouse registrations
+   * This needs to be a variable to correctly pass this context
+   *
+   * @param e
+   */
+  private _mouse_mousedown = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    this.mouse.mouseDown = Date.now();
+
+    this.panning.start(e.clientX, e.clientY);
+  };
+
+  /**
+   * Handle mousemove event from mouse registrations
+   * This needs to be a variable to correctly pass this context
+   *
+   * @param e
+   */
+  private _mouse_mousemove = (e: MouseEvent) => {
+    if (this.panning.enabled) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      this.panning.move(e.clientX, e.clientY);
+    } else {
+      // not panning
+      this.emit("hover", {
+        clientX: e.clientX,
+        clientY: e.clientY,
+      });
+    }
+    if (this.panning.enabled) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      this.panning.move(e.clientX, e.clientY);
+    } else {
+      // not panning
+      this.emit("hover", {
+        clientX: e.clientX,
+        clientY: e.clientY,
+      });
+    }
+  };
+
+  /**
+   * Handle mouseup event from mouse registrations
+   * This needs to be a variable to correctly pass this context
+   *
+   * @param e
+   */
+  private _mouse_mouseup = (e: MouseEvent) => {
+    if (this.mouse.mouseDown && Date.now() - this.mouse.mouseDown <= 500) {
+      // if the mouse was down for less than a half a second, it's a click
+      // this can't depend on this.panning.enabled because that'll always be true when mouse is down
+
+      const delta = [
+        Math.abs(this.panning.x - e.clientX),
+        Math.abs(this.panning.y - e.clientY),
+      ];
+
+      if (delta[0] < 5 && delta[1] < 5) {
+        // difference from the start position to the up position is very very slow,
+        // so it's most likely intended to be a click
+        this.emit("click", {
+          clientX: e.clientX,
+          clientY: e.clientY,
+        });
+      }
+    }
+
+    if (this.panning.enabled) {
+      // currently panning
+      e.preventDefault();
+      e.stopPropagation();
+
+      this.panning.end(e.clientX, e.clientY);
+    }
+  };
 
   /**
    * Update viewport scale and position
@@ -545,6 +645,9 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
 
   cleanup() {
     // remove event handlers
+
+    this.unregisterTouchEvents();
+    this.unregisterMouseEvents();
   }
 
   // utilities
