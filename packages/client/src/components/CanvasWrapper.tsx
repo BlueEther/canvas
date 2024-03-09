@@ -5,8 +5,8 @@ import { PanZoomWrapper } from "@sc07-canvas/lib/src/renderer";
 import { RendererContext } from "@sc07-canvas/lib/src/renderer/RendererContext";
 import { ViewportMoveEvent } from "@sc07-canvas/lib/src/renderer/PanZoom";
 import throttle from "lodash.throttle";
-import { ICanvasPosition, IPosition } from "../types";
 import { Routes } from "../lib/routes";
+import { ICanvasPosition, IPosition } from "@sc07-canvas/lib/src/net";
 
 export const CanvasWrapper = () => {
   // to prevent safari from blurring things, use the zoom css property
@@ -116,7 +116,7 @@ const CanvasInner = () => {
       canvasInstance.off("cursorPos", handleCursorPos);
     };
 
-    // do not include canvasRef, it causes infinite re-renders
+    // ! do not include canvasRef, it causes infinite re-renders
   }, [PanZoom, config, setCanvasPosition, setCursorPosition]);
 
   return (
