@@ -4,5 +4,7 @@
     "rootDir": "src",
     "outDir": "dist",
     "inlineSourceMap": true,
+    "jsx": "react",
+    "declaration": true,
   },
 }

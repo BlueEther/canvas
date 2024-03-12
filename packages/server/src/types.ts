@@ -31,6 +31,15 @@ declare global {
        * Specifically setting CORS origin is required because of use of credentials (cookies)
        */
       CLIENT_ORIGIN?: string;
+
+      /**
+       * If set, use this relative path to serve the client at the root
+       */
+      SERVE_CLIENT?: string;
+      /**
+       * If set, use this relative path to serve the admin UI at /admin
+       */
+      SERVE_ADMIN?: string;
     }
   }
 }

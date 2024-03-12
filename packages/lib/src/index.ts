@@ -1,3 +1,4 @@
 import * as net from "./net";
+import { CanvasLib } from "./canvas";
 
-export { net };
+export { net, CanvasLib };

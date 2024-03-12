@@ -1,11 +1,14 @@
 {
   "name": "@sc07-canvas/server",
   "version": "1.0.0",
-  "main": "./build/index.js",
   "scripts": {
     "dev": "DOTENV_CONFIG_PATH=.env.local nodemon -r dotenv/config src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
     "lint": "eslint .",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:seed:palette": "./tool.sh seed_palette"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +24,6 @@
     "nodemon": "^3.0.1",
     "prettier": "^3.0.1",
     "prisma": "^5.3.1",
-    "prisma-dbml-generator": "^0.12.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
@@ -31,6 +33,7 @@
     "connect-redis": "^7.1.1",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
+    "prisma-dbml-generator": "^0.12.0",
     "redis": "^4.6.12",
     "socket.io": "^4.7.2",
     "winston": "^3.11.0"

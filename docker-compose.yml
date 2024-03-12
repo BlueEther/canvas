@@ -1,0 +1,34 @@
+# this docker-compose does not include a build for the Canvas image
+# generate the image via a build script
+
+name: canvas
+
+services:
+  canvas:
+    image: sc07/canvas
+    ports:
+      - "3000:3000"
+    environment:
+      - SESSION_SECRET=CHANGE ME TO RANDOM VALUE
+      - REDIS_HOST=redis://redis
+      - DATABASE_URL=postgres://postgres@postgres/canvas
+    depends_on:
+      - redis
+      - postgres
+  redis:
+    restart: always
+    image: redis:7-alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+    volumes:
+      - ./data/redis:/data
+  postgres:
+    restart: always
+    image: postgres:14-alpine
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'postgres']
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    environment:
+      - 'POSTGRES_HOST_AUTH_METHOD=trust'
+

@@ -8,22 +8,27 @@ import { Root } from "./Root.tsx";
 import { HomePage } from "./pages/Home/page.tsx";
 import { AccountsPage } from "./pages/Accounts/Accounts/page.tsx";
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <Root />,
+      children: [
+        {
+          path: "/",
+          element: <HomePage />,
+        },
+        {
+          path: "/accounts",
+          element: <AccountsPage />,
+        },
+      ],
+    },
+  ],
   {
-    path: "/",
-    element: <Root />,
-    children: [
-      {
-        path: "/",
-        element: <HomePage />,
-      },
-      {
-        path: "/accounts",
-        element: <AccountsPage />,
-      },
-    ],
-  },
-]);
+    basename: import.meta.env.VITE_APP_ROOT,
+  }
+);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

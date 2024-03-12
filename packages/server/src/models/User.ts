@@ -71,12 +71,20 @@ export class User {
     return Date.now() - this._updatedAt >= 1000 * 60;
   }
 
-  static async fromAuthSession(auth: AuthSession): Promise<User> {
-    const user = await this.fromSub(
-      auth.user.username + "@" + auth.service.instance.hostname
-    );
-    user.authSession = auth;
-    return user;
+  static async fromAuthSession(auth: AuthSession): Promise<User | undefined> {
+    try {
+      const user = await this.fromSub(
+        auth.user.username + "@" + auth.service.instance.hostname
+      );
+      user.authSession = auth;
+      return user;
+    } catch (e) {
+      if (e instanceof UserNotFound) {
+        return undefined;
+      } else {
+        throw e;
+      }
+    }
   }
 
   static async fromSub(sub: string): Promise<User> {
