@@ -5,11 +5,11 @@ import {
   Pixel,
   ServerToClientEvents,
 } from "@sc07-canvas/lib/src/net";
-import { CanvasLib } from "@sc07-canvas/lib/src/canvas";
+import { CanvasLib } from "@sc07-canvas/lib";
 import { Server, Socket as RawSocket } from "socket.io";
 import { session } from "./Express";
 import Canvas from "./Canvas";
-import { PalleteColor } from "@prisma/client";
+import { PaletteColor } from "@prisma/client";
 import { prisma } from "./prisma";
 import { Logger } from "./Logger";
 import { Redis } from "./redis";
@@ -40,14 +40,14 @@ const getSocketConfig = () => {
 };
 
 // this is terrible, another way to get the client config needs to be found
-let PALLETE: PalleteColor[] = [];
+let PALLETE: PaletteColor[] = [];
 const PIXEL_TIMEOUT_MS = 1000;
 
-prisma.palleteColor
+prisma.paletteColor
   .findMany()
-  .then((palleteColors) => {
-    PALLETE = palleteColors;
-    Logger.info(`Loaded ${palleteColors.length} pallete colors`);
+  .then((paletteColors) => {
+    PALLETE = paletteColors;
+    Logger.info(`Loaded ${paletteColors.length} pallete colors`);
   })
   .catch((e) => {
     Logger.error("Failed to get pallete colors", e);
@@ -188,7 +188,7 @@ export class SocketServer {
 
       await user.modifyStack(-1);
 
-      const paletteColor = await prisma.palleteColor.findFirst({
+      const paletteColor = await prisma.paletteColor.findFirst({
         where: {
           id: pixel.color,
         },

@@ -10,7 +10,7 @@ Table User {
   FactionMember FactionMember [not null]
 }
 
-Table PalleteColor {
+Table PaletteColor {
   id Int [pk, increment]
   name String [not null]
   hex String [unique, not null]
@@ -25,7 +25,7 @@ Table Pixel {
   color String [not null]
   createdAt DateTime [default: `now()`, not null]
   user User [not null]
-  pallete PalleteColor [not null]
+  pallete PaletteColor [not null]
 }
 
 Table Faction {
@@ -82,7 +82,7 @@ Table FactionSettingDefinition {
 
 Ref: Pixel.userId > User.sub
 
-Ref: Pixel.color > PalleteColor.hex
+Ref: Pixel.color > PaletteColor.hex
 
 Ref: FactionMember.sub > User.sub
 

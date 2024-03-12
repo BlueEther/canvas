@@ -10,7 +10,7 @@ generator dbml {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -23,8 +23,7 @@ model User {
   FactionMember FactionMember[]
 }
 
-// TODO: i cannot spell, rename this to PaletteColor
-model PalleteColor {
+model PaletteColor {
   id   Int    @id @default(autoincrement())
   name String
   hex  String @unique
@@ -42,7 +41,7 @@ model Pixel {
   createdAt DateTime @default(now())
 
   user    User         @relation(fields: [userId], references: [sub])
-  pallete PalleteColor @relation(fields: [color], references: [hex])
+  pallete PaletteColor @relation(fields: [color], references: [hex])
 }
 
 model Faction {
