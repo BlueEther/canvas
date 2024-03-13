@@ -10,6 +10,7 @@ import { useAppContext } from "../contexts/AppContext";
 import { Canvas } from "../lib/canvas";
 import { useEffect, useState } from "react";
 import { ClientConfig } from "@sc07-canvas/lib/src/net";
+import network from "../lib/network";
 
 const getTimeLeft = (pixels: { available: number }, config: ClientConfig) => {
   // this implementation matches the server's implementation
@@ -40,8 +41,31 @@ const PlaceCountdown = () => {
   }, [pixels]);
 
   return (
-    <>{pixels.available + 1 < config.canvas.pixel.maxStack && timeLeft + "s"}</>
+    <>
+      {timeLeft
+        ? pixels.available + 1 < config.canvas.pixel.maxStack && timeLeft + "s"
+        : ""}
+    </>
   );
+};
+
+const OnlineCount = () => {
+  const [online, setOnline] = useState<number>();
+
+  useEffect(() => {
+    function handleOnline(count: number) {
+      setOnline(count);
+    }
+
+    network.waitFor("online").then(([count]) => setOnline(count));
+    network.on("online", handleOnline);
+
+    return () => {
+      network.off("online", handleOnline);
+    };
+  }, []);
+
+  return <>{typeof online === "number" ? online : "???"}</>;
 };
 
 export const CanvasMeta = () => {
@@ -74,7 +98,10 @@ export const CanvasMeta = () => {
           <PlaceCountdown />
         </span>
         <span>
-          Users Online: <span>321</span>
+          Users Online:{" "}
+          <span>
+            <OnlineCount />
+          </span>
         </span>
       </div>
       <ShareModal isOpen={isOpen} onOpenChange={onOpenChange} />

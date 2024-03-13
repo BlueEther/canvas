@@ -13,6 +13,7 @@ export interface INetworkEvents {
   canvas: (pixels: string[]) => void;
   pixels: (data: { available: number }) => void;
   pixelLastPlaced: (time: number) => void;
+  online: (count: number) => void;
 }
 
 type SentEventValue<K extends keyof INetworkEvents> = EventEmitter.ArgumentMap<
@@ -55,6 +56,10 @@ class Network extends EventEmitter<INetworkEvents> {
       this._emit("pixelLastPlaced", time);
     });
 
+    this.socket.on("online", ({ count }) => {
+      this._emit("online", count);
+    });
+
     // this.socket.on("config", (config) => {
     //   Pallete.load(config.pallete);
     //   Canvas.load(config.canvas);
@@ -66,10 +71,6 @@ class Network extends EventEmitter<INetworkEvents> {
 
     // this.socket.on("canvas", (data: SCanvasPacket) => {
     //   Canvas.handleBatch(data);
-    // });
-
-    // this.socket.on("online", (data: { count: number }) => {
-    //   this.online_count = data.count;
     // });
   }
 
