@@ -51,6 +51,17 @@ class _Redis {
     this.isConnected = true;
   }
 
+  async disconnect() {
+    if (!this.isConnected) {
+      Logger.warn("Redis#disconnect called while not connected");
+      return;
+    }
+
+    await this.client.disconnect();
+    Logger.info("Disconnected from Redis");
+    this.isConnected = false;
+  }
+
   async getClient() {
     if (!this.isConnected) {
       await this.connect();
