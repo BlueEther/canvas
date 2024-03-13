@@ -3,9 +3,7 @@ import { prisma } from "./lib/prisma";
 
 const app = Router();
 
-const AUTH_ENDPOINT = "https://auth.fediverse.events";
-const AUTH_CLIENT = "canvas";
-const AUTH_SECRET = "secret";
+const { AUTH_ENDPOINT, AUTH_CLIENT, AUTH_SECRET } = process.env;
 
 app.get("/me", (req, res) => {
   res.json(req.session);

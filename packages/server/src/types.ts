@@ -40,6 +40,10 @@ declare global {
        * If set, use this relative path to serve the admin UI at /admin
        */
       SERVE_ADMIN?: string;
+
+      AUTH_ENDPOINT: string;
+      AUTH_CLIENT: string;
+      AUTH_SECRET: string;
     }
   }
 }

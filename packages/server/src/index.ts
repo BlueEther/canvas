@@ -36,6 +36,21 @@ if (!process.env.REDIS_SESSION_PREFIX) {
   );
 }
 
+if (!process.env.AUTH_ENDPOINT) {
+  Logger.error("AUTH_ENDPOINT is not defined");
+  process.exit(1);
+}
+
+if (!process.env.AUTH_CLIENT) {
+  Logger.error("AUTH_CLIENT is not defined");
+  process.exit(1);
+}
+
+if (!process.env.AUTH_SECRET) {
+  Logger.error("AUTH_SECRET is not defined");
+  process.exit(1);
+}
+
 Redis.connect();
 
 const express = new ExpressServer();
