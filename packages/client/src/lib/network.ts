@@ -4,6 +4,7 @@ import {
   AuthSession,
   ClientConfig,
   ClientToServerEvents,
+  Pixel,
   ServerToClientEvents,
 } from "@sc07-canvas/lib/src/net";
 
@@ -14,6 +15,7 @@ export interface INetworkEvents {
   pixels: (data: { available: number }) => void;
   pixelLastPlaced: (time: number) => void;
   online: (count: number) => void;
+  pixel: (pixel: Pixel) => void;
 }
 
 type SentEventValue<K extends keyof INetworkEvents> = EventEmitter.ArgumentMap<
@@ -58,6 +60,10 @@ class Network extends EventEmitter<INetworkEvents> {
 
     this.socket.on("online", ({ count }) => {
       this._emit("online", count);
+    });
+
+    this.socket.on("pixel", (pixel) => {
+      this.emit("pixel", pixel);
     });
 
     // this.socket.on("config", (config) => {

@@ -60,6 +60,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     Network.waitFor("pixelLastPlaced").then(
       ([time]) => (this.lastPlace = time)
     );
+    Network.on("pixel", this.handlePixel);
 
     this.draw();
   }
@@ -110,12 +111,12 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     });
   }
 
-  handlePixel({ x, y, color }: Pixel) {
+  handlePixel = ({ x, y, color }: Pixel) => {
     this.pixels[x + "_" + y] = {
       color,
       type: "full",
     };
-  }
+  };
 
   palleteCtx: IPalleteContext = {};
   Pallete = {
