@@ -30,6 +30,14 @@ app.get("/callback", async (req, res) => {
     }),
   }).then((a) => a.json());
 
+  if (!who.success) {
+    res.json({
+      error: "AUTHENTICATION FAILED",
+      error_message: who.error || "no error specified",
+    });
+    return;
+  }
+
   const [username, hostname] = who.user.sub.split("@");
 
   await prisma.user.upsert({

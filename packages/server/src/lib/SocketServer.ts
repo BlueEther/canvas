@@ -80,22 +80,25 @@ export class SocketServer {
     // - needs to be exponential (takes longer to aquire more pixels stacked)
     // - convert to config options instead of hard-coded
     setInterval(async () => {
-      Logger.debug("Running pixel stacking...");
+      const DEBUG = false;
+
+      if (DEBUG) Logger.debug("Running pixel stacking...");
       const redis = await Redis.getClient();
       const sockets = await this.io.local.fetchSockets();
 
       for (const socket of sockets) {
         const sub = await redis.get(Redis.key("socketToSub", socket.id));
         if (!sub) {
-          Logger.warn(`Socket ${socket.id} has no user`);
+          if (DEBUG) Logger.warn(`Socket ${socket.id} has no user`);
           continue;
         }
 
         const user = await User.fromSub(sub);
         if (!user) {
-          Logger.warn(
-            `Socket ${socket.id}'s user (${sub}) does not exist in the database`
-          );
+          if (DEBUG)
+            Logger.warn(
+              `Socket ${socket.id}'s user (${sub}) does not exist in the database`
+            );
           continue;
         }
 
@@ -116,7 +119,9 @@ export class SocketServer {
           user.pixelStack < getClientConfig().canvas.pixel.maxStack
         ) {
           await user.modifyStack(1);
-          Logger.debug(sub + " has gained another pixel in their stack");
+
+          if (DEBUG)
+            Logger.debug(sub + " has gained another pixel in their stack");
         }
       }
     }, 1000);

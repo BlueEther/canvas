@@ -14,7 +14,7 @@ class Canvas {
       size: this.CANVAS_SIZE,
       zoom: 7,
       pixel: {
-        cooldown: 60,
+        cooldown: 10,
         multiplier: 3,
         maxStack: 6,
       },
