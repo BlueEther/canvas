@@ -191,8 +191,6 @@ export class SocketServer {
         return;
       }
 
-      await user.modifyStack(-1);
-
       const paletteColor = await prisma.paletteColor.findFirst({
         where: {
           id: pixel.color,
@@ -206,6 +204,7 @@ export class SocketServer {
         return;
       }
 
+      await user.modifyStack(-1);
       await Canvas.setPixel(user, pixel.x, pixel.y, paletteColor.hex);
 
       const newPixel: Pixel = {

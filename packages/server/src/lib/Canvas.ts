@@ -57,8 +57,11 @@ class Canvas {
 
     const pixels: string[] = [];
 
-    for (let x = 0; x < this.CANVAS_SIZE[0]; x++) {
-      for (let y = 0; y < this.CANVAS_SIZE[1]; y++) {
+    // (y -> x) because of how the conversion needs to be done later
+    // if this is inverted, the map will flip when rebuilding the cache (5 minute expiry)
+    // fixes #24
+    for (let y = 0; y < this.CANVAS_SIZE[1]; y++) {
+      for (let x = 0; x < this.CANVAS_SIZE[0]; x++) {
         pixels.push(
           (await redis.get(Redis.key("pixelColor", x, y))) || "transparent"
         );
@@ -114,7 +117,7 @@ class Canvas {
       data: { lastPixelTime: new Date() },
     });
 
-    await redis.set(`CANVAS:PIXELS[${x},${y}]:COLOR`, hex);
+    await redis.set(Redis.key("pixelColor", x, y), hex);
 
     // maybe only update specific element?
     // i don't think it needs to be awaited
