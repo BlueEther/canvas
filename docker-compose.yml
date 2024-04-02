@@ -6,12 +6,16 @@ name: canvas
 services:
   canvas:
     image: sc07/canvas
+    build: .
     ports:
       - "3000:3000"
     environment:
       - SESSION_SECRET=CHANGE ME TO RANDOM VALUE
       - REDIS_HOST=redis://redis
       - DATABASE_URL=postgres://postgres@postgres/canvas
+      - AUTH_ENDPOINT=https://auth.fediverse.events
+      - AUTH_CLIENT=canvas
+      - AUTH_SECRET=${AUTH_SECRET}
     depends_on:
       - redis
       - postgres

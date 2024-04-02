@@ -18,5 +18,7 @@ node_modules/
 *.tsbuildinfo
 .eslintcache
 
+# only ignore .env in root because Vite requires some things (check packages/admin)
+/.env
 .env.local
 dist

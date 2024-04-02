@@ -1,0 +1,11 @@
+**/node_modules
+build
+data
+**/dist
+packages/build
+Dockerfile
+
+# dotfiles
+.git*
+.vscode
+**/.env*
