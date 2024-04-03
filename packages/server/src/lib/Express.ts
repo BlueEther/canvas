@@ -16,8 +16,12 @@ export const session = expressSession({
     prefix: process.env.REDIS_SESSION_PREFIX || "canvas_session:",
   }),
   cookie: {
-    sameSite: "none",
     httpOnly: false,
+    ...(process.env.NODE_ENV === "development"
+      ? { sameSite: "none" }
+      : {
+          secure: true,
+        }),
   },
 });
 
@@ -27,6 +31,11 @@ export class ExpressServer {
 
   constructor() {
     this.app = express();
+
+    if (process.env.NODE_ENV === "production") {
+      this.app.set("trust proxy", 1);
+    }
+
     this.httpServer = http.createServer(this.app);
 
     if (process.env.SERVE_CLIENT) {
