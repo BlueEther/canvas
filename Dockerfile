@@ -1,5 +1,33 @@
 FROM node:20-alpine AS base
 
+FROM base as dev_dep
+RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+WORKDIR /home/node/app
+
+# --- dependencies ---
+COPY --chown=node:node package*.json ./
+COPY --chown=node:node packages/admin/package*.json ./packages/admin/
+COPY --chown=node:node packages/client/package*.json ./packages/client/
+COPY --chown=node:node packages/lib/package*.json ./packages/lib/
+COPY --chown=node:node packages/server/package*.json ./packages/server/
+
+USER node
+RUN npm install --include=dev
+
+FROM base as dep
+RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+WORKDIR /home/node/app
+
+# --- dependencies ---
+COPY --chown=node:node package*.json ./
+COPY --chown=node:node packages/admin/package*.json ./packages/admin/
+COPY --chown=node:node packages/client/package*.json ./packages/client/
+COPY --chown=node:node packages/lib/package*.json ./packages/lib/
+COPY --chown=node:node packages/server/package*.json ./packages/server/
+
+USER node
+RUN npm install --omit=dev
+
 #
 # === BUILDER ===
 #
@@ -7,10 +35,10 @@ FROM node:20-alpine AS base
 FROM base as build
 RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 WORKDIR /home/node/app
-COPY --chown=node:node . .
 
-USER node
-RUN npm install --include=dev
+COPY --from=dev_dep /home/node/app/ ./
+
+COPY --chown=node:node . .
 
 # --- build lib ---
 
@@ -37,6 +65,7 @@ RUN npm -w packages/server run build
 
 FROM base as run
 WORKDIR /home/node/app
+COPY --from=dep /home/node/app/ ./
 COPY package*.json docker-start.sh ./
 
 # --- prepare lib ---
@@ -65,7 +94,6 @@ COPY --from=build /home/node/app/packages/server/dist ./packages/server/dist
 
 # --- finalize ---
 
-RUN npm install --omit=dev
 RUN npx -w packages/server prisma generate
 
 # set runtime env variables
