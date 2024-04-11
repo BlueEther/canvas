@@ -32,6 +32,8 @@ export interface IAppContext {
   cursorPosition?: IPosition;
   setCursorPosition: (v?: IPosition) => void;
   pixels: { available: number };
+  settingsSidebar: boolean;
+  setSettingsSidebar: (v: boolean) => void;
 }
 
 export interface IPalleteContext {

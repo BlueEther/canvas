@@ -7,12 +7,14 @@ import { ViewportMoveEvent } from "@sc07-canvas/lib/src/renderer/PanZoom";
 import throttle from "lodash.throttle";
 import { Routes } from "../lib/routes";
 import { ICanvasPosition, IPosition } from "@sc07-canvas/lib/src/net";
+import { Template } from "./Template";
 
 export const CanvasWrapper = () => {
   // to prevent safari from blurring things, use the zoom css property
   return (
     <main>
       <PanZoomWrapper>
+        <Template />
         <CanvasInner />
       </PanZoomWrapper>
     </main>
@@ -90,7 +92,7 @@ const CanvasInner = () => {
 
       setCanvasPosition(canvasPosition);
 
-      window.location.replace(Routes.canvas(canvasPosition));
+      window.location.replace(Routes.canvas({ pos: canvasPosition }));
     }, 1000);
 
     const handleCursorPos = throttle((pos: IPosition) => {

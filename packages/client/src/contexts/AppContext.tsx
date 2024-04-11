@@ -26,6 +26,9 @@ export const AppContext = ({ children }: PropsWithChildren) => {
 
   const [pixels, setPixels] = useState({ available: 0 });
 
+  // overlays visible
+  const [settingsSidebar, setSettingsSidebar] = useState(false);
+
   useEffect(() => {
     function handleConfig(config: ClientConfig) {
       console.info("Server sent config", config);
@@ -64,6 +67,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         cursorPosition,
         setCursorPosition,
         pixels,
+        settingsSidebar,
+        setSettingsSidebar,
       }}
     >
       {config ? children : "Loading..."}
