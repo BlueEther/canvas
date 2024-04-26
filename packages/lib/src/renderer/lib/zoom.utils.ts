@@ -1,3 +1,4 @@
+import { Debug } from "../../debug";
 import { PanZoom } from "../PanZoom";
 
 export function handleCalculateZoomPositions(
@@ -17,7 +18,7 @@ export function handleCalculateZoomPositions(
 
   const calculatedPositionX = x - mouseX * scaleDifference;
   const calculatedPositionY = y - mouseY * scaleDifference;
-  contextInstance.debug(calculatedPositionX, calculatedPositionY, "zoom");
+  // Debug.debug("point", calculatedPositionX, calculatedPositionY, "zoom");
 
   // do not limit to bounds when there is padding animation,
   // it causes animation strange behaviour

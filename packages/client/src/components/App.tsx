@@ -4,6 +4,7 @@ import { CanvasWrapper } from "./CanvasWrapper";
 import { Pallete } from "./Pallete";
 import { TemplateContext } from "../contexts/TemplateContext";
 import { SettingsSidebar } from "./Settings/SettingsSidebar";
+import { DebugModal } from "./Debug/DebugModal";
 
 const App = () => {
   return (
@@ -13,6 +14,7 @@ const App = () => {
         <CanvasWrapper />
         <Pallete />
 
+        <DebugModal />
         <SettingsSidebar />
       </TemplateContext>
     </AppContext>
