@@ -9,6 +9,7 @@ import {
   handleCalculateZoomPositions,
 } from "./lib/zoom.utils";
 import { Panning } from "./lib/panning.utils";
+import { Debug } from "../debug";
 
 interface TransformState {
   /**
@@ -410,7 +411,9 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
 
     if (newScale === scale) return;
 
-    // const { x, y } = handleCalculateZoomPositions(
+    // this returns diff of pixels due to css zoom being used
+    //
+    // let { x, y } = handleCalculateZoomPositions(
     //   this,
     //   midPoint.x,
     //   midPoint.y,
@@ -420,27 +423,30 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
     this.touch.pinchMidpoint = midPoint;
     this.touch.lastDistance = currentDistance;
 
-    this.debug(midPoint.x, midPoint.y, "midpoint");
+    if (Debug.flags.enabled("PANZOOM_PINCH_DEBUG_MESSAGES")) {
+      Debug.debug("point", midPoint.x, midPoint.y, "midpoint");
+      Debug.debug("text", {
+        scale: [scale, newScale],
+        x: midPoint.x,
+        y: midPoint.y,
+        tx: this.transform.x,
+        ty: this.transform.y,
+        xx: midPoint.x * newScale - midPoint.x * scale,
+        yy: midPoint.y * newScale - midPoint.y * scale,
+      });
+    }
 
     // TODO: this might be css zoom specific, I have no way to test this
-    this.transform.x = midPoint.x / newScale - midPoint.x / scale;
-    this.transform.y = midPoint.y / newScale - midPoint.x / scale;
+    if (Debug.flags.enabled("PANZOOM_PINCH_TRANSFORM_1")) {
+      this.transform.x = midPoint.x / newScale - midPoint.x / scale;
+      this.transform.y = midPoint.y / newScale - midPoint.y / scale;
+    }
+    if (Debug.flags.enabled("PANZOOM_PINCH_TRANSFORM_2")) {
+      this.transform.x = (midPoint.x - this.transform.x) / (newScale - scale);
+      this.transform.y = (midPoint.y - this.transform.y) / (newScale - scale);
+    }
     this.transform.scale = newScale;
     this.update();
-  }
-
-  debug(x: number, y: number, id?: string) {
-    // if (document.getElementById("debug-" + id)) {
-    //   document.getElementById("debug-" + id)!.style.top = y + "px";
-    //   document.getElementById("debug-" + id)!.style.left = x + "px";
-    //   return;
-    // }
-    // let el = document.createElement("div");
-    // if (id) el.id = "debug-" + id;
-    // el.classList.add("debug-point");
-    // el.style.setProperty("top", y + "px");
-    // el.style.setProperty("left", x + "px");
-    // document.body.appendChild(el);
   }
 
   registerMouseEvents() {
