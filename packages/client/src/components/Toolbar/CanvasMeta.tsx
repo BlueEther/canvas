@@ -6,11 +6,11 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import { CanvasLib } from "@sc07-canvas/lib/src/canvas";
-import { useAppContext } from "../contexts/AppContext";
-import { Canvas } from "../lib/canvas";
+import { useAppContext } from "../../contexts/AppContext";
+import { Canvas } from "../../lib/canvas";
 import { useEffect, useState } from "react";
 import { ClientConfig } from "@sc07-canvas/lib/src/net";
-import network from "../lib/network";
+import network from "../../lib/network";
 
 const getTimeLeft = (pixels: { available: number }, config: ClientConfig) => {
   // this implementation matches the server's implementation

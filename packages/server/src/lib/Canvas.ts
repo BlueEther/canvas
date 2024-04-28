@@ -1,6 +1,7 @@
 import { CanvasConfig } from "@sc07-canvas/lib/src/net";
 import { prisma } from "./prisma";
 import { Redis } from "./redis";
+import { SocketServer } from "./SocketServer";
 
 class Canvas {
   private CANVAS_SIZE: [number, number];
@@ -17,6 +18,9 @@ class Canvas {
         cooldown: 10,
         multiplier: 3,
         maxStack: 6,
+      },
+      undo: {
+        grace_period: 5000,
       },
     };
   }
@@ -122,6 +126,43 @@ class Canvas {
     // maybe only update specific element?
     // i don't think it needs to be awaited
     await this.updateCanvasRedisAtPos(x, y);
+  }
+
+  /**
+   * Force a pixel to be updated in redis
+   * @param x
+   * @param y
+   */
+  async refreshPixel(x: number, y: number) {
+    const redis = await Redis.getClient();
+    const key = Redis.key("pixelColor", x, y);
+
+    // find if any pixels exist at this spot, and pick the most recent one
+    const pixel = await prisma.pixel.findFirst({
+      where: { x, y },
+      orderBy: { createdAt: "desc" },
+    });
+    let paletteColorID = -1;
+
+    // if pixel exists in redis
+    if (pixel) {
+      redis.set(key, pixel.color);
+      paletteColorID = (await prisma.paletteColor.findFirst({
+        where: { hex: pixel.color },
+      }))!.id;
+    } else {
+      redis.del(key);
+    }
+
+    await this.updateCanvasRedisAtPos(x, y);
+
+    // announce to everyone the pixel's color
+    // using -1 if no pixel is there anymore
+    SocketServer.instance.io.emit("pixel", {
+      x,
+      y,
+      color: paletteColorID,
+    });
   }
 }
 

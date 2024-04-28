@@ -25,6 +25,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   const [cursorPosition, setCursorPosition] = useState<IPosition>();
 
   const [pixels, setPixels] = useState({ available: 0 });
+  const [undo, setUndo] = useState<{ available: true; expireAt: number }>();
 
   // overlays visible
   const [settingsSidebar, setSettingsSidebar] = useState(false);
@@ -43,10 +44,21 @@ export const AppContext = ({ children }: PropsWithChildren) => {
       setPixels(pixels);
     }
 
+    function handleUndo(
+      data: { available: false } | { available: true; expireAt: number }
+    ) {
+      if (data.available) {
+        setUndo({ available: true, expireAt: data.expireAt });
+      } else {
+        setUndo(undefined);
+      }
+    }
+
     Network.on("user", handleUser);
     Network.on("config", handleConfig);
     Network.waitFor("pixels").then(([data]) => handlePixels(data));
     Network.on("pixels", handlePixels);
+    Network.on("undo", handleUndo);
 
     Network.socket.connect();
 
@@ -69,6 +81,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         pixels,
         settingsSidebar,
         setSettingsSidebar,
+        undo,
       }}
     >
       {config ? children : "Loading..."}

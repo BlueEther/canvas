@@ -8,6 +8,9 @@ export interface ServerToClientEvents {
   online: (count: { count: number }) => void;
   availablePixels: (count: number) => void;
   pixelLastPlaced: (time: number) => void;
+  undo: (
+    data: { available: false } | { available: true; expireAt: number }
+  ) => void;
 }
 
 export interface ClientToServerEvents {
@@ -20,10 +23,12 @@ export interface ClientToServerEvents {
       >
     ) => void
   ) => void;
+  undo: (ack: (_: PacketAck<{}, "no_user" | "unavailable">) => void) => void;
 }
 
 // app context
 
+// TODO: move to client/{...}/AppContext.tsx
 export interface IAppContext {
   config: ClientConfig;
   user?: AuthSession;
@@ -34,6 +39,7 @@ export interface IAppContext {
   pixels: { available: number };
   settingsSidebar: boolean;
   setSettingsSidebar: (v: boolean) => void;
+  undo?: { available: true; expireAt: number };
 }
 
 export interface IPalleteContext {
@@ -56,6 +62,9 @@ export interface IPosition {
 export type Pixel = {
   x: number;
   y: number;
+  /**
+   * Palette color ID or -1 for nothing
+   */
   color: number;
 };
 
@@ -72,6 +81,12 @@ export type CanvasConfig = {
     maxStack: number;
     cooldown: number;
     multiplier: number;
+  };
+  undo: {
+    /**
+     * time in ms to allow undos
+     */
+    grace_period: number;
   };
 };
 

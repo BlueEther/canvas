@@ -163,6 +163,12 @@ export class Canvas extends EventEmitter<CanvasEvents> {
         } else {
           // TODO: handle undo pixel
           alert("error: " + ack.error);
+          console.warn(
+            "Attempted to place pixel",
+            { x, y, color: this.Pallete.getSelectedColor()!.id },
+            "and got error",
+            ack
+          );
         }
       });
   }

@@ -1,10 +1,10 @@
 import { Header } from "./Header";
 import { AppContext } from "../contexts/AppContext";
 import { CanvasWrapper } from "./CanvasWrapper";
-import { Pallete } from "./Pallete";
 import { TemplateContext } from "../contexts/TemplateContext";
 import { SettingsSidebar } from "./Settings/SettingsSidebar";
 import { DebugModal } from "./Debug/DebugModal";
+import { ToolbarWrapper } from "./Toolbar/ToolbarWrapper";
 
 const App = () => {
   return (
@@ -12,7 +12,7 @@ const App = () => {
       <TemplateContext>
         <Header />
         <CanvasWrapper />
-        <Pallete />
+        <ToolbarWrapper />
 
         <DebugModal />
         <SettingsSidebar />

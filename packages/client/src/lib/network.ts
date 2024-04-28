@@ -16,6 +16,9 @@ export interface INetworkEvents {
   pixelLastPlaced: (time: number) => void;
   online: (count: number) => void;
   pixel: (pixel: Pixel) => void;
+  undo: (
+    data: { available: false } | { available: true; expireAt: number }
+  ) => void;
 }
 
 type SentEventValue<K extends keyof INetworkEvents> = EventEmitter.ArgumentMap<
@@ -66,18 +69,9 @@ class Network extends EventEmitter<INetworkEvents> {
       this.emit("pixel", pixel);
     });
 
-    // this.socket.on("config", (config) => {
-    //   Pallete.load(config.pallete);
-    //   Canvas.load(config.canvas);
-    // });
-
-    // this.socket.on("pixel", (data: SPixelPacket) => {
-    //   Canvas.handlePixel(data);
-    // });
-
-    // this.socket.on("canvas", (data: SCanvasPacket) => {
-    //   Canvas.handleBatch(data);
-    // });
+    this.socket.on("undo", (undo) => {
+      this.emit("undo", undo);
+    });
   }
 
   private _emit: typeof this.emit = (event, ...args) => {

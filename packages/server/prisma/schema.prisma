@@ -15,9 +15,10 @@ datasource db {
 }
 
 model User {
-  sub           String   @id
-  lastPixelTime DateTime @default(now()) // the time the last pixel was placed at
-  pixelStack    Int      @default(0) // amount of pixels stacked for this user
+  sub           String    @id
+  lastPixelTime DateTime  @default(now()) // the time the last pixel was placed at
+  pixelStack    Int       @default(0) // amount of pixels stacked for this user
+  undoExpires   DateTime? // when the undo for the most recent pixel expires at
 
   pixels        Pixel[]
   FactionMember FactionMember[]

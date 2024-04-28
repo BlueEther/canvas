@@ -66,9 +66,12 @@ const getClientConfig = (): ClientConfig => {
 type Socket = RawSocket<ClientToServerEvents, ServerToClientEvents>;
 
 export class SocketServer {
+  static instance: SocketServer;
   io: Server<ClientToServerEvents, ServerToClientEvents>;
 
   constructor(server: http.Server) {
+    SocketServer.instance = this;
+
     this.io = new Server(server, getSocketConfig());
 
     this.setupMasterShard();
@@ -206,6 +209,10 @@ export class SocketServer {
 
       await user.modifyStack(-1);
       await Canvas.setPixel(user, pixel.x, pixel.y, paletteColor.hex);
+      // give undo capabilities
+      await user.setUndo(
+        new Date(Date.now() + Canvas.getCanvasConfig().undo.grace_period)
+      );
 
       const newPixel: Pixel = {
         x: pixel.x,
@@ -217,6 +224,52 @@ export class SocketServer {
         data: newPixel,
       });
       socket.broadcast.emit("pixel", newPixel);
+    });
+
+    socket.on("undo", async (ack) => {
+      if (!user) {
+        ack({ success: false, error: "no_user" });
+        return;
+      }
+
+      await user.update(true);
+
+      if (!user.undoExpires) {
+        // user has no undo available
+        ack({ success: false, error: "unavailable" });
+        return;
+      }
+
+      const isExpired = user.undoExpires.getTime() - Date.now() < 0;
+
+      if (isExpired) {
+        // expiration date is in the past, so no undo is available
+        ack({ success: false, error: "unavailable" });
+        return;
+      }
+
+      // find most recent pixel
+      const pixel = await prisma.pixel.findFirst({
+        where: { userId: user.sub },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!pixel) {
+        // user doesn't have a pixel, idk how we got here, but they can't do anything
+        ack({ success: false, error: "unavailable" });
+        return;
+      }
+
+      // mark the undo as used
+      await user.setUndo();
+
+      // delete most recent pixel
+      await prisma.pixel.delete({ where: { id: pixel.id } });
+
+      // trigger re-cache on redis
+      await Canvas.refreshPixel(pixel.x, pixel.y);
+
+      ack({ success: true, data: {} });
     });
   }
 

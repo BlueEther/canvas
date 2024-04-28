@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { useAppContext } from "../contexts/AppContext";
-import { Canvas } from "../lib/canvas";
-import { IPalleteContext } from "../types";
+import { useAppContext } from "../../contexts/AppContext";
+import { Canvas } from "../../lib/canvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
-import { CanvasMeta } from "./CanvasMeta";
+import { IPalleteContext } from "@sc07-canvas/lib/src/net";
 
-export const Pallete = () => {
+export const Palette = () => {
   const { config, user } = useAppContext();
   const [pallete, setPallete] = useState<IPalleteContext>({});
 
@@ -18,8 +17,6 @@ export const Pallete = () => {
 
   return (
     <div id="pallete">
-      <CanvasMeta />
-
       <div className="pallete-colors">
         <button
           aria-label="Deselect Color"
