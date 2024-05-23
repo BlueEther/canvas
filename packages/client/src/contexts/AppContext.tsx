@@ -35,7 +35,11 @@ export const AppContext = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     function loadSettings() {
-      setLoadChat(localStorage.getItem("matrix.enable") === "true");
+      setLoadChat(
+        localStorage.getItem("matrix.enable") === null
+          ? true
+          : localStorage.getItem("matrix.enable") === "true"
+      );
     }
 
     function handleConfig(config: ClientConfig) {
