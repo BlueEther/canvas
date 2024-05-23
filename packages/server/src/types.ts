@@ -26,6 +26,13 @@ declare global {
       REDIS_SESSION_PREFIX: string;
 
       /**
+       * hostname that is used in the callback
+       *
+       * @example http://localhost:3000
+       * @example https://canvas.com
+       */
+      OIDC_CALLBACK_HOST: string;
+      /**
        * If this is set, enable socket.io CORS to this origin
        *
        * Specifically setting CORS origin is required because of use of credentials (cookies)

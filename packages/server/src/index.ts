@@ -4,6 +4,7 @@ import { Redis } from "./lib/redis";
 import { Logger } from "./lib/Logger";
 import { ExpressServer } from "./lib/Express";
 import { SocketServer } from "./lib/SocketServer";
+import { OpenID } from "./lib/oidc";
 
 // Validate environment variables
 
@@ -51,7 +52,15 @@ if (!process.env.AUTH_SECRET) {
   process.exit(1);
 }
 
+if (!process.env.OIDC_CALLBACK_HOST) {
+  Logger.error("OIDC_CALLBACK_HOST is not defined");
+  process.exit(1);
+}
+
 Redis.connect();
+OpenID.setup().then(() => {
+  Logger.info("Setup OpenID");
+});
 
 const express = new ExpressServer();
 new SocketServer(express.httpServer);

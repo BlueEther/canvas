@@ -1,44 +1,57 @@
 import { Router } from "express";
 import { prisma } from "./lib/prisma";
+import { OpenID } from "./lib/oidc";
 
 const app = Router();
-
-const { AUTH_ENDPOINT, AUTH_CLIENT, AUTH_SECRET } = process.env;
 
 app.get("/me", (req, res) => {
   res.json(req.session);
 });
 
 app.get("/login", (req, res) => {
-  const params = new URLSearchParams();
-  params.set("service", "canvas");
-
-  res.redirect(AUTH_ENDPOINT + "/login?" + params);
+  res.redirect(
+    OpenID.client.authorizationUrl({
+      prompt: "consent",
+      scope: "openid instance",
+    })
+  );
 });
 
+// TODO: logout endpoint
+
 app.get("/callback", async (req, res) => {
-  const { code } = req.query;
+  // const { code } = req.query;
 
-  const who = await fetch(AUTH_ENDPOINT + "/api/auth/identify", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${AUTH_CLIENT}:${AUTH_SECRET}`,
-    },
-    body: JSON.stringify({
-      code,
-    }),
-  }).then((a) => a.json());
-
-  if (!who.success) {
-    res.json({
-      error: "AUTHENTICATION FAILED",
-      error_message: who.error || "no error specified",
+  const params = OpenID.client.callbackParams(req);
+  const exchange = await OpenID.client.callback(
+    OpenID.getRedirectUrl(),
+    params
+  );
+  if (!exchange || !exchange.access_token) {
+    return res.status(400).json({
+      success: false,
+      error: "FAILED TOKEN EXCHANGE",
     });
-    return;
   }
 
-  const [username, hostname] = who.user.sub.split("@");
+  const whoami = await OpenID.client.userinfo<{
+    instance: {
+      software: {
+        name: string;
+        version: string;
+        logo_uri?: string;
+        repository?: string;
+        homepage?: string;
+      };
+      instance: {
+        logo_uri?: string;
+        banner_uri?: string;
+        name?: string;
+      };
+    };
+  }>(exchange.access_token);
+
+  const [username, hostname] = whoami.sub.split("@");
 
   await prisma.user.upsert({
     where: {
@@ -52,14 +65,14 @@ app.get("/callback", async (req, res) => {
 
   req.session.user = {
     service: {
-      ...who.service,
+      ...whoami.instance,
       instance: {
-        ...who.service.instance,
+        ...whoami.instance.instance,
         hostname,
       },
     },
     user: {
-      profile: who.user.profile,
+      picture_url: whoami.picture,
       username,
     },
   };

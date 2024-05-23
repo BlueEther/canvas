@@ -40,6 +40,8 @@ export interface IAppContext {
   settingsSidebar: boolean;
   setSettingsSidebar: (v: boolean) => void;
   undo?: { available: true; expireAt: number };
+  loadChat: boolean;
+  setLoadChat: (v: boolean) => void;
 }
 
 export interface IPalleteContext {
@@ -114,13 +116,19 @@ export type AuthSession = {
     software: {
       name: string;
       version: string;
+      logo_uri?: string;
+      repository?: string;
+      homepage?: string;
     };
     instance: {
       hostname: string;
+      logo_uri?: string;
+      banner_uri?: string;
+      name?: string;
     };
   };
   user: {
     username: string;
-    profile: string;
+    picture_url?: string;
   };
 };
