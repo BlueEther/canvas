@@ -1,8 +1,14 @@
 import { Button } from "@nextui-org/react";
 import { useChatContext } from "../../contexts/ChatContext";
+import { useAppContext } from "../../contexts/AppContext";
 
 const InnerChatSettings = () => {
+  const { user: authUser } = useAppContext();
   const { user, doLogin, doLogout } = useChatContext();
+
+  if (!authUser) {
+    return <>You must be logged in first</>;
+  }
 
   return (
     <>
