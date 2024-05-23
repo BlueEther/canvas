@@ -24,6 +24,9 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   const [canvasPosition, setCanvasPosition] = useState<ICanvasPosition>();
   const [cursorPosition, setCursorPosition] = useState<IPosition>();
 
+  // --- settings ---
+  const [loadChat, _setLoadChat] = useState(false);
+
   const [pixels, setPixels] = useState({ available: 0 });
   const [undo, setUndo] = useState<{ available: true; expireAt: number }>();
 
@@ -31,6 +34,10 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   const [settingsSidebar, setSettingsSidebar] = useState(false);
 
   useEffect(() => {
+    function loadSettings() {
+      setLoadChat(localStorage.getItem("matrix.enable") === "true");
+    }
+
     function handleConfig(config: ClientConfig) {
       console.info("Server sent config", config);
       setConfig(config);
@@ -62,12 +69,19 @@ export const AppContext = ({ children }: PropsWithChildren) => {
 
     Network.socket.connect();
 
+    loadSettings();
+
     return () => {
       Network.off("user", handleUser);
       Network.off("config", handleConfig);
       Network.off("pixels", handlePixels);
     };
   }, []);
+
+  const setLoadChat = (v: boolean) => {
+    _setLoadChat(v);
+    localStorage.setItem("matrix.enable", v ? "true" : "false");
+  };
 
   return (
     <appContext.Provider
@@ -82,6 +96,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         settingsSidebar,
         setSettingsSidebar,
         undo,
+        loadChat,
+        setLoadChat,
       }}
     >
       {config ? children : "Loading..."}

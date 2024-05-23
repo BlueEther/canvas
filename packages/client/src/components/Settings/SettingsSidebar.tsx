@@ -3,6 +3,7 @@ import { useAppContext } from "../../contexts/AppContext";
 import { TemplateSettings } from "./TemplateSettings";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark";
+import { ChatSettings } from "./ChatSettings";
 
 export const SettingsSidebar = () => {
   const { settingsSidebar, setSettingsSidebar } = useAppContext();
@@ -21,6 +22,7 @@ export const SettingsSidebar = () => {
       </header>
       <section>abc</section>
       <TemplateSettings />
+      <ChatSettings />
     </div>
   );
 };
