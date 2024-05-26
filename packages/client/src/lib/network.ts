@@ -7,8 +7,12 @@ import {
   Pixel,
   ServerToClientEvents,
 } from "@sc07-canvas/lib/src/net";
+import { toast } from "react-toastify";
 
 export interface INetworkEvents {
+  connected: () => void;
+  disconnected: () => void;
+
   user: (user: AuthSession) => void;
   config: (user: ClientConfig) => void;
   canvas: (pixels: string[]) => void;
@@ -31,6 +35,7 @@ class Network extends EventEmitter<INetworkEvents> {
     {
       autoConnect: false,
       withCredentials: true,
+      transports: ["polling"],
     }
   );
   private online_count = 0;
@@ -41,11 +46,40 @@ class Network extends EventEmitter<INetworkEvents> {
   constructor() {
     super();
 
+    this.socket.on("connect", () => {
+      console.log("Connected to server");
+      toast.success("Connected to server");
+      this.emit("connected");
+    });
+
+    this.socket.on("connect_error", (err) => {
+      // TODO: proper error handling
+      console.error("Failed to connect to server", err);
+      toast.error("Failed to connect: " + (err.message || err.name));
+    });
+
+    this.socket.on("disconnect", (reason, desc) => {
+      console.log("Disconnected from server", reason, desc);
+      toast.warn("Disconnected from server");
+      this.emit("disconnected");
+    });
+
     this.socket.on("user", (user: AuthSession) => {
       this.emit("user", user);
     });
 
     this.socket.on("config", (config) => {
+      console.info("Server sent config", config);
+
+      if (config.version !== __COMMIT_HASH__) {
+        toast.info("Client version does not match server, reloading...");
+        console.warn("Client version does not match server, reloading...", {
+          clientVersion: __COMMIT_HASH__,
+          serverVersion: config.version,
+        });
+        window.location.reload();
+      }
+
       this.emit("config", config);
     });
 

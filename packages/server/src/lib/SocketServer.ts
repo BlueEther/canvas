@@ -1,4 +1,5 @@
 import http from "node:http";
+import * as child from "node:child_process";
 import {
   ClientConfig,
   ClientToServerEvents,
@@ -14,6 +15,12 @@ import { prisma } from "./prisma";
 import { Logger } from "./Logger";
 import { Redis } from "./redis";
 import { User } from "../models/User";
+
+// maybe move to a constants file?
+const commitHash = child
+  .execSync("git rev-parse --short HEAD")
+  .toString()
+  .trim();
 
 /**
  * get socket.io server config, generated from environment vars
@@ -55,6 +62,7 @@ prisma.paletteColor
 
 const getClientConfig = (): ClientConfig => {
   return {
+    version: commitHash,
     pallete: {
       colors: PALLETE,
       pixel_cooldown: PIXEL_TIMEOUT_MS,

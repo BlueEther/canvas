@@ -42,6 +42,7 @@ export interface IAppContext {
   undo?: { available: true; expireAt: number };
   loadChat: boolean;
   setLoadChat: (v: boolean) => void;
+  connected: boolean;
 }
 
 export interface IPalleteContext {
@@ -93,6 +94,10 @@ export type CanvasConfig = {
 };
 
 export type ClientConfig = {
+  /**
+   * Monolith git hash, if it doesn't match, client will reload
+   */
+  version: string;
   pallete: {
     colors: PalleteColor[];
     pixel_cooldown: number;

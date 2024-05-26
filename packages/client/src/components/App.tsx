@@ -8,12 +8,35 @@ import { ToolbarWrapper } from "./Toolbar/ToolbarWrapper";
 import React, { lazy, useEffect } from "react";
 import { ChatContext } from "../contexts/ChatContext";
 
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
+
 const Chat = lazy(() => import("./Chat/Chat"));
+
+console.log("Client init with version " + __COMMIT_HASH__);
 
 const DynamicallyLoadChat = () => {
   const { loadChat } = useAppContext();
 
   return <React.Suspense>{loadChat && <Chat />}</React.Suspense>;
+};
+
+// get access to context data
+const AppInner = () => {
+  return (
+    <>
+      <Header />
+      <CanvasWrapper />
+      <ToolbarWrapper />
+
+      {/* <DynamicallyLoadChat /> */}
+
+      <DebugModal />
+      <SettingsSidebar />
+
+      <ToastContainer position="top-left" />
+    </>
+  );
 };
 
 const App = () => {
@@ -113,14 +136,7 @@ const App = () => {
     <AppContext>
       <ChatContext>
         <TemplateContext>
-          <Header />
-          <CanvasWrapper />
-          <ToolbarWrapper />
-
-          {/* <DynamicallyLoadChat /> */}
-
-          <DebugModal />
-          <SettingsSidebar />
+          <AppInner />
         </TemplateContext>
       </ChatContext>
     </AppContext>

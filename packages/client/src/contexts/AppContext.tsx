@@ -13,6 +13,7 @@ import {
   IPosition,
 } from "@sc07-canvas/lib/src/net";
 import Network from "../lib/network";
+import { Spinner } from "@nextui-org/react";
 
 const appContext = createContext<IAppContext>({} as any);
 
@@ -23,6 +24,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   const [auth, setAuth] = useState<AuthSession>();
   const [canvasPosition, setCanvasPosition] = useState<ICanvasPosition>();
   const [cursorPosition, setCursorPosition] = useState<IPosition>();
+  const [connected, setConnected] = useState(false);
 
   // --- settings ---
   const [loadChat, _setLoadChat] = useState(false);
@@ -43,7 +45,6 @@ export const AppContext = ({ children }: PropsWithChildren) => {
     }
 
     function handleConfig(config: ClientConfig) {
-      console.info("Server sent config", config);
       setConfig(config);
     }
 
@@ -65,11 +66,22 @@ export const AppContext = ({ children }: PropsWithChildren) => {
       }
     }
 
+    function handleConnect() {
+      setConnected(true);
+    }
+
+    function handleDisconnect() {
+      setConnected(false);
+    }
+
     Network.on("user", handleUser);
     Network.on("config", handleConfig);
     Network.waitFor("pixels").then(([data]) => handlePixels(data));
     Network.on("pixels", handlePixels);
     Network.on("undo", handleUndo);
+
+    Network.on("connected", handleConnect);
+    Network.on("disconnected", handleDisconnect);
 
     Network.socket.connect();
 
@@ -79,6 +91,9 @@ export const AppContext = ({ children }: PropsWithChildren) => {
       Network.off("user", handleUser);
       Network.off("config", handleConfig);
       Network.off("pixels", handlePixels);
+      Network.off("undo", handleUndo);
+      Network.off("connected", handleConnect);
+      Network.off("disconnected", handleDisconnect);
     };
   }, []);
 
@@ -102,9 +117,15 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         undo,
         loadChat,
         setLoadChat,
+        connected,
       }}
     >
-      {config ? children : "Loading..."}
+      {!config && (
+        <div className="fixed top-0 left-0 w-full h-full z-[9999] backdrop-blur-sm bg-black/30 text-white flex items-center justify-center">
+          <Spinner label="Loading..." />
+        </div>
+      )}
+      {children}
     </appContext.Provider>
   );
 };

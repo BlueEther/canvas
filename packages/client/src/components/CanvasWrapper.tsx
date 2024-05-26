@@ -10,11 +10,13 @@ import { Template } from "./Template";
 import { IRouterData, Router } from "../lib/router";
 
 export const CanvasWrapper = () => {
+  const { config } = useAppContext();
   // to prevent safari from blurring things, use the zoom css property
+
   return (
     <main>
       <PanZoomWrapper>
-        <Template />
+        {config && <Template />}
         <CanvasInner />
       </PanZoomWrapper>
     </main>
@@ -31,7 +33,7 @@ const CanvasInner = () => {
   }, [PanZoom]);
 
   useEffect(() => {
-    if (!config.canvas || !canvasRef.current) return;
+    if (!config?.canvas || !canvasRef.current) return;
     const canvas = canvasRef.current!;
     const canvasInstance = new Canvas(config, canvas, PanZoom);
     const initAt = Date.now();

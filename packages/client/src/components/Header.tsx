@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button, Card, CardBody } from "@nextui-org/react";
 import { useAppContext } from "../contexts/AppContext";
 import { User } from "./Header/User";
 import { Debug } from "@sc07-canvas/lib/src/debug";
@@ -13,11 +13,19 @@ const DynamicChat = () => {
 };
 
 export const Header = () => {
-  const { setSettingsSidebar } = useAppContext();
+  const { setSettingsSidebar, connected } = useAppContext();
 
   return (
     <header id="main-header">
       <div></div>
+      <div className="spacer"></div>
+      {!connected && (
+        <div>
+          <Card>
+            <CardBody>Disconnected</CardBody>
+          </Card>
+        </div>
+      )}
       <div className="spacer"></div>
       <div className="box">
         <User />
