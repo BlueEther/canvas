@@ -10,7 +10,11 @@ export const ChatSettings = () => {
   return (
     <>
       <header>
-        <Switch size="sm" isSelected={loadChat} onValueChange={setLoadChat} />
+        <Switch
+          size="sm"
+          isSelected={loadChat || false}
+          onValueChange={setLoadChat}
+        />
         <h2>Chat</h2>
       </header>
       <section>
