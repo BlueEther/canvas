@@ -35,7 +35,6 @@ class Network extends EventEmitter<INetworkEvents> {
     {
       autoConnect: false,
       withCredentials: true,
-      transports: ["polling"],
     }
   );
   private online_count = 0;
