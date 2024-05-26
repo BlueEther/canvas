@@ -1,4 +1,11 @@
-import { PropsWithChildren, createContext, useContext, useState } from "react";
+import {
+  PropsWithChildren,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { IRouterData, Router } from "../lib/router";
 
 interface ITemplate {
   /**
@@ -35,12 +42,40 @@ const templateContext = createContext<ITemplate>({} as any);
 export const useTemplateContext = () => useContext(templateContext);
 
 export const TemplateContext = ({ children }: PropsWithChildren) => {
-  const [enable, setEnable] = useState(false);
-  const [url, setURL] = useState<string>();
-  const [width, setWidth] = useState<number>();
-  const [x, setX] = useState(0);
-  const [y, setY] = useState(0);
+  const routerData = Router.get();
+  const [enable, setEnable] = useState(!!routerData.template?.url);
+  const [url, setURL] = useState<string | undefined>(routerData.template?.url);
+  const [width, setWidth] = useState<number | undefined>(
+    routerData.template?.width
+  );
+  const [x, setX] = useState(routerData.template?.x || 0);
+  const [y, setY] = useState(routerData.template?.y || 0);
   const [opacity, setOpacity] = useState(100);
+
+  useEffect(() => {
+    const handleNavigate = (data: IRouterData) => {
+      if (data.template) {
+        setEnable(true);
+        setURL(data.template.url);
+        setWidth(data.template.width);
+        setX(data.template.x || 0);
+        setY(data.template.y || 0);
+      } else {
+        setEnable(false);
+      }
+    };
+
+    Router.on("navigate", handleNavigate);
+
+    return () => {
+      Router.off("navigate", handleNavigate);
+    };
+  }, []);
+
+  useEffect(() => {
+    Router.setTemplate({ enabled: enable, width, x, y, url });
+    Router.queueUpdate();
+  }, [enable, width, x, y, url]);
 
   return (
     <templateContext.Provider

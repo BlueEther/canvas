@@ -5,9 +5,9 @@ import { PanZoomWrapper } from "@sc07-canvas/lib/src/renderer";
 import { RendererContext } from "@sc07-canvas/lib/src/renderer/RendererContext";
 import { ViewportMoveEvent } from "@sc07-canvas/lib/src/renderer/PanZoom";
 import throttle from "lodash.throttle";
-import { Routes } from "../lib/routes";
-import { ICanvasPosition, IPosition } from "@sc07-canvas/lib/src/net";
+import { IPosition } from "@sc07-canvas/lib/src/net";
 import { Template } from "./Template";
+import { IRouterData, Router } from "../lib/router";
 
 export const CanvasWrapper = () => {
   // to prevent safari from blurring things, use the zoom css property
@@ -21,79 +21,60 @@ export const CanvasWrapper = () => {
   );
 };
 
-const parseHashParams = (canvas: Canvas) => {
-  // maybe move this to a utility inside routes.ts
-
-  let { hash } = new URL(window.location.href);
-  if (hash.indexOf("#") === 0) {
-    hash = hash.slice(1);
-  }
-  let params = new URLSearchParams(hash);
-
-  let position: {
-    x?: number;
-    y?: number;
-    zoom?: number;
-  } = {};
-
-  if (params.has("x") && !isNaN(parseInt(params.get("x")!)))
-    position.x = parseInt(params.get("x")!);
-  if (params.has("y") && !isNaN(parseInt(params.get("y")!)))
-    position.y = parseInt(params.get("y")!);
-  if (params.has("zoom") && !isNaN(parseInt(params.get("zoom")!)))
-    position.zoom = parseInt(params.get("zoom")!);
-
-  if (
-    typeof position.x === "number" &&
-    typeof position.y === "number" &&
-    typeof position.zoom === "number"
-  ) {
-    const { transformX, transformY } = canvas.canvasToPanZoomTransform(
-      position.x,
-      position.y
-    );
-
-    return {
-      x: transformX,
-      y: transformY,
-      zoom: position.zoom,
-    };
-  }
-};
-
 const CanvasInner = () => {
   const canvasRef = createRef<HTMLCanvasElement>();
   const { config, setCanvasPosition, setCursorPosition } = useAppContext();
   const PanZoom = useContext(RendererContext);
 
   useEffect(() => {
+    Router.PanZoom = PanZoom;
+
+    // @ts-ignore
+    window.TEST_Router = Router;
+  }, [PanZoom]);
+
+  useEffect(() => {
     if (!config.canvas || !canvasRef.current) return;
     const canvas = canvasRef.current!;
     const canvasInstance = new Canvas(config, canvas, PanZoom);
+    const initAt = Date.now();
 
-    {
-      // TODO: handle hash changes and move viewport
-      // NOTE: this will need to be cancelled if handleViewportMove was executed recently
+    const handleNavigate = (data: IRouterData) => {
+      if (data.canvas) {
+        const position = canvasInstance.canvasToPanZoomTransform(
+          data.canvas.x,
+          data.canvas.y
+        );
 
-      const position = parseHashParams(canvasInstance);
-      if (position) {
-        PanZoom.setPosition(position, { suppressEmit: true });
+        PanZoom.setPosition(
+          {
+            x: position.transformX,
+            y: position.transformY,
+            zoom: data.canvas.zoom || 0, // TODO: fit canvas to viewport instead of defaulting
+          },
+          { suppressEmit: true }
+        );
       }
-    }
+    };
 
-    const handleViewportMove = throttle((state: ViewportMoveEvent) => {
-      const pos = canvasInstance.panZoomTransformToCanvas();
+    // initial load
+    const initialRouter = Router.get();
+    console.log(
+      "[CanvasWrapper] Initial router data, handling navigate",
+      initialRouter
+    );
+    handleNavigate(initialRouter);
 
-      const canvasPosition: ICanvasPosition = {
-        x: pos.canvasX,
-        y: pos.canvasY,
-        zoom: state.scale >> 0,
-      };
+    const handleViewportMove = (state: ViewportMoveEvent) => {
+      if (Date.now() - initAt < 60 * 1000) {
+        console.debug(
+          "[CanvasWrapper] handleViewportMove called soon after init",
+          Date.now() - initAt
+        );
+      }
 
-      setCanvasPosition(canvasPosition);
-
-      window.location.replace(Routes.canvas({ pos: canvasPosition }));
-    }, 1000);
+      Router.queueUpdate();
+    };
 
     const handleCursorPos = throttle((pos: IPosition) => {
       if (
@@ -111,11 +92,13 @@ const CanvasInner = () => {
 
     PanZoom.addListener("viewportMove", handleViewportMove);
     canvasInstance.on("cursorPos", handleCursorPos);
+    Router.on("navigate", handleNavigate);
 
     return () => {
       canvasInstance.destroy();
       PanZoom.removeListener("viewportMove", handleViewportMove);
       canvasInstance.off("cursorPos", handleCursorPos);
+      Router.off("navigate", handleNavigate);
     };
 
     // ! do not include canvasRef, it causes infinite re-renders
