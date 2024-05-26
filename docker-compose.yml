@@ -17,8 +17,10 @@ services:
       - AUTH_CLIENT=canvas
       - AUTH_SECRET=${AUTH_SECRET}
     depends_on:
-      - redis
-      - postgres
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
   redis:
     restart: always
     image: redis:7-alpine
