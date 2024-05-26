@@ -6,6 +6,6 @@ packages/build
 Dockerfile
 
 # dotfiles
-.git*
+.gitignore
 .vscode
 **/.env*

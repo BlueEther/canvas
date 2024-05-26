@@ -1,5 +1,9 @@
 FROM node:20-alpine AS base
 
+# to be able to read git hash
+RUN apk -U upgrade && apk add --no-cache git openssh
+RUN git config --global --add safe.directory /home/node/app
+
 FROM base as dev_dep
 RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 WORKDIR /home/node/app
@@ -36,8 +40,7 @@ FROM base as build
 RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 WORKDIR /home/node/app
 
-COPY --from=dev_dep /home/node/app/ ./
-
+COPY --from=dev_dep --chown=node:node /home/node/app/ ./
 COPY --chown=node:node . .
 
 # --- build lib ---
@@ -66,7 +69,7 @@ RUN npm -w packages/server run build
 FROM base as run
 WORKDIR /home/node/app
 COPY --from=dep /home/node/app/ ./
-COPY package*.json docker-start.sh ./
+COPY package*.json docker-start.sh .git ./
 
 # --- prepare lib ---
 
