@@ -28,9 +28,6 @@ const CanvasInner = () => {
 
   useEffect(() => {
     Router.PanZoom = PanZoom;
-
-    // @ts-ignore
-    window.TEST_Router = Router;
   }, [PanZoom]);
 
   useEffect(() => {
