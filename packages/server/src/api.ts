@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { prisma } from "./lib/prisma";
 import { OpenID } from "./lib/oidc";
+import { TokenSet, errors as OIDC_Errors } from "openid-client";
+import { Logger } from "./lib/Logger";
 
 const app = Router();
 
@@ -20,13 +22,66 @@ app.get("/login", (req, res) => {
 // TODO: logout endpoint
 
 app.get("/callback", async (req, res) => {
+  // TODO: return proper UIs for errors intead of raw JSON (#35)
   // const { code } = req.query;
 
-  const params = OpenID.client.callbackParams(req);
-  const exchange = await OpenID.client.callback(
-    OpenID.getRedirectUrl(),
-    params
-  );
+  let exchange: TokenSet;
+
+  try {
+    const params = OpenID.client.callbackParams(req);
+    exchange = await OpenID.client.callback(OpenID.getRedirectUrl(), params);
+  } catch (e) {
+    if (e instanceof OIDC_Errors.RPError) {
+      // client error
+
+      res.status(400).json({
+        success: false,
+        error: e.name,
+        error_description: e.message,
+      });
+      return;
+    }
+
+    if (e instanceof OIDC_Errors.OPError) {
+      // server error
+
+      switch (e.error) {
+        case "invalid_client":
+          // this happens when we're configured with invalid credentials
+          Logger.error(
+            "OpenID is improperly configured. Cannot exchange tokens, do I have valid credetials?"
+          );
+          res.status(500).json({
+            success: false,
+            error: "internal server error",
+            error_description: "I'm misconfigured.",
+          });
+          return;
+        case "invalid_grant":
+          res.status(400).json({
+            success: false,
+            error: "invalid_grant",
+            error_description: "retry /api/login",
+          });
+          return;
+      }
+
+      res.status(400).json({
+        success: false,
+        error: e.error,
+        error_description: e.error_description,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      error: "unknown error",
+      error_description: "report this",
+    });
+    return;
+  }
+
   if (!exchange || !exchange.access_token) {
     return res.status(400).json({
       success: false,
