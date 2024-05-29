@@ -4,6 +4,22 @@ import { OpenID } from "../lib/oidc";
 import { TokenSet, errors as OIDC_Errors } from "openid-client";
 import { Logger } from "../lib/Logger";
 
+const ClientParams = {
+  TYPE: "auth_type",
+  ERROR: "auth_error",
+  ERROR_DESC: "auth_error_desc",
+  CAN_RETRY: "auth_retry",
+};
+
+const buildQuery = (obj: { [k in keyof typeof ClientParams]?: string }) => {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(obj)) {
+    const k_: keyof typeof ClientParams = k as any;
+    params.set(ClientParams[k_], v);
+  }
+  return "?" + params.toString();
+};
+
 const app = Router();
 
 app.get("/login", (req, res) => {
@@ -30,11 +46,14 @@ app.get("/callback", async (req, res) => {
     if (e instanceof OIDC_Errors.RPError) {
       // client error
 
-      res.status(400).json({
-        success: false,
-        error: e.name,
-        error_description: e.message,
-      });
+      res.redirect(
+        "/" +
+          buildQuery({
+            TYPE: "rp",
+            ERROR: e.name,
+            ERROR_DESC: e.message,
+          })
+      );
       return;
     }
 
@@ -47,34 +66,46 @@ app.get("/callback", async (req, res) => {
           Logger.error(
             "OpenID is improperly configured. Cannot exchange tokens, do I have valid credetials?"
           );
-          res.status(500).json({
-            success: false,
-            error: "internal server error",
-            error_description: "I'm misconfigured.",
-          });
+          res.redirect(
+            "/" +
+              buildQuery({
+                TYPE: "op",
+                ERROR: "Internal Server Error",
+                ERROR_DESC: "I'm misconfigured.",
+              })
+          );
           return;
         case "invalid_grant":
-          res.status(400).json({
-            success: false,
-            error: "invalid_grant",
-            error_description: "retry /api/login",
-          });
+          res.redirect(
+            "/" +
+              buildQuery({
+                TYPE: "op",
+                ERROR: "invalid_grant",
+                CAN_RETRY: "true",
+              })
+          );
           return;
       }
 
-      res.status(400).json({
-        success: false,
-        error: e.error,
-        error_description: e.error_description,
-      });
+      res.redirect(
+        "/" +
+          buildQuery({
+            TYPE: "op",
+            ERROR: e.error,
+            ERROR_DESC: e.error_description,
+          })
+      );
       return;
     }
 
-    res.status(500).json({
-      success: false,
-      error: "unknown error",
-      error_description: "report this",
-    });
+    res.redirect(
+      "/" +
+        buildQuery({
+          TYPE: "op",
+          ERROR: "unknown error",
+          ERROR_DESC: "report this",
+        })
+    );
     return;
   }
 

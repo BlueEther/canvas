@@ -10,6 +10,7 @@ import { ChatContext } from "../contexts/ChatContext";
 
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
+import { AuthErrors } from "./AuthErrors";
 
 const Chat = lazy(() => import("./Chat/Chat"));
 
@@ -33,6 +34,7 @@ const AppInner = () => {
 
       <DebugModal />
       <SettingsSidebar />
+      <AuthErrors />
 
       <ToastContainer position="top-left" />
     </>
