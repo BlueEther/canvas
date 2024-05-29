@@ -31,7 +31,7 @@ const router = createBrowserRouter(
     },
   ],
   {
-    basename: import.meta.env.VITE_APP_ROOT,
+    basename: __APP_ROOT__,
   }
 );
 

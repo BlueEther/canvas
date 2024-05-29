@@ -55,6 +55,7 @@ RUN npm -w packages/client run build
 
 # --- build admin ---
 
+ENV APP_ROOT /admin
 RUN npm -w packages/admin run build
 
 # --- build server ---

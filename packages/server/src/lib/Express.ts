@@ -69,17 +69,13 @@ export class ExpressServer {
       // client is needing to serve
       Logger.info(
         "Serving admin UI at /admin using root " +
-          path.join(__dirname, process.env.SERVE_ADMIN)
+          path.join(process.env.SERVE_ADMIN)
       );
-      const assetsDir = path.join(__dirname, process.env.SERVE_ADMIN, "assets");
-      const indexFile = path.join(
-        __dirname,
-        process.env.SERVE_ADMIN,
-        "index.html"
-      );
+      const assetsDir = path.join(process.env.SERVE_ADMIN, "assets");
+      const indexFile = path.join(process.env.SERVE_ADMIN, "index.html");
 
       this.app.use("/admin/assets", express.static(assetsDir));
-      this.app.use("/admin/*", (req, res) => {
+      this.app.use("/admin*", (req, res) => {
         res.sendFile(indexFile);
       });
     }

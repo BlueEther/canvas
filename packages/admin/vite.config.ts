@@ -15,4 +15,7 @@ export default defineConfig({
       include: "**/*.{jsx,tsx}",
     }),
   ],
+  define: {
+    __APP_ROOT__: JSON.stringify(process.env.APP_ROOT),
+  },
 });
