@@ -14,6 +14,7 @@ import {
 } from "@sc07-canvas/lib/src/net";
 import Network from "../lib/network";
 import { Spinner } from "@nextui-org/react";
+import { api } from "../lib/utils";
 
 const appContext = createContext<IAppContext>({} as any);
 
@@ -34,6 +35,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
 
   // overlays visible
   const [settingsSidebar, setSettingsSidebar] = useState(false);
+
+  const [hasAdmin, setHasAdmin] = useState(false);
 
   useEffect(() => {
     function loadSettings() {
@@ -73,6 +76,14 @@ export const AppContext = ({ children }: PropsWithChildren) => {
     function handleDisconnect() {
       setConnected(false);
     }
+
+    api<{}>("/api/admin/check").then(({ status, data }) => {
+      if (status === 200) {
+        if (data.success) {
+          setHasAdmin(true);
+        }
+      }
+    });
 
     Network.on("user", handleUser);
     Network.on("config", handleConfig);
@@ -118,6 +129,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         loadChat,
         setLoadChat,
         connected,
+        hasAdmin,
       }}
     >
       {!config && (

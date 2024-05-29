@@ -7,6 +7,7 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Root } from "./Root.tsx";
 import { HomePage } from "./pages/Home/page.tsx";
 import { AccountsPage } from "./pages/Accounts/Accounts/page.tsx";
+import { ServiceSettingsPage } from "./pages/Service/settings.tsx";
 
 const router = createBrowserRouter(
   [
@@ -21,6 +22,10 @@ const router = createBrowserRouter(
         {
           path: "/accounts",
           element: <AccountsPage />,
+        },
+        {
+          path: "/service/settings",
+          element: <ServiceSettingsPage />,
         },
       ],
     },

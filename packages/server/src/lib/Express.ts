@@ -3,9 +3,12 @@ import path from "node:path";
 import express, { type Express } from "express";
 import expressSession from "express-session";
 import RedisStore from "connect-redis";
+import cors from "cors";
 import { Redis } from "./redis";
-import APIRoutes from "../api";
+import APIRoutes_client from "../api/client";
+import APIRoutes_admin from "../api/admin";
 import { Logger } from "./Logger";
+import bodyParser from "body-parser";
 
 export const session = expressSession({
   secret: process.env.SESSION_SECRET,
@@ -81,8 +84,19 @@ export class ExpressServer {
       });
     }
 
+    if (process.env.NODE_ENV === "development") {
+      this.app.use(
+        cors({
+          origin: [process.env.CLIENT_ORIGIN!, process.env.ADMIN_ORIGIN!],
+          credentials: true,
+        })
+      );
+    }
+
     this.app.use(session);
-    this.app.use("/api", APIRoutes);
+    this.app.use(bodyParser.json());
+    this.app.use("/api", APIRoutes_client);
+    this.app.use("/api/admin", APIRoutes_admin);
 
     this.httpServer.listen(parseInt(process.env.PORT), () => {
       Logger.info("Listening on :" + process.env.PORT);

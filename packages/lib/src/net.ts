@@ -43,6 +43,8 @@ export interface IAppContext {
   loadChat: boolean;
   setLoadChat: (v: boolean) => void;
   connected: boolean;
+
+  hasAdmin: boolean;
 }
 
 export interface IPalleteContext {

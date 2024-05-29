@@ -107,6 +107,15 @@ class Network extends EventEmitter<INetworkEvents> {
     });
   }
 
+  /**
+   * Track events that we only care about the most recent version of
+   *
+   * Used by #waitFor
+   *
+   * @param event
+   * @param args
+   * @returns
+   */
   private _emit: typeof this.emit = (event, ...args) => {
     this.sentEvents[event] = args;
     return this.emit(event, ...args);

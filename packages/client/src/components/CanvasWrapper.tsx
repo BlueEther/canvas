@@ -1,4 +1,4 @@
-import { createRef, useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect, useRef } from "react";
 import { Canvas } from "../lib/canvas";
 import { useAppContext } from "../contexts/AppContext";
 import { PanZoomWrapper } from "@sc07-canvas/lib/src/renderer";
@@ -24,23 +24,82 @@ export const CanvasWrapper = () => {
 };
 
 const CanvasInner = () => {
-  const canvasRef = createRef<HTMLCanvasElement>();
+  const canvasRef = useRef<HTMLCanvasElement | null>();
+  const canvas = useRef<Canvas>();
   const { config, setCanvasPosition, setCursorPosition } = useAppContext();
   const PanZoom = useContext(RendererContext);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    canvas.current = new Canvas(canvasRef.current!, PanZoom);
+
+    return () => {
+      canvas.current!.destroy();
+    };
+  }, [PanZoom, setCursorPosition]);
 
   useEffect(() => {
     Router.PanZoom = PanZoom;
   }, [PanZoom]);
 
   useEffect(() => {
-    if (!config?.canvas || !canvasRef.current) return;
-    const canvas = canvasRef.current!;
-    const canvasInstance = new Canvas(config, canvas, PanZoom);
-    const initAt = Date.now();
+    if (!canvas.current) {
+      console.warn("canvas isntance doesn't exist");
+      return;
+    }
 
-    const handleNavigate = (data: IRouterData) => {
+    const handleCursorPos = throttle((pos: IPosition) => {
+      if (!canvas.current?.hasConfig() || !config) {
+        console.warn("handleCursorPos has no config");
+        return;
+      }
+
+      if (
+        pos.x < 0 ||
+        pos.y < 0 ||
+        pos.x > config.canvas.size[0] ||
+        pos.y > config.canvas.size[1]
+      ) {
+        setCursorPosition();
+      } else {
+        // fixes not passing the current value
+        setCursorPosition({ ...pos });
+      }
+    }, 1);
+
+    canvas.current.on("cursorPos", handleCursorPos);
+
+    return () => {
+      canvas.current!.off("cursorPos", handleCursorPos);
+    };
+  }, [config, setCursorPosition]);
+
+  useEffect(() => {
+    if (!canvas.current) {
+      console.warn("canvasinner config received but no canvas instance");
+      return;
+    }
+    if (!config) {
+      console.warn("canvasinner config received falsey");
+      return;
+    }
+
+    console.log("[CanvasInner] config updated, informing canvas instance");
+    canvas.current.loadConfig(config);
+
+    // refresh because canvas might've resized
+    const initialRouter = Router.get();
+    console.log(
+      "[CanvasWrapper] Config updated, triggering navigate",
+      initialRouter
+    );
+    handleNavigate(initialRouter);
+  }, [config]);
+
+  const handleNavigate = useCallback(
+    (data: IRouterData) => {
       if (data.canvas) {
-        const position = canvasInstance.canvasToPanZoomTransform(
+        const position = canvas.current!.canvasToPanZoomTransform(
           data.canvas.x,
           data.canvas.y
         );
@@ -54,7 +113,15 @@ const CanvasInner = () => {
           { suppressEmit: true }
         );
       }
-    };
+    },
+    [PanZoom]
+  );
+
+  useEffect(() => {
+    // if (!config?.canvas || !canvasRef.current) return;
+    // const canvas = canvasRef.current!;
+    // const canvasInstance = new Canvas(canvas, PanZoom);
+    const initAt = Date.now();
 
     // initial load
     const initialRouter = Router.get();
@@ -75,33 +142,14 @@ const CanvasInner = () => {
       Router.queueUpdate();
     };
 
-    const handleCursorPos = throttle((pos: IPosition) => {
-      if (
-        pos.x < 0 ||
-        pos.y < 0 ||
-        pos.x > config.canvas.size[0] ||
-        pos.y > config.canvas.size[1]
-      ) {
-        setCursorPosition();
-      } else {
-        // fixes not passing the current value
-        setCursorPosition({ ...pos });
-      }
-    }, 1);
-
     PanZoom.addListener("viewportMove", handleViewportMove);
-    canvasInstance.on("cursorPos", handleCursorPos);
     Router.on("navigate", handleNavigate);
 
     return () => {
-      canvasInstance.destroy();
       PanZoom.removeListener("viewportMove", handleViewportMove);
-      canvasInstance.off("cursorPos", handleCursorPos);
       Router.off("navigate", handleNavigate);
     };
-
-    // ! do not include canvasRef, it causes infinite re-renders
-  }, [PanZoom, config, setCanvasPosition, setCursorPosition]);
+  }, [PanZoom, setCanvasPosition, setCursorPosition]);
 
   return (
     <canvas
@@ -109,7 +157,7 @@ const CanvasInner = () => {
       width="1000"
       height="1000"
       className="pixelate"
-      ref={canvasRef}
+      ref={(ref) => (canvasRef.current = ref)}
     ></canvas>
   );
 };

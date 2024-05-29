@@ -124,10 +124,10 @@ export const SidebarWrapper = () => {
                 href="/chat/rooms"
               />
               <SidebarItem
-                isActive={pathname === "/chat/settings"}
+                isActive={pathname === "/service/settings"}
                 title="Settings"
                 icon={<FontAwesomeIcon icon={faCog} />}
-                href="/chat/settings"
+                href="/service/settings"
               />
             </SidebarMenu>
           </div>

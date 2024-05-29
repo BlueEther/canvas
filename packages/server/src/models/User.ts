@@ -12,6 +12,8 @@ interface IUserData {
   lastPixelTime: Date;
   pixelStack: number;
   undoExpires: Date | null;
+  isAdmin: boolean;
+  isModerator: boolean;
 }
 
 export class User {
@@ -22,6 +24,9 @@ export class User {
   pixelStack: number;
   authSession?: AuthSession;
   undoExpires?: Date;
+
+  isAdmin: boolean;
+  isModerator: boolean;
 
   sockets: Set<Socket<ClientToServerEvents, ServerToClientEvents>> = new Set();
 
@@ -34,6 +39,9 @@ export class User {
     this.lastPixelTime = data.lastPixelTime;
     this.pixelStack = data.pixelStack;
     this.undoExpires = data.undoExpires || undefined;
+
+    this.isAdmin = data.isAdmin;
+    this.isModerator = data.isModerator;
 
     this._updatedAt = Date.now();
   }

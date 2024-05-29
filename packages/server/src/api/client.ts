@@ -1,14 +1,10 @@
 import { Router } from "express";
-import { prisma } from "./lib/prisma";
-import { OpenID } from "./lib/oidc";
+import { prisma } from "../lib/prisma";
+import { OpenID } from "../lib/oidc";
 import { TokenSet, errors as OIDC_Errors } from "openid-client";
-import { Logger } from "./lib/Logger";
+import { Logger } from "../lib/Logger";
 
 const app = Router();
-
-app.get("/me", (req, res) => {
-  res.json(req.session);
-});
 
 app.get("/login", (req, res) => {
   res.redirect(

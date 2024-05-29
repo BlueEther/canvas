@@ -11,6 +11,7 @@ import {
   HoverEvent,
   PanZoom,
 } from "@sc07-canvas/lib/src/renderer/PanZoom";
+import { toast } from "react-toastify";
 
 interface CanvasEvents {
   /**
@@ -26,7 +27,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
   static instance: Canvas | undefined;
 
   private _destroy = false;
-  private config: ClientConfig;
+  private config: ClientConfig = {} as any;
   private canvas: HTMLCanvasElement;
   private PanZoom: PanZoom;
   private ctx: CanvasRenderingContext2D;
@@ -37,32 +38,21 @@ export class Canvas extends EventEmitter<CanvasEvents> {
   } = {};
   lastPlace: number | undefined;
 
-  constructor(
-    config: ClientConfig,
-    canvas: HTMLCanvasElement,
-    PanZoom: PanZoom
-  ) {
+  constructor(canvas: HTMLCanvasElement, PanZoom: PanZoom) {
     super();
     Canvas.instance = this;
 
-    this.config = config;
     this.canvas = canvas;
     this.PanZoom = PanZoom;
     this.ctx = canvas.getContext("2d")!;
 
-    canvas.width = config.canvas.size[0];
-    canvas.height = config.canvas.size[1];
-
     this.PanZoom.addListener("hover", this.handleMouseMove.bind(this));
     this.PanZoom.addListener("click", this.handleMouseDown.bind(this));
 
-    Network.waitFor("canvas").then(([pixels]) => this.handleBatch(pixels));
     Network.waitFor("pixelLastPlaced").then(
       ([time]) => (this.lastPlace = time)
     );
     Network.on("pixel", this.handlePixel);
-
-    this.draw();
   }
 
   destroy() {
@@ -71,7 +61,26 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     this.PanZoom.removeListener("hover", this.handleMouseMove.bind(this));
     this.PanZoom.removeListener("click", this.handleMouseDown.bind(this));
 
-    Network.off("canvas", this.handleBatch.bind(this));
+    Network.off("pixel", this.handlePixel);
+  }
+
+  loadConfig(config: ClientConfig) {
+    this.config = config;
+
+    this.canvas.width = config.canvas.size[0];
+    this.canvas.height = config.canvas.size[1];
+
+    Network.waitFor("canvas").then(([pixels]) => {
+      console.log("loadConfig just received new canvas data");
+      this.handleBatch(pixels);
+      this.draw();
+    });
+
+    this.draw();
+  }
+
+  hasConfig() {
+    return !!this.config;
   }
 
   handleMouseDown(e: ClickEvent) {
@@ -98,18 +107,23 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     this.emit("cursorPos", this.cursor);
   }
 
-  handleBatch(pixels: string[]) {
-    pixels.forEach((hex, index) => {
-      const x = index % this.config.canvas.size[0];
-      const y = index / this.config.canvas.size[1];
-      const color = this.Pallete.getColorFromHex(hex);
+  handleBatch = (pixels: string[]) => {
+    if (!this.config.canvas) {
+      throw new Error("handleBatch called with no config");
+    }
 
-      this.pixels[x + "_" + y] = {
-        color: color ? color.id : -1,
-        type: "full",
-      };
-    });
-  }
+    for (let x = 0; x < this.config.canvas.size[0]; x++) {
+      for (let y = 0; y < this.config.canvas.size[1]; y++) {
+        const hex = pixels[this.config.canvas.size[0] * y + x];
+        const color = this.Pallete.getColorFromHex(hex);
+
+        this.pixels[x + "_" + y] = {
+          color: color ? color.id : -1,
+          type: "full",
+        };
+      }
+    }
+  };
 
   handlePixel = ({ x, y, color }: Pixel) => {
     this.pixels[x + "_" + y] = {
@@ -162,7 +176,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
           this.handlePixel(ack.data);
         } else {
           // TODO: handle undo pixel
-          alert("error: " + ack.error);
+          toast.info(ack.error);
           console.warn(
             "Attempted to place pixel",
             { x, y, color: this.Pallete.getSelectedColor()!.id },

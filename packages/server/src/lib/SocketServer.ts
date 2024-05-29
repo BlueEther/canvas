@@ -138,6 +138,15 @@ export class SocketServer {
     }, 1000);
   }
 
+  /**
+   * Broadcast config to all connected clients
+   *
+   * Used by canvas size updates
+   */
+  broadcastConfig() {
+    this.io.emit("config", getClientConfig());
+  }
+
   async handleConnection(socket: Socket) {
     const user =
       socket.request.session.user &&

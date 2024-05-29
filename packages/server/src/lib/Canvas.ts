@@ -4,15 +4,18 @@ import { Redis } from "./redis";
 import { SocketServer } from "./SocketServer";
 
 class Canvas {
-  private CANVAS_SIZE: [number, number];
+  /**
+   * Size of the canvas
+   */
+  private canvasSize: [width: number, height: number];
 
   constructor() {
-    this.CANVAS_SIZE = [100, 100];
+    this.canvasSize = [100, 100];
   }
 
   getCanvasConfig(): CanvasConfig {
     return {
-      size: this.CANVAS_SIZE,
+      size: this.canvasSize,
       zoom: 7,
       pixel: {
         cooldown: 10,
@@ -26,6 +29,31 @@ class Canvas {
   }
 
   /**
+   * Change size of the canvas
+   *
+   * Expensive task, will take a bit
+   *
+   * @param width
+   * @param height
+   */
+  async setSize(width: number, height: number) {
+    this.canvasSize = [width, height];
+
+    // we're about to use the redis keys, make sure they are all updated
+    await this.pixelsToRedis();
+    // the redis key is 1D, since the dimentions changed we need to update it
+    await this.canvasToRedis();
+
+    // announce the new config, which contains the canvas size
+    SocketServer.instance.broadcastConfig();
+
+    // announce new pixel array that was generated previously
+    await this.getPixelsArray().then((pixels) => {
+      SocketServer.instance.io.emit("canvas", pixels);
+    });
+  }
+
+  /**
    * Latest database pixels -> Redis
    */
   async pixelsToRedis() {
@@ -33,8 +61,8 @@ class Canvas {
 
     const key = Redis.keyRef("pixelColor");
 
-    for (let x = 0; x < this.CANVAS_SIZE[0]; x++) {
-      for (let y = 0; y < this.CANVAS_SIZE[1]; y++) {
+    for (let x = 0; x < this.canvasSize[0]; x++) {
+      for (let y = 0; y < this.canvasSize[1]; y++) {
         const pixel = await prisma.pixel.findFirst({
           where: {
             x,
@@ -64,8 +92,8 @@ class Canvas {
     // (y -> x) because of how the conversion needs to be done later
     // if this is inverted, the map will flip when rebuilding the cache (5 minute expiry)
     // fixes #24
-    for (let y = 0; y < this.CANVAS_SIZE[1]; y++) {
-      for (let x = 0; x < this.CANVAS_SIZE[0]; x++) {
+    for (let y = 0; y < this.canvasSize[1]; y++) {
+      for (let x = 0; x < this.canvasSize[0]; x++) {
         pixels.push(
           (await redis.get(Redis.key("pixelColor", x, y))) || "transparent"
         );
@@ -87,7 +115,7 @@ class Canvas {
       (await redis.get(Redis.key("canvas"))) || ""
     ).split(",");
 
-    pixels[this.CANVAS_SIZE[0] * y + x] =
+    pixels[this.canvasSize[0] * y + x] =
       (await redis.get(Redis.key("pixelColor", x, y))) || "transparent";
 
     await redis.set(Redis.key("canvas"), pixels.join(","), { EX: 60 * 5 });

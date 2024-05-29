@@ -20,6 +20,9 @@ model User {
   pixelStack    Int       @default(0) // amount of pixels stacked for this user
   undoExpires   DateTime? // when the undo for the most recent pixel expires at
 
+  isAdmin     Boolean @default(false)
+  isModerator Boolean @default(false)
+
   pixels        Pixel[]
   FactionMember FactionMember[]
 }
