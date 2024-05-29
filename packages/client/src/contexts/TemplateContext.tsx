@@ -3,6 +3,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { IRouterData, Router } from "../lib/router";
@@ -52,7 +53,11 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
   const [y, setY] = useState(routerData.template?.y || 0);
   const [opacity, setOpacity] = useState(100);
 
+  const initAt = useRef<number>();
+
   useEffect(() => {
+    initAt.current = Date.now();
+
     const handleNavigate = (data: IRouterData) => {
       if (data.template) {
         setEnable(true);
@@ -74,7 +79,18 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     Router.setTemplate({ enabled: enable, width, x, y, url });
-    Router.queueUpdate();
+
+    if (!initAt.current) {
+      console.debug("TemplateContext updating router but no initAt");
+    } else if (Date.now() - initAt.current < 2 * 1000) {
+      console.debug(
+        "TemplateContext updating router too soon after init",
+        Date.now() - initAt.current
+      );
+    }
+
+    if (initAt.current && Date.now() - initAt.current > 2 * 1000)
+      Router.queueUpdate();
   }, [enable, width, x, y, url]);
 
   return (

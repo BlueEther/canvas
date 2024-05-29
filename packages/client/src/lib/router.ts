@@ -70,7 +70,7 @@ class _Router extends EventEmitter<RouterEvents> {
     const url = this.getURL();
     if (!url) return;
 
-    console.log("[Router] Updating URL");
+    console.log("[Router] Updating URL", url);
     window.history.replaceState({}, "", url);
   }
 
