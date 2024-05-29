@@ -70,6 +70,11 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     this.canvas.width = config.canvas.size[0];
     this.canvas.height = config.canvas.size[1];
 
+    // we want the new one if possible
+    // (this might cause a timing issue though)
+    // if we don't clear the old one, if the canvas gets resized we get weird stretching
+    if (Object.keys(this.pixels).length > 0) Network.clearPrevious("canvas");
+
     Network.waitFor("canvas").then(([pixels]) => {
       console.log("loadConfig just received new canvas data");
       this.handleBatch(pixels);

@@ -121,6 +121,22 @@ class Network extends EventEmitter<INetworkEvents> {
     return this.emit(event, ...args);
   };
 
+  /**
+   * Discard the existing state-like event, if it exists in cache
+   * @param ev
+   */
+  clearPrevious<Ev extends keyof INetworkEvents & (string | symbol)>(ev: Ev) {
+    delete this.sentEvents[ev];
+  }
+
+  /**
+   * Wait for event, either being already sent, or new one
+   *
+   * Used for state-like events
+   *
+   * @param ev
+   * @returns
+   */
   waitFor<Ev extends keyof INetworkEvents & (string | symbol)>(
     ev: Ev
   ): Promise<SentEventValue<Ev>> {
