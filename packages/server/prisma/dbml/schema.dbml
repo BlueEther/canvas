@@ -2,6 +2,11 @@
 //// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 //// ------------------------------------------------------
 
+Table Setting {
+  key String [pk]
+  value String [not null]
+}
+
 Table User {
   sub String [pk]
   lastPixelTime DateTime [default: `now()`, not null]

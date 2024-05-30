@@ -5,6 +5,7 @@ import { Logger } from "./lib/Logger";
 import { ExpressServer } from "./lib/Express";
 import { SocketServer } from "./lib/SocketServer";
 import { OpenID } from "./lib/oidc";
+import { loadSettings } from "./lib/Settings";
 
 // Validate environment variables
 
@@ -57,10 +58,16 @@ if (!process.env.OIDC_CALLBACK_HOST) {
   process.exit(1);
 }
 
-Redis.connect();
-OpenID.setup().then(() => {
-  Logger.info("Setup OpenID");
-});
+// run startup tasks, all of these need to be completed to serve
+Promise.all([
+  Redis.connect(),
+  OpenID.setup().then(() => {
+    Logger.info("Setup OpenID");
+  }),
+  loadSettings(),
+]).then(() => {
+  Logger.info("Startup tasks have completed, starting server");
 
-const express = new ExpressServer();
-new SocketServer(express.httpServer);
+  const express = new ExpressServer();
+  new SocketServer(express.httpServer);
+});

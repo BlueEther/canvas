@@ -2,6 +2,7 @@ import { CanvasConfig } from "@sc07-canvas/lib/src/net";
 import { prisma } from "./prisma";
 import { Redis } from "./redis";
 import { SocketServer } from "./SocketServer";
+import { Logger } from "./Logger";
 
 class Canvas {
   /**
@@ -37,7 +38,23 @@ class Canvas {
    * @param height
    */
   async setSize(width: number, height: number) {
+    Logger.info("Canvas#setSize has started", {
+      old: this.canvasSize,
+      new: [width, height],
+    });
+
     this.canvasSize = [width, height];
+    await prisma.setting.upsert({
+      where: { key: "canvas.size" },
+      create: {
+        key: "canvas.size",
+        value: JSON.stringify({ width, height }),
+      },
+      update: {
+        key: "canvas.size",
+        value: JSON.stringify({ width, height }),
+      },
+    });
 
     // we're about to use the redis keys, make sure they are all updated
     await this.pixelsToRedis();
@@ -51,6 +68,8 @@ class Canvas {
     await this.getPixelsArray().then((pixels) => {
       SocketServer.instance.io.emit("canvas", pixels);
     });
+
+    Logger.info("Canvas#setSize has finished");
   }
 
   /**
