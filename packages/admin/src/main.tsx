@@ -8,6 +8,7 @@ import { Root } from "./Root.tsx";
 import { HomePage } from "./pages/Home/page.tsx";
 import { AccountsPage } from "./pages/Accounts/Accounts/page.tsx";
 import { ServiceSettingsPage } from "./pages/Service/settings.tsx";
+import { ToastContainer } from "react-toastify";
 
 const router = createBrowserRouter(
   [
@@ -40,6 +41,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <NextUIProvider>
       <ThemeProvider defaultTheme="system">
         <RouterProvider router={router} />
+
+        <ToastContainer position="bottom-right" />
       </ThemeProvider>
     </NextUIProvider>
   </React.StrictMode>

@@ -1,7 +1,8 @@
 import { BreadcrumbItem, Breadcrumbs, Button, Input } from "@nextui-org/react";
 import { useEffect, useState } from "react";
-import { api } from "../../lib/utils";
+import { api, handleError } from "../../lib/utils";
 import { LoadingOverlay } from "../../components/LoadingOverlay";
+import { toast } from "react-toastify";
 
 export const ServiceSettingsPage = () => {
   return (
@@ -31,10 +32,10 @@ const CanvasSettings = () => {
             setWidth(data.size.width + "");
             setHeight(data.size.height + "");
           } else {
-            console.error(status, data);
+            handleError(status, data);
           }
         } else {
-          console.error(status, data);
+          handleError(status, data);
         }
       })
       .finally(() => {
@@ -52,12 +53,12 @@ const CanvasSettings = () => {
       .then(({ status, data }) => {
         if (status === 200) {
           if (data.success) {
-            alert("good");
+            toast.success("Canvas size has been changed");
           } else {
-            console.error(status, data);
+            handleError(status, data);
           }
         } else {
-          console.error(status, data);
+          handleError(status, data);
         }
       })
       .finally(() => {
@@ -70,6 +71,9 @@ const CanvasSettings = () => {
       <h4 className="text-l font-semibold">Canvas</h4>
       <div className="relative">
         {loading && <LoadingOverlay />}
+        <b>
+          Canvas size is resource intensive, this will take a minute to complete
+        </b>
         <Input
           type="number"
           size="sm"

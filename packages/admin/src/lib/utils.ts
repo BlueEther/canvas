@@ -1,3 +1,5 @@
+import { toast } from "react-toastify";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const api = async <T = any>(
   endpoint: string,
@@ -31,4 +33,19 @@ export const api = async <T = any>(
     status: req.status,
     data,
   };
+};
+
+export const handleError = (
+  ...props: [
+    status: number,
+    data: { success: true } | { success: false; error: string },
+  ]
+) => {
+  console.error(...props);
+  if (typeof props[0] === "number") {
+    const [status, data] = props;
+    toast.error(
+      `${status} ${"error" in data ? data.error : JSON.stringify(data)}`
+    );
+  }
 };
