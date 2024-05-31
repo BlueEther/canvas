@@ -9,6 +9,9 @@ Table Setting {
 
 Table User {
   sub String [pk]
+  picture_url String
+  display_name String
+  profile_url String
   lastPixelTime DateTime [default: `now()`, not null]
   pixelStack Int [not null, default: 0]
   undoExpires DateTime
@@ -16,6 +19,14 @@ Table User {
   isModerator Boolean [not null, default: false]
   pixels Pixel [not null]
   FactionMember FactionMember [not null]
+}
+
+Table Instance {
+  id Int [pk, increment]
+  hostname String [unique, not null]
+  name String
+  logo_url String
+  banner_url String
 }
 
 Table PaletteColor {

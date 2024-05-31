@@ -20,7 +20,11 @@ model Setting {
 }
 
 model User {
-  sub           String    @id
+  sub          String  @id
+  display_name String?
+  picture_url  String?
+  profile_url  String?
+
   lastPixelTime DateTime  @default(now()) // the time the last pixel was placed at
   pixelStack    Int       @default(0) // amount of pixels stacked for this user
   undoExpires   DateTime? // when the undo for the most recent pixel expires at
@@ -30,6 +34,14 @@ model User {
 
   pixels        Pixel[]
   FactionMember FactionMember[]
+}
+
+model Instance {
+  id         Int     @id @default(autoincrement())
+  hostname   String  @unique
+  name       String?
+  logo_url   String?
+  banner_url String?
 }
 
 model PaletteColor {

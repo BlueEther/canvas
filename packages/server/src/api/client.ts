@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma";
 import { OpenID } from "../lib/oidc";
 import { TokenSet, errors as OIDC_Errors } from "openid-client";
 import { Logger } from "../lib/Logger";
+import Canvas from "../lib/Canvas";
 
 const ClientParams = {
   TYPE: "auth_type",
@@ -135,13 +136,40 @@ app.get("/callback", async (req, res) => {
 
   const [username, hostname] = whoami.sub.split("@");
 
+  const sub = [username, hostname].join("@");
   await prisma.user.upsert({
     where: {
-      sub: [username, hostname].join("@"),
+      sub,
     },
-    update: {},
+    update: {
+      sub,
+      display_name: whoami.name,
+      picture_url: whoami.picture,
+      profile_url: whoami.profile,
+    },
     create: {
-      sub: [username, hostname].join("@"),
+      sub,
+      display_name: whoami.name,
+      picture_url: whoami.picture,
+      profile_url: whoami.profile,
+    },
+  });
+
+  await prisma.instance.upsert({
+    where: {
+      hostname,
+    },
+    update: {
+      hostname,
+      name: whoami.instance.instance.name,
+      logo_url: whoami.instance.instance.logo_uri,
+      banner_url: whoami.instance.instance.banner_uri,
+    },
+    create: {
+      hostname,
+      name: whoami.instance.instance.name,
+      logo_url: whoami.instance.instance.logo_uri,
+      banner_url: whoami.instance.instance.banner_uri,
     },
   });
 
