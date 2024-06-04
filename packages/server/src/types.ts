@@ -51,6 +51,9 @@ declare global {
       AUTH_ENDPOINT: string;
       AUTH_CLIENT: string;
       AUTH_SECRET: string;
+
+      MATRIX_HOMESERVER: string;
+      ELEMENT_HOST: string;
     }
   }
 }

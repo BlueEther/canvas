@@ -27,32 +27,21 @@ const DynamicallyLoadChat = () => {
 
 // get access to context data
 const AppInner = () => {
-  return (
-    <>
-      <Header />
-      <CanvasWrapper />
-      <ToolbarWrapper />
+  const { config } = useAppContext();
 
-      {/* <DynamicallyLoadChat /> */}
-
-      <DebugModal />
-      <SettingsSidebar />
-      <PixelWhoisSidebar />
-      <KeybindModal />
-      <AuthErrors />
-
-      <ToastContainer position="top-left" />
-    </>
-  );
-};
-
-const App = () => {
   useEffect(() => {
     // detect auth callback for chat, regardless of it being loaded
     // callback token expires quickly, so we should exchange it as quick as possible
     (async () => {
       const params = new URLSearchParams(window.location.search);
       if (params.has("loginToken")) {
+        if (!config) {
+          console.warn(
+            "[App] loginToken parsing is delayed because config is not available"
+          );
+          return;
+        }
+
         // login button opens a new tab that redirects here
         // if we're that tab, we should try to close this tab when we're done
         // should work because this tab is opened by JS
@@ -66,7 +55,7 @@ const App = () => {
         window.history.replaceState({}, "", "/");
 
         const loginReq = await fetch(
-          `https://${import.meta.env.VITE_MATRIX_HOST}/_matrix/client/v3/login`,
+          `https://${config.chat.matrix_homeserver}/_matrix/client/v3/login`,
           {
             method: "POST",
             headers: {
@@ -137,8 +126,28 @@ const App = () => {
         }
       }
     })();
-  }, []);
+  }, [config]);
 
+  return (
+    <>
+      <Header />
+      <CanvasWrapper />
+      <ToolbarWrapper />
+
+      {/* <DynamicallyLoadChat /> */}
+
+      <DebugModal />
+      <SettingsSidebar />
+      <PixelWhoisSidebar />
+      <KeybindModal />
+      <AuthErrors />
+
+      <ToastContainer position="top-left" />
+    </>
+  );
+};
+
+const App = () => {
   return (
     <AppContext>
       <ChatContext>

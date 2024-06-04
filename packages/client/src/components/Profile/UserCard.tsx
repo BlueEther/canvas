@@ -1,8 +1,10 @@
 import { faMessage, faWarning, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Link, Spinner } from "@nextui-org/react";
+import { ClientConfig } from "@sc07-canvas/lib/src/net";
 import { MouseEvent, useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useAppContext } from "../../contexts/AppContext";
 
 interface IUser {
   sub: string;
@@ -13,11 +15,8 @@ interface IUser {
   isModerator: boolean;
 }
 
-const MATRIX_HOST = import.meta.env.VITE_MATRIX_HOST!; // eg aftermath.gg
-const ELEMENT_HOST = import.meta.env.VITE_ELEMENT_HOST!; // eg https://chat.fediverse.events
-
-const getMatrixLink = (user: IUser) => {
-  return `${ELEMENT_HOST}/#/user/@${user.sub.replace("@", "=40")}:${MATRIX_HOST}`;
+const getMatrixLink = (user: IUser, config: ClientConfig) => {
+  return `${config.chat.element_host}/#/user/@${user.sub.replace("@", "=40")}:${config.chat.matrix_homeserver}`;
 };
 
 /**
@@ -26,15 +25,21 @@ const getMatrixLink = (user: IUser) => {
  * @returns
  */
 export const UserCard = ({ user }: { user: IUser }) => {
+  const { config } = useAppContext();
   const [messageStatus, setMessageStatus] = useState<
     "loading" | "no_account" | "has_account" | "error"
   >("loading");
 
   useEffect(() => {
+    if (!config) {
+      console.warn("[UserCard] config is not available yet");
+      return;
+    }
+
     setMessageStatus("loading");
 
     fetch(
-      `https://${MATRIX_HOST}/_matrix/client/v3/profile/${encodeURIComponent(`@${user.sub.replace("@", "=40")}:${MATRIX_HOST}`)}`
+      `https://${config.chat.matrix_homeserver}/_matrix/client/v3/profile/${encodeURIComponent(`@${user.sub.replace("@", "=40")}:${config.chat.matrix_homeserver}`)}`
     )
       .then((req) => {
         if (req.status === 200) {
@@ -53,7 +58,7 @@ export const UserCard = ({ user }: { user: IUser }) => {
           "Error while getting Matrix account details for " + user.sub
         );
       });
-  }, [user]);
+  }, [user, config]);
 
   const handleMatrixClick = (e: MouseEvent) => {
     if (messageStatus === "no_account") {
@@ -79,7 +84,7 @@ export const UserCard = ({ user }: { user: IUser }) => {
           <Button
             isIconOnly
             as={Link}
-            href={getMatrixLink(user)}
+            href={getMatrixLink(user, config)}
             target="_blank"
             onClick={handleMatrixClick}
           >

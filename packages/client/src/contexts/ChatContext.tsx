@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useAppContext } from "./AppContext";
 
 interface IMatrixUser {
   userId: string;
@@ -24,6 +25,7 @@ const chatContext = createContext<IChatContext>({} as any);
 export const useChatContext = () => useContext(chatContext);
 
 export const ChatContext = ({ children }: PropsWithChildren) => {
+  const { config } = useAppContext();
   const checkInterval = useRef<ReturnType<typeof setInterval>>();
   const checkNotifs = useRef<ReturnType<typeof setInterval>>();
 
@@ -38,14 +40,14 @@ export const ChatContext = ({ children }: PropsWithChildren) => {
     checkInterval.current = setInterval(checkForAccessToken, 500);
 
     window.open(
-      `https://${import.meta.env.VITE_MATRIX_HOST}/_matrix/client/v3/login/sso/redirect?redirectUrl=${encodeURIComponent(redirectUrl)}`,
+      `https://${config.chat.matrix_homeserver}/_matrix/client/v3/login/sso/redirect?redirectUrl=${encodeURIComponent(redirectUrl)}`,
       "_blank"
     );
   };
 
   const doLogout = async () => {
     await fetch(
-      `https://${import.meta.env.VITE_MATRIX_HOST}/_matrix/client/v3/logout`,
+      `https://${config.chat.matrix_homeserver}/_matrix/client/v3/logout`,
       {
         method: "POST",
         headers: {
@@ -99,7 +101,7 @@ export const ChatContext = ({ children }: PropsWithChildren) => {
     if (!accessToken) return;
 
     const notifReq = await fetch(
-      `https://${import.meta.env.VITE_MATRIX_HOST}/_matrix/client/v3/notifications?limit=10`,
+      `https://${config.chat.matrix_homeserver}/_matrix/client/v3/notifications?limit=10`,
       {
         headers: {
           Authorization: "Bearer " + accessToken,

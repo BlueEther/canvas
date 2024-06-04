@@ -68,6 +68,11 @@ const getClientConfig = (): ClientConfig => {
       pixel_cooldown: PIXEL_TIMEOUT_MS,
     },
     canvas: Canvas.getCanvasConfig(),
+    chat: {
+      enabled: true,
+      matrix_homeserver: process.env.MATRIX_HOMESERVER,
+      element_host: process.env.ELEMENT_HOST,
+    },
   };
 };
 

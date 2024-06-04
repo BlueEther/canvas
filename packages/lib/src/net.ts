@@ -110,6 +110,17 @@ export type ClientConfig = {
     pixel_cooldown: number;
   };
   canvas: CanvasConfig;
+  chat: {
+    enabled: boolean;
+    /**
+     * @example aftermath.gg
+     */
+    matrix_homeserver: string;
+    /**
+     * @example https://chat.fediverse.events
+     */
+    element_host: string;
+  };
 };
 
 /**
