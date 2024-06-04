@@ -15,7 +15,7 @@ export const Template = () => {
       return;
     }
 
-    instance.current = new TemplateCl(config, templateHolder.current);
+    instance.current = new TemplateCl(config!, templateHolder.current);
 
     instance.current.on("autoDetectWidth", (width) => {
       console.log("autodetectwidth", width);
