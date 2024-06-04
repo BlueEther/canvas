@@ -1,4 +1,4 @@
-import { Badge, Button } from "@nextui-org/react";
+import { Badge, Button, Link } from "@nextui-org/react";
 import { useChatContext } from "../../contexts/ChatContext";
 
 const OpenChatButton = () => {
@@ -11,7 +11,13 @@ const OpenChatButton = () => {
       color="danger"
       size="sm"
     >
-      <Button>Chat</Button>
+      <Button
+        as={Link}
+        href={import.meta.env.VITE_ELEMENT_HOST!}
+        target="_blank"
+      >
+        Chat
+      </Button>
     </Badge>
   );
 };
