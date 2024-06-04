@@ -33,6 +33,11 @@ export const ChatContext = ({ children }: PropsWithChildren) => {
   const [notifs, setNotifs] = useState(0);
 
   const doLogin = () => {
+    if (!config) {
+      console.warn("[ChatContext#doLogin] has no config instance");
+      return;
+    }
+
     const redirectUrl =
       window.location.protocol + "//" + window.location.host + "/chat_callback";
 
@@ -46,6 +51,11 @@ export const ChatContext = ({ children }: PropsWithChildren) => {
   };
 
   const doLogout = async () => {
+    if (!config) {
+      console.warn("[ChatContext#doLogout] has no config instance");
+      return;
+    }
+
     await fetch(
       `https://${config.chat.matrix_homeserver}/_matrix/client/v3/logout`,
       {
@@ -97,6 +107,11 @@ export const ChatContext = ({ children }: PropsWithChildren) => {
   };
 
   const checkForNotifs = async () => {
+    if (!config) {
+      console.warn("[ChatContext#checkForNotifs] no config instance");
+      return;
+    }
+
     const accessToken = localStorage.getItem("matrix.access_token");
     if (!accessToken) return;
 

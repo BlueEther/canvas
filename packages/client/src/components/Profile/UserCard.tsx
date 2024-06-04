@@ -81,22 +81,24 @@ export const UserCard = ({ user }: { user: IUser }) => {
           <span className="text-sm">{user?.sub}</span>
         </div>
         <div>
-          <Button
-            isIconOnly
-            as={Link}
-            href={getMatrixLink(user, config)}
-            target="_blank"
-            onClick={handleMatrixClick}
-          >
-            {messageStatus === "loading" ? (
-              <Spinner />
-            ) : (
-              <FontAwesomeIcon
-                icon={messageStatus === "error" ? faWarning : faMessage}
-                color="inherit"
-              />
-            )}
-          </Button>
+          {config && (
+            <Button
+              isIconOnly
+              as={Link}
+              href={getMatrixLink(user, config)}
+              target="_blank"
+              onClick={handleMatrixClick}
+            >
+              {messageStatus === "loading" ? (
+                <Spinner />
+              ) : (
+                <FontAwesomeIcon
+                  icon={messageStatus === "error" ? faWarning : faMessage}
+                  color="inherit"
+                />
+              )}
+            </Button>
+          )}
         </div>
       </div>
       <Button size="sm">View Profile</Button>

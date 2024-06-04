@@ -30,7 +30,7 @@ export interface ClientToServerEvents {
 
 // TODO: move to client/{...}/AppContext.tsx
 export interface IAppContext {
-  config: ClientConfig;
+  config?: ClientConfig;
   user?: AuthSession;
   canvasPosition?: ICanvasPosition;
   setCanvasPosition: (v: ICanvasPosition) => void;

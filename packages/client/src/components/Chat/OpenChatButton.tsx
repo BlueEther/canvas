@@ -13,9 +13,11 @@ const OpenChatButton = () => {
       color="danger"
       size="sm"
     >
-      <Button as={Link} href={config.chat.element_host} target="_blank">
-        Chat
-      </Button>
+      {config?.chat?.element_host && (
+        <Button as={Link} href={config.chat.element_host} target="_blank">
+          Chat
+        </Button>
+      )}
     </Badge>
   );
 };
