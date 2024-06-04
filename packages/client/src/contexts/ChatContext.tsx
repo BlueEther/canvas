@@ -82,7 +82,7 @@ export const ChatContext = ({ children }: PropsWithChildren) => {
       if (checkInterval.current) clearInterval(checkInterval.current);
       if (checkNotifs.current) clearInterval(checkNotifs.current);
     };
-  }, []);
+  }, [config?.chat]);
 
   const handleWindowFocus = () => {
     console.log("[Chat] Window has gained focus");
