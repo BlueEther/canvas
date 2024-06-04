@@ -8,6 +8,7 @@ import throttle from "lodash.throttle";
 import { IPosition } from "@sc07-canvas/lib/src/net";
 import { Template } from "./Template";
 import { IRouterData, Router } from "../lib/router";
+import { KeybindManager } from "../lib/keybinds";
 
 export const CanvasWrapper = () => {
   const { config } = useAppContext();
@@ -26,14 +27,64 @@ export const CanvasWrapper = () => {
 const CanvasInner = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>();
   const canvas = useRef<Canvas>();
-  const { config, setCanvasPosition, setCursorPosition } = useAppContext();
+  const { config, setCanvasPosition, setCursorPosition, setPixelWhois } =
+    useAppContext();
   const PanZoom = useContext(RendererContext);
 
   useEffect(() => {
     if (!canvasRef.current) return;
     canvas.current = new Canvas(canvasRef.current!, PanZoom);
 
+    const handlePixelWhois = ({
+      clientX,
+      clientY,
+    }: {
+      clientX: number;
+      clientY: number;
+    }) => {
+      if (!canvas.current) {
+        console.warn(
+          "[CanvasWrapper#handlePixelWhois] canvas instance does not exist"
+        );
+        return;
+      }
+
+      const [x, y] = canvas.current.screenToPos(clientX, clientY);
+      if (x < 0 || y < 0) return; // discard if out of bounds
+
+      // canvas size can dynamically change, so we need to check the current config
+      // we're depending on canvas.instance's config so we don't have to use a react dependency
+      if (canvas.current.hasConfig()) {
+        const {
+          canvas: {
+            size: [width, height],
+          },
+        } = canvas.current.getConfig();
+
+        if (x >= width || y >= height) return; // out of bounds
+      } else {
+        // although this should never happen, log it
+        console.warn(
+          "[CanvasWrapper#handlePixelWhois] canvas config is not available yet"
+        );
+      }
+
+      // .......
+      // .......
+      // .......
+      // ...x...
+      // .......
+      // .......
+      // .......
+      const surrounding = canvas.current.getSurroundingPixels(x, y, 3);
+
+      setPixelWhois({ x, y, surrounding });
+    };
+
+    KeybindManager.on("PIXEL_WHOIS", handlePixelWhois);
+
     return () => {
+      KeybindManager.off("PIXEL_WHOIS", handlePixelWhois);
       canvas.current!.destroy();
     };
   }, [PanZoom, setCursorPosition]);
@@ -136,6 +187,19 @@ const CanvasInner = () => {
         console.debug(
           "[CanvasWrapper] handleViewportMove called soon after init",
           Date.now() - initAt
+        );
+      }
+
+      if (canvas.current) {
+        const pos = canvas.current?.panZoomTransformToCanvas();
+        setCanvasPosition({
+          x: pos.canvasX,
+          y: pos.canvasY,
+          zoom: state.scale >> 0,
+        });
+      } else {
+        console.warn(
+          "[CanvasWrapper] handleViewportMove has no canvas instance"
         );
       }
 

@@ -44,6 +44,9 @@ export interface IAppContext {
   setLoadChat: (v: boolean) => void;
   connected: boolean;
 
+  pixelWhois?: { x: number; y: number; surrounding: string[][] };
+  setPixelWhois: (v: this["pixelWhois"]) => void;
+
   hasAdmin: boolean;
 }
 

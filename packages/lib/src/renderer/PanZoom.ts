@@ -89,8 +89,15 @@ interface ISetup {
 
 // TODO: move these event interfaces out
 export interface ClickEvent {
+  button: "LCLICK" | "MCLICK" | "RCLICK";
+
   clientX: number;
   clientY: number;
+
+  alt: boolean;
+  ctrl: boolean;
+  meta: boolean;
+  shift: boolean;
 }
 
 export interface HoverEvent {
@@ -596,8 +603,15 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
         // difference from the start position to the up position is very very slow,
         // so it's most likely intended to be a click
         this.emit("click", {
+          button: ["LCLICK", "MCLICK", "RCLICK"][e.button] as any,
+
           clientX: e.clientX,
           clientY: e.clientY,
+
+          alt: e.altKey,
+          ctrl: e.ctrlKey,
+          meta: e.metaKey,
+          shift: e.shiftKey,
         });
       }
     }

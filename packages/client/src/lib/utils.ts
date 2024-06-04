@@ -1,11 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const api = async <T = any>(
+export const api = async <T = unknown, Error = string>(
   endpoint: string,
   method: "GET" | "POST" = "GET",
   body?: unknown
 ): Promise<{
   status: number;
-  data: ({ success: true } & T) | { success: false; error: string };
+  data: ({ success: true } & T) | { success: false; error: Error };
 }> => {
   const API_HOST = import.meta.env.VITE_API_HOST || "";
 
@@ -32,3 +32,7 @@ export const api = async <T = any>(
     data,
   };
 };
+
+export type EnforceObjectType<T> = <V extends { [k: string]: T }>(
+  v: V
+) => { [k in keyof V]: T };

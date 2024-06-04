@@ -190,4 +190,48 @@ app.get("/callback", async (req, res) => {
   res.redirect("/");
 });
 
+// TODO: Ratelimiting #40
+app.get("/canvas/pixel/:x/:y", async (req, res) => {
+  const x = parseInt(req.params.x);
+  const y = parseInt(req.params.y);
+
+  if (isNaN(x) || isNaN(y)) {
+    return res
+      .status(400)
+      .json({ success: false, error: "x or y is not a number" });
+  }
+
+  const pixel = await Canvas.getPixel(x, y);
+  if (!pixel) {
+    return res.json({ success: false, error: "no_pixel" });
+  }
+
+  const otherPixels = await prisma.pixel.count({ where: { x, y } });
+
+  const user = await prisma.user.findFirst({ where: { sub: pixel.userId } });
+  const instance = await prisma.instance.findFirst({
+    where: { hostname: pixel.userId.split("@")[1] },
+  });
+
+  res.json({
+    success: true,
+    pixel,
+    otherPixels: otherPixels - 1,
+    user: user && {
+      sub: user.sub,
+      display_name: user.display_name,
+      picture_url: user.picture_url,
+      profile_url: user.profile_url,
+      isAdmin: user.isAdmin,
+      isModerator: user.isModerator,
+    },
+    instance: instance && {
+      hostname: instance.hostname,
+      name: instance.name,
+      logo_url: instance.logo_url,
+      banner_url: instance.banner_url,
+    },
+  });
+});
+
 export default app;

@@ -35,6 +35,11 @@ export const AppContext = ({ children }: PropsWithChildren) => {
 
   // overlays visible
   const [settingsSidebar, setSettingsSidebar] = useState(false);
+  const [pixelWhois, setPixelWhois] = useState<{
+    x: number;
+    y: number;
+    surrounding: string[][];
+  }>();
 
   const [hasAdmin, setHasAdmin] = useState(false);
 
@@ -130,6 +135,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         setLoadChat,
         connected,
         hasAdmin,
+        pixelWhois,
+        setPixelWhois,
       }}
     >
       {!config && (

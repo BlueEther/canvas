@@ -151,6 +151,15 @@ class Canvas {
     return await this.canvasToRedis();
   }
 
+  async getPixel(x: number, y: number) {
+    return await prisma.pixel.findFirst({
+      where: {
+        x,
+        y,
+      },
+    });
+  }
+
   async setPixel(user: { sub: string }, x: number, y: number, hex: string) {
     const redis = await Redis.getClient();
 

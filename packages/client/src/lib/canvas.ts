@@ -88,9 +88,51 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     return !!this.config;
   }
 
+  getConfig() {
+    return this.config;
+  }
+
+  /**
+   * Get nearby pixels
+   * @param x
+   * @param y
+   * @param around (x,y) +- around
+   */
+  getSurroundingPixels(x: number, y: number, around: number = 3) {
+    let pixels = [];
+
+    for (let offsetY = 0; offsetY <= around + 1; offsetY++) {
+      let arr = [];
+      for (let offsetX = 0; offsetX <= around + 1; offsetX++) {
+        let targetX = x + (offsetX - around + 1);
+        let targetY = y + (offsetY - around + 1);
+        let pixel = this.pixels[targetX + "_" + targetY];
+
+        if (pixel) {
+          arr.push("#" + (this.Pallete.getColor(pixel.color)?.hex || "ffffff"));
+        } else {
+          arr.push("transparent");
+        }
+      }
+      pixels.push(arr);
+    }
+
+    return pixels;
+  }
+
   handleMouseDown(e: ClickEvent) {
-    const [x, y] = this.screenToPos(e.clientX, e.clientY);
-    this.place(x, y);
+    if (!e.alt && !e.ctrl && !e.meta && !e.shift && e.button === "LCLICK") {
+      const [x, y] = this.screenToPos(e.clientX, e.clientY);
+      this.place(x, y);
+    } else {
+      // KeybindManager.handleInteraction({
+      //   key: e.button,
+      //   alt: e.alt,
+      //   ctrl: e.ctrl,
+      //   meta: e.meta,
+      //   shift: e.meta
+      // }, )
+    }
   }
 
   handleMouseMove(e: HoverEvent) {
