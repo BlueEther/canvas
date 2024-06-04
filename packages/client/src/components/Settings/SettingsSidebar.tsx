@@ -6,7 +6,8 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark";
 import { ChatSettings } from "./ChatSettings";
 
 export const SettingsSidebar = () => {
-  const { settingsSidebar, setSettingsSidebar } = useAppContext();
+  const { settingsSidebar, setSettingsSidebar, setShowKeybinds } =
+    useAppContext();
 
   return (
     <div
@@ -20,7 +21,17 @@ export const SettingsSidebar = () => {
           <FontAwesomeIcon icon={faXmark} />
         </Button>
       </header>
-      <section>abc</section>
+      <section>
+        abc
+        <Button
+          onPress={() => {
+            setShowKeybinds(true);
+            setSettingsSidebar(false);
+          }}
+        >
+          Keybinds
+        </Button>
+      </section>
       <TemplateSettings />
       <ChatSettings />
     </div>

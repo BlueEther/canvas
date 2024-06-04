@@ -13,6 +13,7 @@ import { ToastContainer } from "react-toastify";
 import { AuthErrors } from "./AuthErrors";
 import "../lib/keybinds";
 import { PixelWhoisSidebar } from "./PixelWhoisSidebar";
+import { KeybindModal } from "./KeybindModal";
 
 const Chat = lazy(() => import("./Chat/Chat"));
 
@@ -37,6 +38,7 @@ const AppInner = () => {
       <DebugModal />
       <SettingsSidebar />
       <PixelWhoisSidebar />
+      <KeybindModal />
       <AuthErrors />
 
       <ToastContainer position="top-left" />

@@ -37,15 +37,17 @@ export interface IAppContext {
   cursorPosition?: IPosition;
   setCursorPosition: (v?: IPosition) => void;
   pixels: { available: number };
-  settingsSidebar: boolean;
-  setSettingsSidebar: (v: boolean) => void;
   undo?: { available: true; expireAt: number };
   loadChat: boolean;
   setLoadChat: (v: boolean) => void;
   connected: boolean;
 
+  settingsSidebar: boolean;
+  setSettingsSidebar: (v: boolean) => void;
   pixelWhois?: { x: number; y: number; surrounding: string[][] };
   setPixelWhois: (v: this["pixelWhois"]) => void;
+  showKeybinds: boolean;
+  setShowKeybinds: (v: boolean) => void;
 
   hasAdmin: boolean;
 }

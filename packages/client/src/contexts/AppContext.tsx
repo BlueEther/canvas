@@ -40,6 +40,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
     y: number;
     surrounding: string[][];
   }>();
+  const [showKeybinds, setShowKeybinds] = useState(false);
 
   const [hasAdmin, setHasAdmin] = useState(false);
 
@@ -137,6 +138,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         hasAdmin,
         pixelWhois,
         setPixelWhois,
+        showKeybinds,
+        setShowKeybinds,
       }}
     >
       {!config && (

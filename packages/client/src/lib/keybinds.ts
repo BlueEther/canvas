@@ -129,6 +129,10 @@ class KeybindManager_ extends EventEmitter<{
   getKeybind(key: keyof typeof KEYBINDS) {
     return KEYBINDS[key];
   }
+
+  getKeybinds() {
+    return { ...KEYBINDS };
+  }
 }
 
 export const KeybindManager = new KeybindManager_();
