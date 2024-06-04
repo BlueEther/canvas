@@ -19,7 +19,11 @@ export interface ClientToServerEvents {
     ack: (
       _: PacketAck<
         Pixel,
-        "no_user" | "invalid_pixel" | "pixel_cooldown" | "palette_color_invalid"
+        | "no_user"
+        | "invalid_pixel"
+        | "pixel_cooldown"
+        | "palette_color_invalid"
+        | "you_already_placed_that"
       >
     ) => void
   ) => void;

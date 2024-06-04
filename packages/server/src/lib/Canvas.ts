@@ -82,17 +82,7 @@ class Canvas {
 
     for (let x = 0; x < this.canvasSize[0]; x++) {
       for (let y = 0; y < this.canvasSize[1]; y++) {
-        const pixel = await prisma.pixel.findFirst({
-          where: {
-            x,
-            y,
-          },
-          orderBy: [
-            {
-              createdAt: "asc",
-            },
-          ],
-        });
+        const pixel = await this.getPixel(x, y);
 
         await redis.set(key(x, y), pixel?.color || "transparent");
       }
@@ -152,12 +142,18 @@ class Canvas {
   }
 
   async getPixel(x: number, y: number) {
-    return await prisma.pixel.findFirst({
-      where: {
-        x,
-        y,
-      },
-    });
+    return (
+      await prisma.pixel.findMany({
+        where: {
+          x,
+          y,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 1,
+      })
+    )?.[0];
   }
 
   async setPixel(user: { sub: string }, x: number, y: number, hex: string) {
@@ -194,10 +190,7 @@ class Canvas {
     const key = Redis.key("pixelColor", x, y);
 
     // find if any pixels exist at this spot, and pick the most recent one
-    const pixel = await prisma.pixel.findFirst({
-      where: { x, y },
-      orderBy: { createdAt: "desc" },
-    });
+    const pixel = await this.getPixel(x, y);
     let paletteColorID = -1;
 
     // if pixel exists in redis

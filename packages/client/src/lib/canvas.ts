@@ -237,14 +237,34 @@ export class Canvas extends EventEmitter<CanvasEvents> {
           this.lastPlace = Date.now();
           this.handlePixel(ack.data);
         } else {
-          // TODO: handle undo pixel
-          toast.info(ack.error);
           console.warn(
             "Attempted to place pixel",
             { x, y, color: this.Pallete.getSelectedColor()!.id },
             "and got error",
             ack
           );
+
+          switch (ack.error) {
+            case "invalid_pixel":
+              toast.error(
+                "Cannot place, invalid pixel location. Are you even on the canvas?"
+              );
+              break;
+            case "no_user":
+              toast.error("You are not logged in.");
+              break;
+            case "palette_color_invalid":
+              toast.error("This isn't a color that you can use...?");
+              break;
+            case "pixel_cooldown":
+              toast.error("You're on pixel cooldown, cannot place");
+              break;
+            case "you_already_placed_that":
+              toast.error("You already placed this color at this location");
+              break;
+            default:
+              toast.error("Error while placing pixel: " + ack.error);
+          }
         }
       });
   }

@@ -229,6 +229,17 @@ export class SocketServer {
         return;
       }
 
+      const pixelAtTheSameLocation = await Canvas.getPixel(pixel.x, pixel.y);
+
+      if (
+        pixelAtTheSameLocation &&
+        pixelAtTheSameLocation.userId === user.sub &&
+        pixelAtTheSameLocation.color === paletteColor.hex
+      ) {
+        ack({ success: false, error: "you_already_placed_that" });
+        return;
+      }
+
       await user.modifyStack(-1);
       await Canvas.setPixel(user, pixel.x, pixel.y, paletteColor.hex);
       // give undo capabilities
