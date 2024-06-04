@@ -112,6 +112,7 @@ export interface ViewportMoveEvent {
 }
 
 interface PanZoomEvents {
+  longPress: (x: number, y: number) => void;
   doubleTap: (e: TouchEvent) => void;
   click: (e: ClickEvent) => void;
   hover: (e: HoverEvent) => void;
@@ -311,6 +312,8 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
    * @param e
    */
   private _touch_touchstart = (event: TouchEvent) => {
+    event.preventDefault();
+
     const isDoubleTap =
       this.touch.lastTouch && +new Date() - this.touch.lastTouch < 200;
 
@@ -359,6 +362,16 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
    * @param e
    */
   private _touch_touchend = (event: TouchEvent) => {
+    if (this.touch.lastTouch && this.panning.enabled) {
+      const touch = event.changedTouches[0];
+      const dx = Math.abs(this.panning.x - touch.clientX);
+      const dy = Math.abs(this.panning.y - touch.clientY);
+
+      if (Date.now() - this.touch.lastTouch > 500 && dx < 25 && dy < 25) {
+        this.emit("longPress", this.panning.x, this.panning.y);
+      }
+    }
+
     if (this.panning.enabled) {
       this.panning.enabled = false;
 

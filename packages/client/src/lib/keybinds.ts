@@ -2,7 +2,7 @@ import EventEmitter from "eventemitter3";
 import { EnforceObjectType } from "./utils";
 
 interface IKeybind {
-  key: KeyboardEvent["code"] | "LCLICK" | "RCLICK" | "MCLICK";
+  key: KeyboardEvent["code"] | "LCLICK" | "RCLICK" | "MCLICK" | "LONG_PRESS";
 
   alt?: boolean;
   ctrl?: boolean;
@@ -15,13 +15,16 @@ interface EmittedKeybind {
   clientY: number;
 }
 
-export const enforceObjectType: EnforceObjectType<IKeybind> = (v) => v;
+export const enforceObjectType: EnforceObjectType<IKeybind[]> = (v) => v;
 
 const KEYBINDS = enforceObjectType({
-  PIXEL_WHOIS: {
-    key: "LCLICK",
-    shift: true,
-  },
+  PIXEL_WHOIS: [
+    {
+      key: "LCLICK",
+      shift: true,
+    },
+    { key: "LONG_PRESS" },
+  ],
 });
 
 class KeybindManager_ extends EventEmitter<{
@@ -98,18 +101,23 @@ class KeybindManager_ extends EventEmitter<{
   handleInteraction(key: IKeybind, emit: EmittedKeybind): boolean {
     let isHandled = false;
 
-    for (const [name_, keybind] of Object.entries(KEYBINDS)) {
+    for (const [name_, keybinds] of Object.entries(KEYBINDS)) {
       const name: keyof typeof KEYBINDS = name_ as any;
 
-      if (keybind.key !== key.key) continue;
-      if (typeof keybind.alt !== "undefined" && keybind.alt !== key.alt)
-        continue;
-      if (typeof keybind.ctrl !== "undefined" && keybind.ctrl !== key.ctrl)
-        continue;
-      if (typeof keybind.meta !== "undefined" && keybind.meta !== key.meta)
-        continue;
-      if (typeof keybind.shift !== "undefined" && keybind.shift !== key.shift)
-        continue;
+      const valid = keybinds.find((kb) => {
+        if (kb.key !== key.key) return false;
+        if (typeof kb.alt !== "undefined" && kb.alt !== key.alt) return false;
+        if (typeof kb.ctrl !== "undefined" && kb.ctrl !== key.ctrl)
+          return false;
+        if (typeof kb.meta !== "undefined" && kb.meta !== key.meta)
+          return false;
+        if (typeof kb.shift !== "undefined" && kb.shift !== key.shift)
+          return false;
+
+        return true;
+      });
+
+      if (!valid) continue;
 
       this.emit(name, emit);
       isHandled = true;

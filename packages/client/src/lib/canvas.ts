@@ -12,6 +12,7 @@ import {
   PanZoom,
 } from "@sc07-canvas/lib/src/renderer/PanZoom";
 import { toast } from "react-toastify";
+import { KeybindManager } from "./keybinds";
 
 interface CanvasEvents {
   /**
@@ -48,6 +49,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
 
     this.PanZoom.addListener("hover", this.handleMouseMove.bind(this));
     this.PanZoom.addListener("click", this.handleMouseDown.bind(this));
+    this.PanZoom.addListener("longPress", this.handleLongPress);
 
     Network.waitFor("pixelLastPlaced").then(
       ([time]) => (this.lastPlace = time)
@@ -60,6 +62,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
 
     this.PanZoom.removeListener("hover", this.handleMouseMove.bind(this));
     this.PanZoom.removeListener("click", this.handleMouseDown.bind(this));
+    this.PanZoom.removeListener("longPress", this.handleLongPress);
 
     Network.off("pixel", this.handlePixel);
   }
@@ -119,6 +122,18 @@ export class Canvas extends EventEmitter<CanvasEvents> {
 
     return pixels;
   }
+
+  handleLongPress = (clientX: number, clientY: number) => {
+    KeybindManager.handleInteraction(
+      {
+        key: "LONG_PRESS",
+      },
+      {
+        clientX,
+        clientY,
+      }
+    );
+  };
 
   handleMouseDown(e: ClickEvent) {
     if (!e.alt && !e.ctrl && !e.meta && !e.shift && e.button === "LCLICK") {
