@@ -76,9 +76,6 @@ export class Template extends EventEmitter<TemplateEvents> {
     templateHolder.appendChild(this.$canvas);
 
     this.setupWebGL();
-
-    // @ts-ignore
-    window.TemplateTest = this;
   }
 
   destroy() {
