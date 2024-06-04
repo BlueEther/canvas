@@ -2,10 +2,12 @@ import { useEffect, useRef } from "react";
 import { Template as TemplateCl } from "../lib/template";
 import { useAppContext } from "../contexts/AppContext";
 import { useTemplateContext } from "../contexts/TemplateContext";
+import { Canvas } from "../lib/canvas";
 
 export const Template = () => {
   const { config } = useAppContext();
-  const { enable, url, width, setWidth, x, y, opacity } = useTemplateContext();
+  const { enable, url, width, setWidth, x, y, opacity, setX, setY } =
+    useTemplateContext();
   const templateHolder = useRef<HTMLDivElement>(null);
   const instance = useRef<TemplateCl>();
 
@@ -15,15 +17,71 @@ export const Template = () => {
       return;
     }
 
+    const templateHolderRef = templateHolder.current;
+
     instance.current = new TemplateCl(config!, templateHolder.current);
 
     instance.current.on("autoDetectWidth", (width) => {
-      console.log("autodetectwidth", width);
       setWidth(width);
     });
 
+    let startLocation: { clientX: number; clientY: number } | undefined;
+    let offset: [x: number, y: number] = [0, 0];
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (!e.altKey) return;
+
+      startLocation = { clientX: e.clientX, clientY: e.clientY };
+      offset = [e.offsetX, e.offsetY];
+      Canvas.instance?.getPanZoom().panning.setEnabled(false);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!startLocation) return;
+      if (!Canvas.instance) {
+        console.warn(
+          "[Template#handleMouseMove] Canvas.instance is not defined"
+        );
+        return;
+      }
+
+      const deltaX = e.clientX - startLocation.clientX;
+      const deltaY = e.clientY - startLocation.clientY;
+      const newX = startLocation.clientX + deltaX;
+      const newY = startLocation.clientY + deltaY;
+
+      const [canvasX, canvasY] = Canvas.instance.screenToPos(newX, newY);
+
+      templateHolderRef.style.setProperty("left", canvasX - offset[0] + "px");
+      templateHolderRef.style.setProperty("top", canvasY - offset[1] + "px");
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      startLocation = undefined;
+      Canvas.instance?.getPanZoom().panning.setEnabled(true);
+
+      const x = parseInt(
+        templateHolderRef.style.getPropertyValue("left").replace("px", "") ||
+          "0"
+      );
+      const y = parseInt(
+        templateHolderRef.style.getPropertyValue("top").replace("px", "") || "0"
+      );
+
+      setX(x);
+      setY(y);
+    };
+
+    templateHolder.current.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
     return () => {
       instance.current?.destroy();
+
+      templateHolderRef?.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, []);
 

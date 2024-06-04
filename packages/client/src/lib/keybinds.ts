@@ -25,6 +25,12 @@ const KEYBINDS = enforceObjectType({
     },
     { key: "LONG_PRESS" },
   ],
+  TEMPLATE_MOVE: [
+    {
+      key: "LCLICK",
+      alt: true,
+    },
+  ],
 });
 
 class KeybindManager_ extends EventEmitter<{
@@ -34,6 +40,9 @@ class KeybindManager_ extends EventEmitter<{
     super();
     // setup listeners
 
+    document.addEventListener("keydown", this.handleKeydown, {
+      passive: false,
+    });
     document.addEventListener("keyup", this.handleKeyup);
     document.addEventListener("click", this.handleClick);
   }
@@ -42,6 +51,20 @@ class KeybindManager_ extends EventEmitter<{
     // remove listeners
     // this is global and doesn't depend on any elements, so this shouldn't need to be called
   }
+
+  handleKeydown = (e: KeyboardEvent) => {
+    const blacklistedElements = ["INPUT"];
+
+    if (e.target instanceof HTMLElement) {
+      if (blacklistedElements.indexOf(e.target.tagName) > -1) {
+        return;
+      }
+    }
+
+    if (e.key === "Alt") e.preventDefault();
+    if (e.key === "Control") e.preventDefault();
+    if (e.key === "Shift") e.preventDefault();
+  };
 
   handleKeyup = (e: KeyboardEvent) => {
     // discard if in an input element

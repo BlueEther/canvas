@@ -343,7 +343,7 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
    * @param e
    */
   private _touch_touchmove = (event: TouchEvent) => {
-    if (this.panning.enabled && event.touches.length === 1) {
+    if (this.panning.active && event.touches.length === 1) {
       event.preventDefault();
       event.stopPropagation();
 
@@ -362,7 +362,7 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
    * @param e
    */
   private _touch_touchend = (event: TouchEvent) => {
-    if (this.touch.lastTouch && this.panning.enabled) {
+    if (this.touch.lastTouch && this.panning.active) {
       const touch = event.changedTouches[0];
       const dx = Math.abs(this.panning.x - touch.clientX);
       const dy = Math.abs(this.panning.y - touch.clientY);
@@ -372,8 +372,8 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
       }
     }
 
-    if (this.panning.enabled) {
-      this.panning.enabled = false;
+    if (this.panning.active) {
+      this.panning.active = false;
 
       const touch = event.changedTouches[0];
 
@@ -391,7 +391,7 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
     this.touch.pinchStartDistance = distance;
     this.touch.lastDistance = distance;
     this.touch.pinchStartScale = this.transform.scale;
-    this.panning.enabled = false;
+    this.panning.active = false;
   }
 
   onPinch(event: TouchEvent) {
@@ -560,7 +560,9 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
 
     this.mouse.mouseDown = Date.now();
 
-    this.panning.start(e.clientX, e.clientY);
+    if (this.panning.enabled) {
+      this.panning.start(e.clientX, e.clientY);
+    }
   };
 
   /**
@@ -570,19 +572,7 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
    * @param e
    */
   private _mouse_mousemove = (e: MouseEvent) => {
-    if (this.panning.enabled) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      this.panning.move(e.clientX, e.clientY);
-    } else {
-      // not panning
-      this.emit("hover", {
-        clientX: e.clientX,
-        clientY: e.clientY,
-      });
-    }
-    if (this.panning.enabled) {
+    if (this.panning.active) {
       e.preventDefault();
       e.stopPropagation();
 
@@ -629,7 +619,7 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
       }
     }
 
-    if (this.panning.enabled) {
+    if (this.panning.active) {
       // currently panning
       e.preventDefault();
       e.stopPropagation();

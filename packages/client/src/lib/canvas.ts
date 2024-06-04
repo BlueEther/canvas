@@ -95,6 +95,10 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     return this.config;
   }
 
+  getPanZoom() {
+    return this.PanZoom;
+  }
+
   /**
    * Get nearby pixels
    * @param x
@@ -325,6 +329,12 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     document.body.appendChild(el);
   }
 
+  /**
+   * Screen (clientX, clientY) to Canvas position
+   * @param x
+   * @param y
+   * @returns
+   */
   screenToPos(x: number, y: number) {
     // the rendered dimentions in the browser
     const rect = this.canvas.getBoundingClientRect();
