@@ -9,6 +9,7 @@ import { IPosition } from "@sc07-canvas/lib/src/net";
 import { Template } from "./Template";
 import { IRouterData, Router } from "../lib/router";
 import { KeybindManager } from "../lib/keybinds";
+import { VirginOverlay } from "./Overlay/VirginOverlay";
 
 export const CanvasWrapper = () => {
   const { config } = useAppContext();
@@ -17,6 +18,7 @@ export const CanvasWrapper = () => {
   return (
     <main>
       <PanZoomWrapper>
+        <VirginOverlay />
         {config && <Template />}
         <CanvasInner />
       </PanZoomWrapper>

@@ -136,6 +136,7 @@ export const Template = () => {
   return (
     <div
       id="template"
+      className="board-overlay"
       ref={templateHolder}
       style={{
         top: y,

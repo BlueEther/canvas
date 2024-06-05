@@ -99,6 +99,27 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     return this.PanZoom;
   }
 
+  getAllPixels() {
+    let pixels: {
+      x: number;
+      y: number;
+      color: number;
+    }[] = [];
+
+    for (const [x_y, value] of Object.entries(this.pixels)) {
+      if (value.type === "pending") continue;
+
+      const [x, y] = x_y.split("_").map((v) => parseInt(v));
+      pixels.push({
+        x,
+        y,
+        color: value.color,
+      });
+    }
+
+    return pixels;
+  }
+
   /**
    * Get nearby pixels
    * @param x

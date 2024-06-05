@@ -50,6 +50,7 @@ export class Template extends EventEmitter<TemplateEvents> {
     this.$wrapper = templateHolder;
 
     this.$imageLoader = document.createElement("img");
+    this.$imageLoader.style.setProperty("display", "none");
     this.$imageLoader.setAttribute("crossorigin", "");
     this.$imageLoader.addEventListener("load", () => {
       console.log("imageLoader loaded image");
@@ -101,7 +102,7 @@ export class Template extends EventEmitter<TemplateEvents> {
 
     switch (key) {
       case "enable":
-        this.setElementVisible([this.$canvas, this.$imageLoader], !!value);
+        this.setElementVisible([this.$canvas], !!value);
         break;
     }
 

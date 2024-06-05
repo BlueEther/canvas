@@ -42,6 +42,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   }>();
   const [showKeybinds, setShowKeybinds] = useState(false);
 
+  const [showVirginOverlay, setShowVirginOverlay] = useState(false);
+
   const [hasAdmin, setHasAdmin] = useState(false);
 
   useEffect(() => {
@@ -140,6 +142,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         setPixelWhois,
         showKeybinds,
         setShowKeybinds,
+        showVirginOverlay,
+        setShowVirginOverlay,
       }}
     >
       {!config && (

@@ -4,6 +4,7 @@ import { TemplateSettings } from "./TemplateSettings";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark";
 import { ChatSettings } from "./ChatSettings";
+import { OverlaySettings } from "../Overlay/OverlaySettings";
 
 export const SettingsSidebar = () => {
   const { settingsSidebar, setSettingsSidebar, setShowKeybinds } =
@@ -34,6 +35,7 @@ export const SettingsSidebar = () => {
       </section>
       <TemplateSettings />
       <ChatSettings />
+      <OverlaySettings />
     </div>
   );
 };

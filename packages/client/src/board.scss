@@ -23,3 +23,13 @@
   pointer-events: none;
   touch-action: none;
 }
+
+.board-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.no-interact {
+  pointer-events: none;
+}

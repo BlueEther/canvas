@@ -31,6 +31,11 @@ const KEYBINDS = enforceObjectType({
       alt: true,
     },
   ],
+  TOGGLE_VIRGIN: [
+    {
+      key: "KeyV",
+    },
+  ],
 });
 
 class KeybindManager_ extends EventEmitter<{

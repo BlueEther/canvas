@@ -53,6 +53,9 @@ export interface IAppContext {
   showKeybinds: boolean;
   setShowKeybinds: (v: boolean) => void;
 
+  showVirginOverlay: boolean;
+  setShowVirginOverlay: React.Dispatch<React.SetStateAction<boolean>>;
+
   hasAdmin: boolean;
 }
 
