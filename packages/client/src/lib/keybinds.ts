@@ -36,6 +36,11 @@ const KEYBINDS = enforceObjectType({
       key: "KeyV",
     },
   ],
+  TOGGLE_HEATMAP: [
+    {
+      key: "KeyH",
+    },
+  ],
 });
 
 class KeybindManager_ extends EventEmitter<{

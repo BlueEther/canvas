@@ -1,8 +1,9 @@
-import { Switch } from "@nextui-org/react";
+import { Slider, Spinner, Switch } from "@nextui-org/react";
 import { useAppContext } from "../../contexts/AppContext";
 
 export const OverlaySettings = () => {
-  const { showVirginOverlay, setShowVirginOverlay } = useAppContext();
+  const { virginOverlay, setVirginOverlay, heatmapOverlay, setHeatmapOverlay } =
+    useAppContext();
 
   return (
     <>
@@ -11,11 +12,49 @@ export const OverlaySettings = () => {
       </header>
       <section>
         <Switch
-          isSelected={showVirginOverlay}
-          onValueChange={setShowVirginOverlay}
+          isSelected={virginOverlay.enabled}
+          onValueChange={(v) =>
+            setVirginOverlay((vv) => ({ ...vv, enabled: v }))
+          }
         >
           Virgin Map Overlay
         </Switch>
+        {virginOverlay.enabled && (
+          <Slider
+            label="Virgin Map Opacity"
+            step={0.1}
+            minValue={0}
+            maxValue={1}
+            value={virginOverlay.opacity}
+            onChange={(v) =>
+              setVirginOverlay((vv) => ({ ...vv, opacity: v as number }))
+            }
+            getValue={(v) => (v as number) * 100 + "%"}
+          />
+        )}
+
+        <Switch
+          isSelected={heatmapOverlay.enabled}
+          onValueChange={(v) =>
+            setHeatmapOverlay((vv) => ({ ...vv, enabled: v }))
+          }
+        >
+          {heatmapOverlay.loading && <Spinner size="sm" />}
+          Heatmap Overlay
+        </Switch>
+        {heatmapOverlay.enabled && (
+          <Slider
+            label="Heatmap Opacity"
+            step={0.1}
+            minValue={0}
+            maxValue={1}
+            value={heatmapOverlay.opacity}
+            onChange={(v) =>
+              setHeatmapOverlay((vv) => ({ ...vv, opacity: v as number }))
+            }
+            getValue={(v) => (v as number) * 100 + "%"}
+          />
+        )}
       </section>
     </>
   );

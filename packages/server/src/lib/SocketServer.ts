@@ -304,6 +304,14 @@ export class SocketServer {
 
       ack({ success: true, data: {} });
     });
+
+    socket.on("subscribe", (topic) => {
+      socket.join("sub:" + topic);
+    });
+
+    socket.on("unsubscribe", (topic) => {
+      socket.leave("sub:" + topic);
+    });
   }
 
   /**

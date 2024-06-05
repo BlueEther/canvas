@@ -234,4 +234,14 @@ app.get("/canvas/pixel/:x/:y", async (req, res) => {
   });
 });
 
+app.get("/heatmap", async (req, res) => {
+  const heatmap = await Canvas.getCachedHeatmap();
+
+  if (!heatmap) {
+    return res.json({ success: false, error: "heatmap_not_generated" });
+  }
+
+  res.json({ success: true, heatmap });
+});
+
 export default app;

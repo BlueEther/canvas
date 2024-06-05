@@ -1,7 +1,7 @@
 import EventEmitter from "eventemitter3";
 import {
   ClientConfig,
-  IPalleteContext,
+  IPaletteContext,
   IPosition,
   Pixel,
 } from "@sc07-canvas/lib/src/net";
@@ -219,7 +219,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     };
   };
 
-  palleteCtx: IPalleteContext = {};
+  palleteCtx: IPaletteContext = {};
   Pallete = {
     getColor: (colorId: number) => {
       return this.config.pallete.colors.find((c) => c.id === colorId);
@@ -236,7 +236,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     },
   };
 
-  updatePallete(pallete: IPalleteContext) {
+  updatePallete(pallete: IPaletteContext) {
     this.palleteCtx = pallete;
   }
 

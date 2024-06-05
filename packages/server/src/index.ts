@@ -6,6 +6,7 @@ import { ExpressServer } from "./lib/Express";
 import { SocketServer } from "./lib/SocketServer";
 import { OpenID } from "./lib/oidc";
 import { loadSettings } from "./lib/Settings";
+import { Jobs } from "./lib/Jobs";
 
 // Validate environment variables
 
@@ -68,6 +69,7 @@ Promise.all([
 ]).then(() => {
   Logger.info("Startup tasks have completed, starting server");
 
+  new Jobs();
   const express = new ExpressServer();
   new SocketServer(express.httpServer);
 });

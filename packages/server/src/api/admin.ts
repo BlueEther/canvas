@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { User } from "../models/User";
 import Canvas from "../lib/Canvas";
+import { Logger } from "../lib/Logger";
 
 const app = Router();
 
@@ -68,6 +69,17 @@ app.post("/canvas/size", async (req, res) => {
   await Canvas.setSize(width, height);
 
   res.send({ success: true });
+});
+
+app.put("/canvas/heatmap", async (req, res) => {
+  try {
+    await Canvas.generateHeatmap();
+
+    res.send({ success: true });
+  } catch (e) {
+    Logger.error(e);
+    res.send({ success: false, error: "Failed to generate" });
+  }
 });
 
 export default app;

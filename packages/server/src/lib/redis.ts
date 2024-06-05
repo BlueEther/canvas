@@ -9,6 +9,7 @@ interface IRedisKeys {
   // canvas
   pixelColor(x: number, y: number): string;
   canvas(): string;
+  heatmap(): string;
 
   // users
   socketToSub(socketId: string): string;
@@ -20,6 +21,7 @@ interface IRedisKeys {
 const RedisKeys: IRedisKeys = {
   pixelColor: (x: number, y: number) => `CANVAS:PIXELS[${x},${y}]:COLOR`,
   canvas: () => `CANVAS:PIXELS`,
+  heatmap: () => `CANVAS:HEATMAP`,
   socketToSub: (socketId: string) => `CANVAS:SOCKET:${socketId}`,
 };
 

@@ -10,6 +10,7 @@ import { Template } from "./Template";
 import { IRouterData, Router } from "../lib/router";
 import { KeybindManager } from "../lib/keybinds";
 import { VirginOverlay } from "./Overlay/VirginOverlay";
+import { HeatmapOverlay } from "./Overlay/HeatmapOverlay";
 
 export const CanvasWrapper = () => {
   const { config } = useAppContext();
@@ -19,6 +20,7 @@ export const CanvasWrapper = () => {
     <main>
       <PanZoomWrapper>
         <VirginOverlay />
+        <HeatmapOverlay />
         {config && <Template />}
         <CanvasInner />
       </PanZoomWrapper>

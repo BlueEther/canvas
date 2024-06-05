@@ -4,12 +4,12 @@ import { Canvas } from "../../lib/canvas";
 import { KeybindManager } from "../../lib/keybinds";
 
 export const VirginOverlay = () => {
-  const { config, showVirginOverlay, setShowVirginOverlay } = useAppContext();
+  const { config, virginOverlay, setVirginOverlay } = useAppContext();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const handleKeybind = () => {
-      setShowVirginOverlay((v) => !v);
+      setVirginOverlay((v) => ({ ...v, enabled: !v.enabled }));
     };
 
     KeybindManager.on("TOGGLE_VIRGIN", handleKeybind);
@@ -17,7 +17,7 @@ export const VirginOverlay = () => {
     return () => {
       KeybindManager.off("TOGGLE_VIRGIN", handleKeybind);
     };
-  }, [setShowVirginOverlay]);
+  }, [setVirginOverlay]);
 
   useEffect(() => {
     if (!config) {
@@ -74,7 +74,8 @@ export const VirginOverlay = () => {
       width="1000"
       height="1000"
       style={{
-        display: showVirginOverlay ? "block" : "none",
+        display: virginOverlay.enabled ? "block" : "none",
+        opacity: virginOverlay.opacity.toFixed(1),
       }}
     />
   );

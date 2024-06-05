@@ -3,11 +3,11 @@ import { useAppContext } from "../../contexts/AppContext";
 import { Canvas } from "../../lib/canvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
-import { IPalleteContext } from "@sc07-canvas/lib/src/net";
+import { IPaletteContext } from "@sc07-canvas/lib/src/net";
 
 export const Palette = () => {
   const { config, user } = useAppContext();
-  const [pallete, setPallete] = useState<IPalleteContext>({});
+  const [pallete, setPallete] = useState<IPaletteContext>({});
 
   useEffect(() => {
     if (!Canvas.instance) return;

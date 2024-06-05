@@ -6,6 +6,7 @@ import {
   ClientToServerEvents,
   Pixel,
   ServerToClientEvents,
+  Subscription,
 } from "@sc07-canvas/lib/src/net";
 import { toast } from "react-toastify";
 
@@ -23,6 +24,8 @@ export interface INetworkEvents {
   undo: (
     data: { available: false } | { available: true; expireAt: number }
   ) => void;
+
+  heatmap: (heatmap: string) => void;
 }
 
 type SentEventValue<K extends keyof INetworkEvents> = EventEmitter.ArgumentMap<
@@ -105,6 +108,18 @@ class Network extends EventEmitter<INetworkEvents> {
     this.socket.on("undo", (undo) => {
       this.emit("undo", undo);
     });
+
+    this.socket.on("heatmap", (heatmap) => {
+      this.emit("heatmap", heatmap);
+    });
+  }
+
+  subscribe(subscription: Subscription) {
+    this.socket.emit("subscribe", subscription);
+  }
+
+  unsubscribe(subscription: Subscription) {
+    this.socket.emit("unsubscribe", subscription);
   }
 
   /**

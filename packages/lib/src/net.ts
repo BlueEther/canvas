@@ -1,5 +1,7 @@
 // socket.io
 
+export type Subscription = "heatmap";
+
 export interface ServerToClientEvents {
   canvas: (pixels: string[]) => void;
   user: (user: AuthSession) => void;
@@ -11,6 +13,15 @@ export interface ServerToClientEvents {
   undo: (
     data: { available: false } | { available: true; expireAt: number }
   ) => void;
+
+  /* --- subscribe events --- */
+
+  /**
+   * Emitted to room `sub:heatmap`
+   * @param heatmap
+   * @returns
+   */
+  heatmap: (heatmap: string) => void;
 }
 
 export interface ClientToServerEvents {
@@ -28,50 +39,18 @@ export interface ClientToServerEvents {
     ) => void
   ) => void;
   undo: (ack: (_: PacketAck<{}, "no_user" | "unavailable">) => void) => void;
-}
 
-// app context
-
-// TODO: move to client/{...}/AppContext.tsx
-export interface IAppContext {
-  config?: ClientConfig;
-  user?: AuthSession;
-  canvasPosition?: ICanvasPosition;
-  setCanvasPosition: (v: ICanvasPosition) => void;
-  cursorPosition?: IPosition;
-  setCursorPosition: (v?: IPosition) => void;
-  pixels: { available: number };
-  undo?: { available: true; expireAt: number };
-  loadChat: boolean;
-  setLoadChat: (v: boolean) => void;
-  connected: boolean;
-
-  settingsSidebar: boolean;
-  setSettingsSidebar: (v: boolean) => void;
-  pixelWhois?: { x: number; y: number; surrounding: string[][] };
-  setPixelWhois: (v: this["pixelWhois"]) => void;
-  showKeybinds: boolean;
-  setShowKeybinds: (v: boolean) => void;
-
-  showVirginOverlay: boolean;
-  setShowVirginOverlay: React.Dispatch<React.SetStateAction<boolean>>;
-
-  hasAdmin: boolean;
-}
-
-export interface IPalleteContext {
-  color?: number;
-}
-
-export interface ICanvasPosition {
-  x: number;
-  y: number;
-  zoom: number;
+  subscribe: (topic: Subscription) => void;
+  unsubscribe: (topic: Subscription) => void;
 }
 
 export interface IPosition {
   x: number;
   y: number;
+}
+
+export interface IPaletteContext {
+  color?: number;
 }
 
 // other

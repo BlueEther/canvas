@@ -213,6 +213,82 @@ class Canvas {
       color: paletteColorID,
     });
   }
+
+  /**
+   * Generate heatmap of active pixels
+   *
+   * @note expensive operation, takes a bit to execute
+   * @returns 2 character strings with 0-100 in radix 36 (depends on canvas size)
+   */
+  async generateHeatmap() {
+    const redis = await Redis.getClient();
+    const now = Date.now();
+    const minimumDate = new Date();
+    minimumDate.setHours(minimumDate.getHours() - 3); // 3 hours ago
+
+    const pad = (str: string) => (str.length < 2 ? "0" : "") + str;
+
+    const heatmap: string[] = [];
+
+    for (let y = 0; y < this.canvasSize[1]; y++) {
+      const arr: number[] = [];
+
+      for (let x = 0; x < this.canvasSize[0]; x++) {
+        const pixel = (
+          await prisma.pixel.findMany({
+            where: {
+              x,
+              y,
+              createdAt: { gt: minimumDate },
+            },
+            orderBy: {
+              createdAt: "desc",
+            },
+            take: 1,
+          })
+        )?.[0];
+
+        if (pixel) {
+          arr.push(
+            ((1 -
+              (now - pixel.createdAt.getTime()) /
+                (now - minimumDate.getTime())) *
+              100) >>
+              0
+          );
+        } else {
+          arr.push(0);
+        }
+      }
+
+      heatmap.push(arr.map((num) => pad(num.toString(36))).join(""));
+    }
+
+    const heatmapStr = heatmap.join("");
+
+    // cache for 5 minutes
+    await redis.setEx(Redis.key("heatmap"), 60 * 5, heatmapStr);
+
+    // notify anyone interested about the new heatmap
+    SocketServer.instance.io.to("sub:heatmap").emit("heatmap", heatmapStr);
+
+    return heatmapStr;
+  }
+
+  /**
+   * Get cache heatmap safely
+   * @returns see Canvas#generateHeatmap
+   */
+  async getCachedHeatmap(): Promise<string | undefined> {
+    const redis = await Redis.getClient();
+
+    if (!(await redis.exists(Redis.key("heatmap")))) {
+      Logger.warn("Canvas#getCachedHeatmap has no cached heatmap");
+      return undefined;
+    }
+
+    return (await redis.get(Redis.key("heatmap"))) as string;
+  }
 }
 
 export default new Canvas();

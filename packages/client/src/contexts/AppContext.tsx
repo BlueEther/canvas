@@ -5,16 +5,56 @@ import {
   useEffect,
   useState,
 } from "react";
-import {
-  AuthSession,
-  ClientConfig,
-  IAppContext,
-  ICanvasPosition,
-  IPosition,
-} from "@sc07-canvas/lib/src/net";
+import { AuthSession, ClientConfig, IPosition } from "@sc07-canvas/lib/src/net";
 import Network from "../lib/network";
 import { Spinner } from "@nextui-org/react";
 import { api } from "../lib/utils";
+
+interface IAppContext {
+  config?: ClientConfig;
+  user?: AuthSession;
+  canvasPosition?: ICanvasPosition;
+  setCanvasPosition: (v: ICanvasPosition) => void;
+  cursorPosition?: IPosition;
+  setCursorPosition: (v?: IPosition) => void;
+  pixels: { available: number };
+  undo?: { available: true; expireAt: number };
+  loadChat: boolean;
+  setLoadChat: (v: boolean) => void;
+  connected: boolean;
+
+  settingsSidebar: boolean;
+  setSettingsSidebar: (v: boolean) => void;
+  pixelWhois?: { x: number; y: number; surrounding: string[][] };
+  setPixelWhois: (v: this["pixelWhois"]) => void;
+  showKeybinds: boolean;
+  setShowKeybinds: (v: boolean) => void;
+
+  virginOverlay: IMapOverlay;
+  setVirginOverlay: React.Dispatch<React.SetStateAction<IMapOverlay>>;
+  heatmapOverlay: IMapOverlay;
+  setHeatmapOverlay: React.Dispatch<React.SetStateAction<IMapOverlay>>;
+
+  hasAdmin: boolean;
+}
+
+interface ICanvasPosition {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
+interface IMapOverlay {
+  enabled: boolean;
+
+  /**
+   * opacity of the overlay
+   * 0.0 - 1.0
+   */
+  opacity: number;
+
+  loading: boolean;
+}
 
 const appContext = createContext<IAppContext>({} as any);
 
@@ -42,7 +82,16 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   }>();
   const [showKeybinds, setShowKeybinds] = useState(false);
 
-  const [showVirginOverlay, setShowVirginOverlay] = useState(false);
+  const [virginOverlay, setVirginOverlay] = useState<IMapOverlay>({
+    enabled: false,
+    opacity: 1,
+    loading: false,
+  });
+  const [heatmapOverlay, setHeatmapOverlay] = useState<IMapOverlay>({
+    enabled: false,
+    opacity: 1,
+    loading: false,
+  });
 
   const [hasAdmin, setHasAdmin] = useState(false);
 
@@ -142,8 +191,10 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         setPixelWhois,
         showKeybinds,
         setShowKeybinds,
-        showVirginOverlay,
-        setShowVirginOverlay,
+        virginOverlay,
+        setVirginOverlay,
+        heatmapOverlay,
+        setHeatmapOverlay,
       }}
     >
       {!config && (
