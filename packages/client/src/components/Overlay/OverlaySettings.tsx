@@ -2,7 +2,7 @@ import { Slider, Spinner, Switch } from "@nextui-org/react";
 import { useAppContext } from "../../contexts/AppContext";
 
 export const OverlaySettings = () => {
-  const { virginOverlay, setVirginOverlay, heatmapOverlay, setHeatmapOverlay } =
+  const { blankOverlay, setBlankOverlay, heatmapOverlay, setHeatmapOverlay } =
     useAppContext();
 
   return (
@@ -12,22 +12,22 @@ export const OverlaySettings = () => {
       </header>
       <section>
         <Switch
-          isSelected={virginOverlay.enabled}
+          isSelected={blankOverlay.enabled}
           onValueChange={(v) =>
-            setVirginOverlay((vv) => ({ ...vv, enabled: v }))
+            setBlankOverlay((vv) => ({ ...vv, enabled: v }))
           }
         >
-          Virgin Map Overlay
+          Blank Canvas Overlay
         </Switch>
-        {virginOverlay.enabled && (
+        {blankOverlay.enabled && (
           <Slider
-            label="Virgin Map Opacity"
+            label="Blank Canvas Opacity"
             step={0.1}
             minValue={0}
             maxValue={1}
-            value={virginOverlay.opacity}
+            value={blankOverlay.opacity}
             onChange={(v) =>
-              setVirginOverlay((vv) => ({ ...vv, opacity: v as number }))
+              setBlankOverlay((vv) => ({ ...vv, opacity: v as number }))
             }
             getValue={(v) => (v as number) * 100 + "%"}
           />

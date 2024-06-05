@@ -30,8 +30,8 @@ interface IAppContext {
   showKeybinds: boolean;
   setShowKeybinds: (v: boolean) => void;
 
-  virginOverlay: IMapOverlay;
-  setVirginOverlay: React.Dispatch<React.SetStateAction<IMapOverlay>>;
+  blankOverlay: IMapOverlay;
+  setBlankOverlay: React.Dispatch<React.SetStateAction<IMapOverlay>>;
   heatmapOverlay: IMapOverlay;
   setHeatmapOverlay: React.Dispatch<React.SetStateAction<IMapOverlay>>;
 
@@ -82,7 +82,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   }>();
   const [showKeybinds, setShowKeybinds] = useState(false);
 
-  const [virginOverlay, setVirginOverlay] = useState<IMapOverlay>({
+  const [blankOverlay, setBlankOverlay] = useState<IMapOverlay>({
     enabled: false,
     opacity: 1,
     loading: false,
@@ -191,8 +191,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         setPixelWhois,
         showKeybinds,
         setShowKeybinds,
-        virginOverlay,
-        setVirginOverlay,
+        blankOverlay,
+        setBlankOverlay,
         heatmapOverlay,
         setHeatmapOverlay,
       }}

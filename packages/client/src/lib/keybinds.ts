@@ -31,9 +31,12 @@ const KEYBINDS = enforceObjectType({
       alt: true,
     },
   ],
-  TOGGLE_VIRGIN: [
+  TOGGLE_BLANK: [
     {
-      key: "KeyV",
+      key: "KeyV", // legacy pxls keybind
+    },
+    {
+      key: "KeyB",
     },
   ],
   TOGGLE_HEATMAP: [

@@ -3,29 +3,29 @@ import { useAppContext } from "../../contexts/AppContext";
 import { Canvas } from "../../lib/canvas";
 import { KeybindManager } from "../../lib/keybinds";
 
-export const VirginOverlay = () => {
-  const { config, virginOverlay, setVirginOverlay } = useAppContext();
+export const BlankOverlay = () => {
+  const { config, blankOverlay, setBlankOverlay } = useAppContext();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const handleKeybind = () => {
-      setVirginOverlay((v) => ({ ...v, enabled: !v.enabled }));
+      setBlankOverlay((v) => ({ ...v, enabled: !v.enabled }));
     };
 
-    KeybindManager.on("TOGGLE_VIRGIN", handleKeybind);
+    KeybindManager.on("TOGGLE_BLANK", handleKeybind);
 
     return () => {
-      KeybindManager.off("TOGGLE_VIRGIN", handleKeybind);
+      KeybindManager.off("TOGGLE_BLANK", handleKeybind);
     };
-  }, [setVirginOverlay]);
+  }, [setBlankOverlay]);
 
   useEffect(() => {
     if (!config) {
-      console.warn("[VirginOverlay] config is not defined");
+      console.warn("[BlankOverlay] config is not defined");
       return;
     }
     if (!canvasRef.current) {
-      console.warn("[VirginOverlay] canvasRef is not defined");
+      console.warn("[BlankOverlay] canvasRef is not defined");
       return;
     }
 
@@ -37,14 +37,14 @@ export const VirginOverlay = () => {
 
   useEffect(() => {
     if (!canvasRef.current) {
-      console.warn("[VirginOverlay] canvasRef is not defined");
+      console.warn("[BlankOverlay] canvasRef is not defined");
       return;
     }
 
     const updateVirginmap = () => {
       const ctx = canvasRef.current!.getContext("2d");
       if (!ctx) {
-        console.warn("[VirginOverlay] canvas context cannot be aquired");
+        console.warn("[BlankOverlay] canvas context cannot be aquired");
         return;
       }
 
@@ -68,14 +68,14 @@ export const VirginOverlay = () => {
 
   return (
     <canvas
-      id="virgin-overlay"
+      id="blank-overlay"
       className="board-overlay no-interact pixelate"
       ref={(r) => (canvasRef.current = r)}
       width="1000"
       height="1000"
       style={{
-        display: virginOverlay.enabled ? "block" : "none",
-        opacity: virginOverlay.opacity.toFixed(1),
+        display: blankOverlay.enabled ? "block" : "none",
+        opacity: blankOverlay.opacity.toFixed(1),
       }}
     />
   );
