@@ -117,7 +117,7 @@ export const HeatmapOverlay = () => {
       return;
     }
 
-    updateHeatmap();
+    if (heatmapOverlay.enabled) updateHeatmap();
 
     return () => {};
   }, [canvasRef, heatmapOverlay.enabled, updateHeatmap]);
