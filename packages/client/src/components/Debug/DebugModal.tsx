@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Debug, FlagCategory } from "@sc07-canvas/lib/src/debug";
 import {
   Button,

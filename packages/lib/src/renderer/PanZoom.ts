@@ -198,6 +198,51 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
   }
 
   /**
+   * Get scale that would fit the zoom element in the viewport
+   * @returns
+   */
+  getZoomToFit() {
+    // https://github.com/BetterTyped/react-zoom-pan-pinch/blob/8dacc2746ca84db22f30275e0745c04aefde5aea/src/core/handlers/handlers.utils.ts#L141
+    // const wrapperRect = this.$wrapper.getBoundingClientRect();
+    const nodeRect = this.$zoom.getBoundingClientRect();
+    // const nodeOffset = this._getOffset();
+
+    // const nodeLeft = nodeOffset.x;
+    // const nodeTop = nodeOffset.y;
+    const nodeWidth = nodeRect.width / this.transform.scale;
+    const nodeHeight = nodeRect.height / this.transform.scale;
+
+    const scaleX = this.$wrapper.offsetWidth / nodeWidth;
+    const scaleY = this.$wrapper.offsetHeight / nodeHeight;
+
+    const newScale = Math.min(scaleX, scaleY);
+
+    return newScale;
+
+    // the following is from the zoomToElement from react-zoom-pan-pinch
+
+    // const offsetX = (wrapperRect.width - nodeWidth * newScale) / 2;
+    // const offsetY = (wrapperRect.height - nodeHeight * newScale) / 2;
+
+    // const newPositionX = (wrapperRect.left - nodeLeft) * newScale + offsetX;
+    // const newPositionY = (wrapperRect.top - nodeTop) * newScale + offsetY;
+  }
+
+  // https://github.com/BetterTyped/react-zoom-pan-pinch/blob/8dacc2746ca84db22f30275e0745c04aefde5aea/src/core/handlers/handlers.utils.ts#L122
+  _getOffset() {
+    const wrapperOffset = this.$wrapper.getBoundingClientRect();
+    const contentOffset = this.$zoom.getBoundingClientRect();
+
+    const xOff = wrapperOffset.x * this.transform.scale;
+    const yOff = wrapperOffset.y * this.transform.scale;
+
+    return {
+      x: (contentOffset.x + xOff) / this.transform.scale,
+      y: (contentOffset.y + yOff) / this.transform.scale,
+    };
+  }
+
+  /**
    * Sets transform data
    *
    * @param position
