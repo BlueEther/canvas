@@ -1,4 +1,4 @@
-import { faMessage, faWarning, faX } from "@fortawesome/free-solid-svg-icons";
+import { faMessage, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Link, Spinner } from "@nextui-org/react";
 import { ClientConfig } from "@sc07-canvas/lib/src/net";
@@ -6,7 +6,7 @@ import { MouseEvent, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAppContext } from "../../contexts/AppContext";
 
-interface IUser {
+export interface IUser {
   sub: string;
   display_name?: string;
   picture_url?: string;
@@ -25,7 +25,7 @@ const getMatrixLink = (user: IUser, config: ClientConfig) => {
  * @returns
  */
 export const UserCard = ({ user }: { user: IUser }) => {
-  const { config } = useAppContext();
+  const { config, setProfile } = useAppContext();
   const [messageStatus, setMessageStatus] = useState<
     "loading" | "no_account" | "has_account" | "error"
   >("loading");
@@ -68,6 +68,10 @@ export const UserCard = ({ user }: { user: IUser }) => {
     }
   };
 
+  const openProfile = () => {
+    setProfile(user.sub);
+  };
+
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-row gap-2">
@@ -101,7 +105,9 @@ export const UserCard = ({ user }: { user: IUser }) => {
           )}
         </div>
       </div>
-      <Button size="sm">View Profile</Button>
+      <Button size="sm" onPress={openProfile}>
+        View Profile
+      </Button>
     </div>
   );
 };

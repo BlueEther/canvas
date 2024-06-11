@@ -244,4 +244,23 @@ app.get("/heatmap", async (req, res) => {
   res.json({ success: true, heatmap });
 });
 
+app.get("/user/:sub", async (req, res) => {
+  const user = await prisma.user.findFirst({ where: { sub: req.params.sub } });
+  if (!user) {
+    return res.status(404).json({ success: false, error: "unknown_user" });
+  }
+
+  res.json({
+    success: true,
+    user: {
+      sub: user.sub,
+      display_name: user.display_name,
+      picture_url: user.picture_url,
+      profile_url: user.profile_url,
+      isAdmin: user.isAdmin,
+      isModerator: user.isModerator,
+    },
+  });
+});
+
 export default app;

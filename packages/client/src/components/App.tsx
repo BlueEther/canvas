@@ -14,6 +14,7 @@ import { AuthErrors } from "./AuthErrors";
 import "../lib/keybinds";
 import { PixelWhoisSidebar } from "./PixelWhoisSidebar";
 import { KeybindModal } from "./KeybindModal";
+import { ProfileModal } from "./Profile/ProfileModal";
 
 const Chat = lazy(() => import("./Chat/Chat"));
 
@@ -141,6 +142,8 @@ const AppInner = () => {
       <PixelWhoisSidebar />
       <KeybindModal />
       <AuthErrors />
+
+      <ProfileModal />
 
       <ToastContainer position="top-left" />
     </>

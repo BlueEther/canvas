@@ -13,15 +13,17 @@ import { api } from "../lib/utils";
 interface IAppContext {
   config?: ClientConfig;
   user?: AuthSession;
+  connected: boolean;
+
   canvasPosition?: ICanvasPosition;
   setCanvasPosition: (v: ICanvasPosition) => void;
   cursorPosition?: IPosition;
   setCursorPosition: (v?: IPosition) => void;
   pixels: { available: number };
   undo?: { available: true; expireAt: number };
+
   loadChat: boolean;
   setLoadChat: (v: boolean) => void;
-  connected: boolean;
 
   settingsSidebar: boolean;
   setSettingsSidebar: (v: boolean) => void;
@@ -34,6 +36,9 @@ interface IAppContext {
   setBlankOverlay: React.Dispatch<React.SetStateAction<IMapOverlay>>;
   heatmapOverlay: IMapOverlay;
   setHeatmapOverlay: React.Dispatch<React.SetStateAction<IMapOverlay>>;
+
+  profile?: string; // sub
+  setProfile: (v?: string) => void;
 
   hasAdmin: boolean;
 }
@@ -92,6 +97,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
     opacity: 1,
     loading: false,
   });
+
+  const [profile, setProfile] = useState<string>();
 
   const [hasAdmin, setHasAdmin] = useState(false);
 
@@ -195,6 +202,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         setBlankOverlay,
         heatmapOverlay,
         setHeatmapOverlay,
+        profile,
+        setProfile,
       }}
     >
       {!config && (

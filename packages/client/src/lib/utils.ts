@@ -1,3 +1,5 @@
+import { toast } from "react-toastify";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const api = async <T = unknown, Error = string>(
   endpoint: string,
@@ -36,3 +38,10 @@ export const api = async <T = unknown, Error = string>(
 export type EnforceObjectType<T> = <V extends { [k: string]: T }>(
   v: V
 ) => { [k in keyof V]: T };
+
+export const handleError = (api_response: Awaited<ReturnType<typeof api>>) => {
+  toast.error(
+    `Error: [${api_response.status}] ` +
+      ("error" in api_response.data ? api_response.data.error : "Unknown Error")
+  );
+};
