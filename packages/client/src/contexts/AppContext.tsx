@@ -25,6 +25,8 @@ interface IAppContext {
   loadChat: boolean;
   setLoadChat: (v: boolean) => void;
 
+  infoSidebar: boolean;
+  setInfoSidebar: (v: boolean) => void;
   settingsSidebar: boolean;
   setSettingsSidebar: (v: boolean) => void;
   pixelWhois?: { x: number; y: number; surrounding: string[][] };
@@ -79,6 +81,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   const [undo, setUndo] = useState<{ available: true; expireAt: number }>();
 
   // overlays visible
+  const [infoSidebar, setInfoSidebar] = useState(false);
   const [settingsSidebar, setSettingsSidebar] = useState(false);
   const [pixelWhois, setPixelWhois] = useState<{
     x: number;
@@ -204,6 +207,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         setHeatmapOverlay,
         profile,
         setProfile,
+        infoSidebar,
+        setInfoSidebar,
       }}
     >
       {!config && (

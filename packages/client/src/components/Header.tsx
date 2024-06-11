@@ -13,11 +13,14 @@ const DynamicChat = () => {
 };
 
 export const Header = () => {
-  const { setSettingsSidebar, connected, hasAdmin } = useAppContext();
+  const { setSettingsSidebar, connected, hasAdmin, setInfoSidebar } =
+    useAppContext();
 
   return (
     <header id="main-header">
-      <div></div>
+      <div className="box">
+        <Button onPress={() => setInfoSidebar(true)}>Info</Button>
+      </div>
       <div className="spacer"></div>
       {!connected && (
         <div>
