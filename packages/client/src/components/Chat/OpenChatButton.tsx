@@ -4,7 +4,7 @@ import { useAppContext } from "../../contexts/AppContext";
 
 const OpenChatButton = () => {
   const { config } = useAppContext();
-  const { notificationCount } = useChatContext();
+  const { notificationCount, doLogin } = useChatContext();
 
   return (
     <Badge
@@ -13,11 +13,7 @@ const OpenChatButton = () => {
       color="danger"
       size="sm"
     >
-      {config?.chat?.element_host && (
-        <Button as={Link} href={config.chat.element_host} target="_blank">
-          Chat
-        </Button>
-      )}
+      {config?.chat?.element_host && <Button onPress={doLogin}>Chat</Button>}
     </Badge>
   );
 };

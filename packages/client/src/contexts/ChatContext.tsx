@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { useAppContext } from "./AppContext";
+import { toast } from "react-toastify";
 
 interface IMatrixUser {
   userId: string;
@@ -35,6 +36,12 @@ export const ChatContext = ({ children }: PropsWithChildren) => {
   const doLogin = () => {
     if (!config) {
       console.warn("[ChatContext#doLogin] has no config instance");
+      return;
+    }
+
+    if (user?.userId) {
+      console.log("[ChatContext#doLogin] user logged in, opening element...");
+      window.open(config.chat.element_host);
       return;
     }
 
@@ -104,6 +111,59 @@ export const ChatContext = ({ children }: PropsWithChildren) => {
 
     console.log("[Chat] access token has been acquired");
     setUser({ userId });
+
+    toast.success("Logged into chat");
+    checkIfInGeneral();
+  };
+
+  const checkIfInGeneral = async () => {
+    const generalAlias = config?.chat.general_alias;
+    if (!generalAlias) {
+      console.log("[ChatContext#checkIfInGeneral] no general alias in config");
+      return;
+    }
+
+    const accessToken = localStorage.getItem("matrix.access_token");
+    if (!accessToken) return;
+
+    const joinReq = await fetch(
+      `https://${config.chat.matrix_homeserver}/_matrix/client/v3/join/${generalAlias}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reason: "Auto-joined via Canvas client",
+        }),
+      }
+    );
+    const joinRes = await joinReq.json();
+    console.log(
+      "[ChatContext#checkIfInGeneral] auto-join general response",
+      joinRes
+    );
+
+    if (joinReq.status === 200) {
+      toast.success(`Joined chat ${decodeURIComponent(generalAlias)}!`);
+    } else if (joinReq.status === 403) {
+      toast.error(
+        "Failed to join general chat! " +
+          joinRes.errcode +
+          " - " +
+          joinRes.error
+      );
+    } else if (joinReq.status === 429) {
+      toast.warn("Auto-join general chat got ratelimited");
+    } else {
+      toast.error(
+        "Failed to join general chat! " +
+          joinRes.errcode +
+          " - " +
+          joinRes.error
+      );
+    }
   };
 
   const checkForNotifs = async () => {

@@ -72,6 +72,7 @@ const getClientConfig = (): ClientConfig => {
       enabled: true,
       matrix_homeserver: process.env.MATRIX_HOMESERVER,
       element_host: process.env.ELEMENT_HOST,
+      general_alias: process.env.MATRIX_GENERAL_ALIAS,
     },
   };
 };

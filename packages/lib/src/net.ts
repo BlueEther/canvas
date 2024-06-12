@@ -106,6 +106,11 @@ export type ClientConfig = {
      * @example https://chat.fediverse.events
      */
     element_host: string;
+    /**
+     * URI encoded alias
+     * @example %23canvas-general:aftermath.gg
+     */
+    general_alias: string;
   };
 };
 
