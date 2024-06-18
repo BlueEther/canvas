@@ -31,6 +31,15 @@ export const UserCount = new client.Gauge({
   },
 });
 
+export const InstanceCount = new client.Gauge({
+  name: "instance_count",
+  help: "total number of unique instances",
+
+  async collect() {
+    this.set(await prisma.instance.count());
+  },
+});
+
 export const OnlineUsers = new client.Gauge({
   name: "connected_count",
   help: "total connected sockets",
@@ -79,15 +88,6 @@ export const TotalPixels = new client.Gauge({
     const [width, height] = Canvas.getCanvasConfig().size;
 
     this.set(width * height);
-  },
-});
-
-export const UniqueInstances = new client.Gauge({
-  name: "instance_count",
-  help: "total number of unique instances",
-
-  async collect() {
-    this.set(await prisma.instance.count());
   },
 });
 
