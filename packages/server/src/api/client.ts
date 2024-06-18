@@ -4,6 +4,7 @@ import { OpenID } from "../lib/oidc";
 import { TokenSet, errors as OIDC_Errors } from "openid-client";
 import { Logger } from "../lib/Logger";
 import Canvas from "../lib/Canvas";
+import { RateLimiter } from "../lib/RateLimiter";
 
 const ClientParams = {
   TYPE: "auth_type",
@@ -23,6 +24,9 @@ const buildQuery = (obj: { [k in keyof typeof ClientParams]?: string }) => {
 
 const app = Router();
 
+/**
+ * Redirect to actual authorization page
+ */
 app.get("/login", (req, res) => {
   res.redirect(
     OpenID.client.authorizationUrl({
@@ -34,10 +38,12 @@ app.get("/login", (req, res) => {
 
 // TODO: logout endpoint
 
-app.get("/callback", async (req, res) => {
-  // TODO: return proper UIs for errors intead of raw JSON (#35)
-  // const { code } = req.query;
-
+/**
+ * Process token exchange from openid server
+ *
+ * This executes multiple database queries and should be ratelimited
+ */
+app.get("/callback", RateLimiter.HIGH, async (req, res) => {
   let exchange: TokenSet;
 
   try {
@@ -190,8 +196,7 @@ app.get("/callback", async (req, res) => {
   res.redirect("/");
 });
 
-// TODO: Ratelimiting #40
-app.get("/canvas/pixel/:x/:y", async (req, res) => {
+app.get("/canvas/pixel/:x/:y", RateLimiter.HIGH, async (req, res) => {
   const x = parseInt(req.params.x);
   const y = parseInt(req.params.y);
 
@@ -234,6 +239,12 @@ app.get("/canvas/pixel/:x/:y", async (req, res) => {
   });
 });
 
+/**
+ * Get the heatmap
+ *
+ * This is cached, so no need to ratelimit this
+ * Even if the heatmap isn't ready, this doesn't cause the heatmap to get generated
+ */
 app.get("/heatmap", async (req, res) => {
   const heatmap = await Canvas.getCachedHeatmap();
 
@@ -244,7 +255,12 @@ app.get("/heatmap", async (req, res) => {
   res.json({ success: true, heatmap });
 });
 
-app.get("/user/:sub", async (req, res) => {
+/**
+ * Get user information from the sub (grant@toast.ooo)
+ *
+ * This causes a database query, so ratelimit it
+ */
+app.get("/user/:sub", RateLimiter.HIGH, async (req, res) => {
   const user = await prisma.user.findFirst({ where: { sub: req.params.sub } });
   if (!user) {
     return res.status(404).json({ success: false, error: "unknown_user" });

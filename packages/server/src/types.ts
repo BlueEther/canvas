@@ -24,6 +24,7 @@ declare global {
       SESSION_SECRET: string;
       REDIS_HOST: string;
       REDIS_SESSION_PREFIX: string;
+      REDIS_RATELIMIT_PREFIX: string;
 
       /**
        * hostname that is used in the callback

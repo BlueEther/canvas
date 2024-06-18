@@ -2,8 +2,11 @@ import { Router } from "express";
 import { User } from "../models/User";
 import Canvas from "../lib/Canvas";
 import { Logger } from "../lib/Logger";
+import { RateLimiter } from "../lib/RateLimiter";
 
 const app = Router();
+
+app.use(RateLimiter.ADMIN);
 
 app.use(async (req, res, next) => {
   if (!req.session.user) {

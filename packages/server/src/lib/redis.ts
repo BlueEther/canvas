@@ -26,8 +26,11 @@ const RedisKeys: IRedisKeys = {
 };
 
 class _Redis {
+  isConnecting = false;
   isConnected = false;
   client: RedisClientType;
+
+  waitingForConnect: ((...args: any) => any)[] = [];
 
   keys: IRedisKeys;
 
@@ -48,9 +51,17 @@ class _Redis {
     if (this.isConnected)
       throw new Error("Attempted to run Redis#connect when already connected");
 
+    this.isConnecting = true;
     await this.client.connect();
-    Logger.info("Connected to Redis");
+    Logger.info(
+      `Connected to Redis, there's ${this.waitingForConnect.length} function(s) waiting for Redis`
+    );
+    this.isConnecting = false;
     this.isConnected = true;
+
+    for (const func of this.waitingForConnect) {
+      func();
+    }
   }
 
   async disconnect() {
@@ -65,6 +76,14 @@ class _Redis {
   }
 
   async getClient() {
+    if (this.isConnecting) {
+      await (() =>
+        new Promise((res) => {
+          Logger.warn("getClient() called and is now pending in queue");
+          this.waitingForConnect.push(res);
+        }))();
+    }
+
     if (!this.isConnected) {
       await this.connect();
       this.isConnected = true;

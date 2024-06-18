@@ -39,6 +39,12 @@ if (!process.env.REDIS_SESSION_PREFIX) {
   );
 }
 
+if (!process.env.REDIS_RATELIMIT_PREFIX) {
+  Logger.info(
+    "REDIS_RATELIMIT_PREFIX was not defined, defaulting to canvas_ratelimit:"
+  );
+}
+
 if (!process.env.AUTH_ENDPOINT) {
   Logger.error("AUTH_ENDPOINT is not defined");
   process.exit(1);
@@ -61,7 +67,7 @@ if (!process.env.OIDC_CALLBACK_HOST) {
 
 // run startup tasks, all of these need to be completed to serve
 Promise.all([
-  Redis.connect(),
+  Redis.getClient(),
   OpenID.setup().then(() => {
     Logger.info("Setup OpenID");
   }),
