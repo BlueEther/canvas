@@ -141,6 +141,23 @@ class Canvas {
     return await this.canvasToRedis();
   }
 
+  /**
+   * Get if a pixel is maybe empty
+   * @param x
+   * @param y
+   * @returns
+   */
+  async isPixelEmpty(x: number, y: number) {
+    const redis = await Redis.getClient();
+    const pixelColor = await redis.get(Redis.key("pixelColor", x, y));
+
+    if (pixelColor === null) {
+      return true;
+    }
+
+    return pixelColor === "transparent";
+  }
+
   async getPixel(x: number, y: number) {
     return (
       await prisma.pixel.findMany({

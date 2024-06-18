@@ -9,6 +9,7 @@ import APIRoutes_client from "../api/client";
 import APIRoutes_admin from "../api/admin";
 import { Logger } from "./Logger";
 import bodyParser from "body-parser";
+import { handleMetricsEndpoint } from "./Prometheus";
 
 export const session = expressSession({
   secret: process.env.SESSION_SECRET,
@@ -93,6 +94,7 @@ export class ExpressServer {
     this.app.use(bodyParser.json());
     this.app.use("/api", APIRoutes_client);
     this.app.use("/api/admin", APIRoutes_admin);
+    this.app.use("/metrics", handleMetricsEndpoint);
 
     this.httpServer.listen(parseInt(process.env.PORT), () => {
       Logger.info("Listening on :" + process.env.PORT);

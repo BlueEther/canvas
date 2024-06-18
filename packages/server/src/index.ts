@@ -28,6 +28,18 @@ if (!process.env.SESSION_SECRET) {
   process.exit(1);
 }
 
+if (!process.env.NODE_APP_INSTANCE) {
+  Logger.warn(
+    "NODE_APP_INSTANCE is not defined, metrics will not include process label"
+  );
+}
+
+if (!process.env.PROMETHEUS_TOKEN) {
+  Logger.warn(
+    "PROMETHEUS_TOKEN is not defined, /metrics will not be accessable"
+  );
+}
+
 if (!process.env.REDIS_HOST) {
   Logger.error("REDIS_HOST is not defined");
   process.exit(1);

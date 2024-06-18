@@ -19,12 +19,16 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: "development" | "production";
+      NODE_APP_INSTANCE?: string;
       PORT: string;
       LOG_LEVEL?: string;
       SESSION_SECRET: string;
+
+      PROMETHEUS_TOKEN?: string;
+
       REDIS_HOST: string;
-      REDIS_SESSION_PREFIX: string;
-      REDIS_RATELIMIT_PREFIX: string;
+      REDIS_SESSION_PREFIX?: string;
+      REDIS_RATELIMIT_PREFIX?: string;
 
       /**
        * hostname that is used in the callback
