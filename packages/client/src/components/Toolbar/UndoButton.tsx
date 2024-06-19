@@ -4,7 +4,7 @@ import network from "../../lib/network";
 import { useEffect, useState } from "react";
 
 export const UndoButton = () => {
-  const { undo, config } = useAppContext();
+  const { undo, config } = useAppContext<true>();
   /**
    * percentage of time left (0 <= x <= 1)
    */

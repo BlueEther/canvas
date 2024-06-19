@@ -65,7 +65,22 @@ interface IMapOverlay {
 
 const appContext = createContext<IAppContext>({} as any);
 
-export const useAppContext = () => useContext(appContext);
+type WithRequiredProperty<Type, Key extends keyof Type> = Type & {
+  [Property in Key]-?: Type[Property];
+};
+
+type AppContext<ConfigExists extends boolean> = ConfigExists extends true
+  ? WithRequiredProperty<IAppContext, "config">
+  : IAppContext;
+
+/**
+ * Get app context
+ *
+ * @template ConfigExists If the config is already known to be available in this context
+ * @returns
+ */
+export const useAppContext = <ConfigExists extends boolean = false>() =>
+  useContext<AppContext<ConfigExists>>(appContext as any);
 
 export const AppContext = ({ children }: PropsWithChildren) => {
   const [config, setConfig] = useState<ClientConfig>(undefined as any);

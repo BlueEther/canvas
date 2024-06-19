@@ -27,7 +27,7 @@ const getTimeLeft = (pixels: { available: number }, config: ClientConfig) => {
 };
 
 const PlaceCountdown = () => {
-  const { pixels, config } = useAppContext();
+  const { pixels, config } = useAppContext<true>();
   const [timeLeft, setTimeLeft] = useState(getTimeLeft(pixels, config));
 
   useEffect(() => {
@@ -69,7 +69,8 @@ const OnlineCount = () => {
 };
 
 export const CanvasMeta = () => {
-  const { canvasPosition, cursorPosition, pixels, config } = useAppContext();
+  const { canvasPosition, cursorPosition, pixels, config } =
+    useAppContext<true>();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (

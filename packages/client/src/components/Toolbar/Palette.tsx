@@ -6,7 +6,7 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { IPaletteContext } from "@sc07-canvas/lib/src/net";
 
 export const Palette = () => {
-  const { config, user } = useAppContext();
+  const { config, user } = useAppContext<true>();
   const [pallete, setPallete] = useState<IPaletteContext>({});
 
   useEffect(() => {
