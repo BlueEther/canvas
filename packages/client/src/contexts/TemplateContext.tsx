@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { IRouterData, Router } from "../lib/router";
+import { KeybindManager } from "../lib/keybinds";
 
 interface ITemplate {
   /**
@@ -74,10 +75,16 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
       }
     };
 
+    const handleToggleTemplate = () => {
+      setEnable((en) => !en);
+    };
+
     Router.on("navigate", handleNavigate);
+    KeybindManager.on("TOGGLE_TEMPLATE", handleToggleTemplate);
 
     return () => {
       Router.off("navigate", handleNavigate);
+      KeybindManager.on("TOGGLE_TEMPLATE", handleToggleTemplate);
     };
   }, []);
 
