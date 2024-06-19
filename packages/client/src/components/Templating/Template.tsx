@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import { Template as TemplateCl } from "../lib/template";
-import { useAppContext } from "../contexts/AppContext";
-import { useTemplateContext } from "../contexts/TemplateContext";
-import { Canvas } from "../lib/canvas";
+import { Template as TemplateCl } from "../../lib/template";
+import { useAppContext } from "../../contexts/AppContext";
+import { useTemplateContext } from "../../contexts/TemplateContext";
+import { Canvas } from "../../lib/canvas";
 
 export const Template = () => {
   const { config } = useAppContext();

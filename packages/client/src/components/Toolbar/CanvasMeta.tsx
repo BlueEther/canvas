@@ -74,7 +74,7 @@ export const CanvasMeta = () => {
 
   return (
     <>
-      <div id="canvas-meta">
+      <div id="canvas-meta" className="toolbar-box">
         {canvasPosition && (
           <span>
             <button className="btn-link" onClick={onOpen}>

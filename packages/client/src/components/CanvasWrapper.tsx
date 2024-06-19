@@ -6,7 +6,7 @@ import { RendererContext } from "@sc07-canvas/lib/src/renderer/RendererContext";
 import { ViewportMoveEvent } from "@sc07-canvas/lib/src/renderer/PanZoom";
 import throttle from "lodash.throttle";
 import { IPosition } from "@sc07-canvas/lib/src/net";
-import { Template } from "./Template";
+import { Template } from "./Templating/Template";
 import { IRouterData, Router } from "../lib/router";
 import { KeybindManager } from "../lib/keybinds";
 import { BlankOverlay } from "./Overlay/BlankOverlay";

@@ -30,12 +30,15 @@ interface ITemplate {
   y: number;
   opacity: number;
 
+  showMobileTools: boolean;
+
   setEnable(v: boolean): void;
   setURL(v?: string): void;
   setWidth(v?: number): void;
   setX(v: number): void;
   setY(v: number): void;
   setOpacity(v: number): void;
+  setShowMobileTools(v: boolean): void;
 }
 
 const templateContext = createContext<ITemplate>({} as any);
@@ -52,6 +55,7 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
   const [x, setX] = useState(routerData.template?.x || 0);
   const [y, setY] = useState(routerData.template?.y || 0);
   const [opacity, setOpacity] = useState(100);
+  const [showMobileTools, setShowMobileTools] = useState(true);
 
   const initAt = useRef<number>();
 
@@ -108,6 +112,8 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
         setY,
         opacity,
         setOpacity,
+        showMobileTools,
+        setShowMobileTools,
       }}
     >
       {children}

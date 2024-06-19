@@ -15,6 +15,8 @@ export const TemplateSettings = () => {
     setY,
     opacity,
     setOpacity,
+    showMobileTools,
+    setShowMobileTools,
   } = useTemplateContext();
 
   return (
@@ -68,6 +70,13 @@ export const TemplateSettings = () => {
           onChange={(v) => setOpacity(v as number)}
           getValue={(v) => v + "%"}
         />
+        <Switch
+          className="md:hidden"
+          isSelected={showMobileTools}
+          onValueChange={setShowMobileTools}
+        >
+          Show Mobile Tools
+        </Switch>
       </section>
     </>
   );
