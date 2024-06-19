@@ -1,4 +1,4 @@
-import { Header } from "./Header";
+import { Header } from "./Header/Header";
 import { AppContext, useAppContext } from "../contexts/AppContext";
 import { CanvasWrapper } from "./CanvasWrapper";
 import { TemplateContext } from "../contexts/TemplateContext";
