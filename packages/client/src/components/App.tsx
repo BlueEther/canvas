@@ -17,6 +17,7 @@ import { KeybindModal } from "./KeybindModal";
 import { ProfileModal } from "./Profile/ProfileModal";
 import { WelcomeModal } from "./Welcome/WelcomeModal";
 import { InfoSidebar } from "./Info/InfoSidebar";
+import { ModModal } from "./Moderation/ModModal";
 
 const Chat = lazy(() => import("./Chat/Chat"));
 
@@ -148,6 +149,7 @@ const AppInner = () => {
 
       <ProfileModal />
       <WelcomeModal />
+      <ModModal />
 
       <ToastContainer position="top-left" />
     </>

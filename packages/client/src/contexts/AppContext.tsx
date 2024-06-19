@@ -1,4 +1,4 @@
-import {
+import React, {
   PropsWithChildren,
   createContext,
   useContext,
@@ -43,6 +43,8 @@ interface IAppContext {
   setProfile: (v?: string) => void;
 
   hasAdmin: boolean;
+  showModModal: boolean;
+  setShowModModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface ICanvasPosition {
@@ -119,6 +121,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   const [profile, setProfile] = useState<string>();
 
   const [hasAdmin, setHasAdmin] = useState(false);
+  const [showModModal, setShowModModal] = useState(false);
 
   useEffect(() => {
     function loadSettings() {
@@ -224,6 +227,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         setProfile,
         infoSidebar,
         setInfoSidebar,
+        showModModal,
+        setShowModModal,
       }}
     >
       {!config && (

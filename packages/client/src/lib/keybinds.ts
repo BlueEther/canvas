@@ -49,6 +49,11 @@ const KEYBINDS = enforceObjectType({
       key: "KeyH",
     },
   ],
+  TOGGLE_MOD_MENU: [
+    {
+      key: "KeyM",
+    },
+  ],
 });
 
 class KeybindManager_ extends EventEmitter<{

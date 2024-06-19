@@ -27,6 +27,7 @@ export interface ServerToClientEvents {
 export interface ClientToServerEvents {
   place: (
     pixel: Pixel,
+    bypassCooldown: boolean,
     ack: (
       _: PacketAck<
         Pixel,

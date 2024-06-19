@@ -193,7 +193,7 @@ export class SocketServer {
       });
     });
 
-    socket.on("place", async (pixel, ack) => {
+    socket.on("place", async (pixel, bypassCooldown, ack) => {
       if (!user) {
         ack({ success: false, error: "no_user" });
         return;
@@ -212,7 +212,13 @@ export class SocketServer {
       // force a user data update
       await user.update(true);
 
-      if (user.pixelStack < 1) {
+      if (bypassCooldown && !user.isModerator) {
+        // only moderators can do this
+        ack({ success: false, error: "invalid_pixel" });
+        return;
+      }
+
+      if (!bypassCooldown && user.pixelStack < 1) {
         ack({ success: false, error: "pixel_cooldown" });
         return;
       }

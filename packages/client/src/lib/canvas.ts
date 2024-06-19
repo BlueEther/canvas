@@ -39,6 +39,8 @@ export class Canvas extends EventEmitter<CanvasEvents> {
   } = {};
   lastPlace: number | undefined;
 
+  private bypassCooldown = false;
+
   constructor(canvas: HTMLCanvasElement, PanZoom: PanZoom) {
     super();
     Canvas.instance = this;
@@ -97,6 +99,14 @@ export class Canvas extends EventEmitter<CanvasEvents> {
 
   getPanZoom() {
     return this.PanZoom;
+  }
+
+  setCooldownBypass(value: boolean) {
+    this.bypassCooldown = value;
+  }
+
+  getCooldownBypass() {
+    return this.bypassCooldown;
   }
 
   getAllPixels() {
@@ -252,11 +262,15 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     // }
 
     Network.socket
-      .emitWithAck("place", {
-        x,
-        y,
-        color: this.Pallete.getSelectedColor()!.id,
-      })
+      .emitWithAck(
+        "place",
+        {
+          x,
+          y,
+          color: this.Pallete.getSelectedColor()!.id,
+        },
+        this.bypassCooldown
+      )
       .then((ack) => {
         if (ack.success) {
           this.lastPlace = Date.now();

@@ -60,6 +60,8 @@ export class User {
     this.lastPixelTime = userData.lastPixelTime;
     this.pixelStack = userData.pixelStack;
     this.undoExpires = userData.undoExpires || undefined;
+    this.isAdmin = userData.isAdmin;
+    this.isModerator = userData.isModerator;
   }
 
   async modifyStack(modifyBy: number): Promise<any> {
