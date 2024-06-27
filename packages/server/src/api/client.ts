@@ -2,9 +2,11 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { OpenID } from "../lib/oidc";
 import { TokenSet, errors as OIDC_Errors } from "openid-client";
-import { Logger } from "../lib/Logger";
+import { getLogger } from "../lib/Logger";
 import Canvas from "../lib/Canvas";
 import { RateLimiter } from "../lib/RateLimiter";
+
+const Logger = getLogger("HTTP/CLIENT");
 
 const ClientParams = {
   TYPE: "auth_type",

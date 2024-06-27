@@ -7,9 +7,11 @@ import cors from "cors";
 import { Redis } from "./redis";
 import APIRoutes_client from "../api/client";
 import APIRoutes_admin from "../api/admin";
-import { Logger } from "./Logger";
+import { getLogger } from "./Logger";
 import bodyParser from "body-parser";
 import { handleMetricsEndpoint } from "./Prometheus";
+
+const Logger = getLogger("HTTP");
 
 export const session = expressSession({
   secret: process.env.SESSION_SECRET,

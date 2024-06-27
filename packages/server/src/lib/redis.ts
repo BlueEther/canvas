@@ -1,34 +1,39 @@
 import { RedisClientType } from "@redis/client";
 import { createClient } from "redis";
-import { Logger } from "./Logger";
+import { getLogger } from "./Logger";
+
+const Logger = getLogger("REDIS");
 
 /**
  * Typedef for RedisKeys
  */
 interface IRedisKeys {
   // canvas
-  pixelColor(x: number, y: number): string;
   canvas(): string;
   heatmap(): string;
 
   // users
   socketToSub(socketId: string): string;
+
+  // pub/sub channels
+  channel_heatmap(): string;
 }
 
 /**
  * Defined as a variable due to boottime augmentation
  */
 const RedisKeys: IRedisKeys = {
-  pixelColor: (x: number, y: number) => `CANVAS:PIXELS[${x},${y}]:COLOR`,
   canvas: () => `CANVAS:PIXELS`,
   heatmap: () => `CANVAS:HEATMAP`,
   socketToSub: (socketId: string) => `CANVAS:SOCKET:${socketId}`,
+  channel_heatmap: () => `CANVAS:HEATMAP`,
 };
 
 class _Redis {
   isConnecting = false;
   isConnected = false;
   client: RedisClientType;
+  sub_client: RedisClientType; // the client used for pubsub
 
   waitingForConnect: ((...args: any) => any)[] = [];
 
@@ -43,6 +48,9 @@ class _Redis {
     this.client = createClient({
       url: process.env.REDIS_HOST,
     });
+    this.sub_client = createClient({
+      url: process.env.REDIS_HOST,
+    });
 
     this.keys = keys;
   }
@@ -53,6 +61,7 @@ class _Redis {
 
     this.isConnecting = true;
     await this.client.connect();
+    await this.sub_client.connect();
     Logger.info(
       `Connected to Redis, there's ${this.waitingForConnect.length} function(s) waiting for Redis`
     );
@@ -75,7 +84,7 @@ class _Redis {
     this.isConnected = false;
   }
 
-  async getClient() {
+  async getClient(intent: "MAIN" | "SUB" = "MAIN") {
     if (this.isConnecting) {
       await (() =>
         new Promise((res) => {
@@ -87,6 +96,10 @@ class _Redis {
     if (!this.isConnected) {
       await this.connect();
       this.isConnected = true;
+    }
+
+    if (intent === "SUB") {
+      return this.sub_client;
     }
 
     return this.client;

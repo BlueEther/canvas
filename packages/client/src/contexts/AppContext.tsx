@@ -17,8 +17,8 @@ interface IAppContext {
 
   canvasPosition?: ICanvasPosition;
   setCanvasPosition: (v: ICanvasPosition) => void;
-  cursorPosition?: IPosition;
-  setCursorPosition: (v?: IPosition) => void;
+  cursor: ICursor;
+  setCursor: React.Dispatch<React.SetStateAction<ICursor>>;
   pixels: { available: number };
   undo?: { available: true; expireAt: number };
 
@@ -51,6 +51,12 @@ interface ICanvasPosition {
   x: number;
   y: number;
   zoom: number;
+}
+
+interface ICursor {
+  x?: number;
+  y?: number;
+  color?: number;
 }
 
 interface IMapOverlay {
@@ -88,7 +94,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
   const [config, setConfig] = useState<ClientConfig>(undefined as any);
   const [auth, setAuth] = useState<AuthSession>();
   const [canvasPosition, setCanvasPosition] = useState<ICanvasPosition>();
-  const [cursorPosition, setCursorPosition] = useState<IPosition>();
+  const [cursor, setCursor] = useState<ICursor>({});
   const [connected, setConnected] = useState(false);
 
   // --- settings ---
@@ -205,8 +211,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         user: auth,
         canvasPosition,
         setCanvasPosition,
-        cursorPosition,
-        setCursorPosition,
+        cursor,
+        setCursor,
         pixels,
         settingsSidebar,
         setSettingsSidebar,

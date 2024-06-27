@@ -1,8 +1,10 @@
 import Canvas from "./Canvas";
-import { Logger } from "./Logger";
+import { getLogger } from "./Logger";
 import { prisma } from "./prisma";
 
-export const loadSettings = async () => {
+const Logger = getLogger("SETTINGS");
+
+export const loadSettings = async (frozen = false) => {
   Logger.info("Loading settings...");
 
   const sideEffects: Promise<unknown>[] = [];
@@ -14,8 +16,9 @@ export const loadSettings = async () => {
   if (canvasSize) {
     const data = JSON.parse(canvasSize.value);
     Logger.info("Canvas size loaded as " + JSON.stringify(data));
+
     sideEffects.push(
-      Canvas.setSize(data.width, data.height).then(() => {
+      Canvas.setSize(data.width, data.height, frozen).then(() => {
         Logger.info("Canvas size successfully updated");
       })
     );

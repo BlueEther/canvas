@@ -19,6 +19,17 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+  worker:
+    image: sc07/canvas
+    build: .
+    environment:
+      - REDIS_HOST=redis://redis
+      - DATABASE_URL=postgres://postgres@postgres/canvas
+    env_file:
+      - .env.local
+    depends_on:
+      - canvas
+    command: ./docker-start-worker.sh
   redis:
     restart: always
     image: redis:7-alpine

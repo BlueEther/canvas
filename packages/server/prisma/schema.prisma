@@ -53,13 +53,16 @@ model PaletteColor {
 }
 
 model Pixel {
-  id     Int    @id @default(autoincrement())
-  userId String
-  x      Int
-  y      Int
-  color  String
+  id          Int     @id @default(autoincrement())
+  userId      String
+  x           Int
+  y           Int
+  color       String
+  isTop       Boolean @default(false)
+  isModAction Boolean @default(false)
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
 
   user    User         @relation(fields: [userId], references: [sub])
   pallete PaletteColor @relation(fields: [color], references: [hex])

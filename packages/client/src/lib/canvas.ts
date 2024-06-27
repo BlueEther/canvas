@@ -13,6 +13,8 @@ import {
 } from "@sc07-canvas/lib/src/renderer/PanZoom";
 import { toast } from "react-toastify";
 import { KeybindManager } from "./keybinds";
+import { getRenderer } from "./utils";
+import { CanvasPixel } from "./canvasRenderer";
 
 interface CanvasEvents {
   /**
@@ -22,16 +24,15 @@ interface CanvasEvents {
    * @returns
    */
   cursorPos: (position: IPosition) => void;
+  canvasReady: () => void;
 }
 
 export class Canvas extends EventEmitter<CanvasEvents> {
   static instance: Canvas | undefined;
 
-  private _destroy = false;
   private config: ClientConfig = {} as any;
   private canvas: HTMLCanvasElement;
   private PanZoom: PanZoom;
-  private ctx: CanvasRenderingContext2D;
 
   private cursor = { x: -1, y: -1 };
   private pixels: {
@@ -40,14 +41,18 @@ export class Canvas extends EventEmitter<CanvasEvents> {
   lastPlace: number | undefined;
 
   private bypassCooldown = false;
+  private _delayedLoad: ReturnType<typeof setTimeout>;
 
   constructor(canvas: HTMLCanvasElement, PanZoom: PanZoom) {
     super();
     Canvas.instance = this;
+    getRenderer().startRender();
+
+    getRenderer().on("ready", () => this.emit("canvasReady"));
 
     this.canvas = canvas;
     this.PanZoom = PanZoom;
-    this.ctx = canvas.getContext("2d")!;
+    this._delayedLoad = setTimeout(() => this.delayedLoad(), 1000);
 
     this.PanZoom.addListener("hover", this.handleMouseMove.bind(this));
     this.PanZoom.addListener("click", this.handleMouseDown.bind(this));
@@ -57,23 +62,37 @@ export class Canvas extends EventEmitter<CanvasEvents> {
       ([time]) => (this.lastPlace = time)
     );
     Network.on("pixel", this.handlePixel);
+    Network.on("square", this.handleSquare);
   }
 
   destroy() {
-    this._destroy = true;
+    getRenderer().stopRender();
+    getRenderer().off("ready");
+    if (this._delayedLoad) clearTimeout(this._delayedLoad);
 
     this.PanZoom.removeListener("hover", this.handleMouseMove.bind(this));
     this.PanZoom.removeListener("click", this.handleMouseDown.bind(this));
     this.PanZoom.removeListener("longPress", this.handleLongPress);
 
     Network.off("pixel", this.handlePixel);
+    Network.off("square", this.handleSquare);
+  }
+
+  /**
+   * React.Strict remounts the main component, causing a quick remount, which then causes errors related to webworkers
+   */
+  delayedLoad() {
+    getRenderer().useCanvas(this.canvas, "main");
+  }
+
+  setSize(width: number, height: number) {
+    getRenderer().setSize(width, height);
   }
 
   loadConfig(config: ClientConfig) {
     this.config = config;
 
-    this.canvas.width = config.canvas.size[0];
-    this.canvas.height = config.canvas.size[1];
+    this.setSize(config.canvas.size[0], config.canvas.size[1]);
 
     // we want the new one if possible
     // (this might cause a timing issue though)
@@ -83,10 +102,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     Network.waitFor("canvas").then(([pixels]) => {
       console.log("loadConfig just received new canvas data");
       this.handleBatch(pixels);
-      this.draw();
     });
-
-    this.draw();
   }
 
   hasConfig() {
@@ -204,29 +220,73 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     this.emit("cursorPos", this.cursor);
   }
 
+  handleSquare = (
+    start: [x: number, y: number],
+    end: [x: number, y: number],
+    color: number
+  ) => {
+    const palette = this.Pallete.getColor(color);
+    let serializeBuild: CanvasPixel[] = [];
+
+    for (let x = start[0]; x <= end[0]; x++) {
+      for (let y = start[1]; y <= end[1]; y++) {
+        // we still store a copy of the pixels in this instance for non-rendering functions
+        this.pixels[x + "_" + y] = {
+          type: "full",
+          color: palette?.id || -1,
+        };
+
+        serializeBuild.push({
+          x,
+          y,
+          hex:
+            !palette || palette?.hex === "transparent" ? "null" : palette.hex,
+        });
+      }
+    }
+
+    getRenderer().usePixels(serializeBuild);
+  };
+
   handleBatch = (pixels: string[]) => {
     if (!this.config.canvas) {
       throw new Error("handleBatch called with no config");
     }
 
+    let serializeBuild: CanvasPixel[] = [];
+
     for (let x = 0; x < this.config.canvas.size[0]; x++) {
       for (let y = 0; y < this.config.canvas.size[1]; y++) {
         const hex = pixels[this.config.canvas.size[0] * y + x];
-        const color = this.Pallete.getColorFromHex(hex);
+        const palette = this.Pallete.getColorFromHex(hex);
 
+        // we still store a copy of the pixels in this instance for non-rendering functions
         this.pixels[x + "_" + y] = {
-          color: color ? color.id : -1,
           type: "full",
+          color: palette?.id || -1,
         };
+
+        serializeBuild.push({
+          x,
+          y,
+          hex: hex === "transparent" ? "null" : hex,
+        });
       }
     }
+
+    getRenderer().usePixels(serializeBuild, true);
   };
 
   handlePixel = ({ x, y, color }: Pixel) => {
+    // we still store a copy of the pixels in this instance for non-rendering functions
     this.pixels[x + "_" + y] = {
-      color,
       type: "full",
+      color,
     };
+
+    const palette = this.Pallete.getColor(color);
+
+    getRenderer().usePixel({ x, y, hex: palette?.hex || "null" });
   };
 
   palleteCtx: IPaletteContext = {};
@@ -400,45 +460,5 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     output.y >>= 0;
 
     return [output.x, output.y];
-  }
-
-  draw() {
-    this.ctx.imageSmoothingEnabled = false;
-
-    const bezier = (n: number) => n * n * (3 - 2 * n);
-
-    this.ctx.globalAlpha = 1;
-
-    this.ctx.fillStyle = "#fff";
-    this.ctx.fillRect(
-      0,
-      0,
-      this.config.canvas.size[0],
-      this.config.canvas.size[1]
-    );
-
-    for (const [x_y, pixel] of Object.entries(this.pixels)) {
-      const [x, y] = x_y.split("_").map((a) => parseInt(a));
-
-      this.ctx.globalAlpha = pixel.type === "full" ? 1 : 0.5;
-      this.ctx.fillStyle =
-        pixel.color > -1
-          ? "#" + this.Pallete.getColor(pixel.color)!.hex
-          : "transparent";
-      this.ctx.fillRect(x, y, 1, 1);
-    }
-
-    if (this.palleteCtx.color && this.cursor.x > -1 && this.cursor.y > -1) {
-      const color = this.config.pallete.colors.find(
-        (c) => c.id === this.palleteCtx.color
-      );
-
-      let t = ((Date.now() / 100) % 10) / 10;
-      this.ctx.globalAlpha = t < 0.5 ? bezier(t) : -bezier(t) + 1;
-      this.ctx.fillStyle = "#" + color!.hex;
-      this.ctx.fillRect(this.cursor.x, this.cursor.y, 1, 1);
-    }
-
-    if (!this._destroy) window.requestAnimationFrame(() => this.draw());
   }
 }

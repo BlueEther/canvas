@@ -21,6 +21,11 @@ export interface INetworkEvents {
   pixelLastPlaced: (time: number) => void;
   online: (count: number) => void;
   pixel: (pixel: Pixel) => void;
+  square: (
+    start: [x: number, y: number],
+    end: [x: number, y: number],
+    color: number
+  ) => void;
   undo: (
     data: { available: false } | { available: true; expireAt: number }
   ) => void;
@@ -103,6 +108,10 @@ class Network extends EventEmitter<INetworkEvents> {
 
     this.socket.on("pixel", (pixel) => {
       this.emit("pixel", pixel);
+    });
+
+    this.socket.on("square", (...square) => {
+      this.emit("square", ...square);
     });
 
     this.socket.on("undo", (undo) => {

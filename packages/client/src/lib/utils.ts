@@ -1,4 +1,21 @@
 import { toast } from "react-toastify";
+import { Renderer } from "./renderer";
+import { Debug } from "@sc07-canvas/lib/src/debug";
+
+let _renderer: Renderer;
+
+/**
+ * Get the renderer instance or create one
+ * @returns
+ */
+export const getRenderer = (): Renderer => {
+  if (_renderer) return _renderer;
+
+  _renderer = Renderer.create();
+  return _renderer;
+};
+
+Debug._getRenderer = getRenderer;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const api = async <T = unknown, Error = string>(
@@ -34,6 +51,12 @@ export const api = async <T = unknown, Error = string>(
     data,
   };
 };
+
+export type PickMatching<T, V> = {
+  [K in keyof T as T[K] extends V ? K : never]: T[K];
+};
+
+export type ExtractMethods<T> = PickMatching<T, Function>;
 
 export type EnforceObjectType<T> = <V extends { [k: string]: T }>(
   v: V

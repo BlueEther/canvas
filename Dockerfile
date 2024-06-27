@@ -70,7 +70,7 @@ RUN npm -w packages/server run build
 FROM base as run
 WORKDIR /home/node/app
 COPY --from=dep /home/node/app/ ./
-COPY package*.json docker-start.sh .git ./
+COPY package*.json docker-start*.sh .git ./
 
 # --- prepare lib ---
 

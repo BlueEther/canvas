@@ -1,4 +1,3 @@
-import { Debug } from "../../debug";
 import { PanZoom } from "../PanZoom";
 
 export function handleCalculateZoomPositions(

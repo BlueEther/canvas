@@ -1,11 +1,13 @@
 import { Socket } from "socket.io";
-import { Logger } from "../lib/Logger";
+import { getLogger } from "../lib/Logger";
 import { prisma } from "../lib/prisma";
 import {
   AuthSession,
   ClientToServerEvents,
   ServerToClientEvents,
 } from "@sc07-canvas/lib/src/net";
+
+const Logger = getLogger();
 
 interface IUserData {
   sub: string;

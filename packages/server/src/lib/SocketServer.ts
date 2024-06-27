@@ -12,9 +12,11 @@ import { session } from "./Express";
 import Canvas from "./Canvas";
 import { PaletteColor } from "@prisma/client";
 import { prisma } from "./prisma";
-import { Logger } from "./Logger";
+import { getLogger } from "./Logger";
 import { Redis } from "./redis";
 import { User } from "../models/User";
+
+const Logger = getLogger("SOCKET");
 
 // maybe move to a constants file?
 const commitHash = child
@@ -248,7 +250,13 @@ export class SocketServer {
       }
 
       await user.modifyStack(-1);
-      await Canvas.setPixel(user, pixel.x, pixel.y, paletteColor.hex);
+      await Canvas.setPixel(
+        user,
+        pixel.x,
+        pixel.y,
+        paletteColor.hex,
+        bypassCooldown
+      );
       // give undo capabilities
       await user.setUndo(
         new Date(Date.now() + Canvas.getCanvasConfig().undo.grace_period)
@@ -300,11 +308,16 @@ export class SocketServer {
         return;
       }
 
+      // delete most recent pixel
+      try {
+        await Canvas.undoPixel(pixel);
+      } catch (e) {
+        ack({ success: false, error: "pixel_covered" });
+        return;
+      }
+
       // mark the undo as used
       await user.setUndo();
-
-      // delete most recent pixel
-      await prisma.pixel.delete({ where: { id: pixel.id } });
 
       // trigger re-cache on redis
       await Canvas.refreshPixel(pixel.x, pixel.y);
@@ -330,7 +343,7 @@ export class SocketServer {
    *
    * this does work with multiple socket.io instances, so this needs to only be executed by one shard
    */
-  setupMasterShard() {
+  async setupMasterShard() {
     // online announcement event
     setInterval(async () => {
       // possible issue: this includes every connected socket, not user count
@@ -339,5 +352,10 @@ export class SocketServer {
         socket.emit("online", { count: sockets.length });
       }
     }, 5000);
+
+    const redis = await Redis.getClient("SUB");
+    redis.subscribe(Redis.key("channel_heatmap"), (message, channel) => {
+      this.io.to("sub:heatmap").emit("heatmap", message);
+    });
   }
 }

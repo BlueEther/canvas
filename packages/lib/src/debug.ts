@@ -100,6 +100,7 @@ class FlagManager extends EventEmitter<FlagEvents> {
  */
 class Debugcl extends EventEmitter<DebugEvents> {
   readonly flags = new FlagManager();
+  _getRenderer: any;
 
   constructor() {
     super();
@@ -180,6 +181,15 @@ class Debugcl extends EventEmitter<DebugEvents> {
       }
     }
   }
+
+  getRenderer() {
+    return this._getRenderer();
+  }
 }
 
-export const Debug = new Debugcl();
+const Debug = new Debugcl();
+
+// @ts-ignore
+window.Debug = Debug;
+
+export { Debug };

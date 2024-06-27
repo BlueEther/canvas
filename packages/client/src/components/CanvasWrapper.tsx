@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Canvas } from "../lib/canvas";
 import { useAppContext } from "../contexts/AppContext";
 import { PanZoomWrapper } from "@sc07-canvas/lib/src/renderer";
@@ -23,29 +23,56 @@ export const CanvasWrapper = () => {
         <HeatmapOverlay />
         {config && <Template />}
         <CanvasInner />
+        <Cursor />
       </PanZoomWrapper>
     </main>
+  );
+};
+
+const Cursor = () => {
+  const { cursor } = useAppContext();
+  const [color, setColor] = useState<string>();
+
+  useEffect(() => {
+    console.log("color", color);
+  }, [color]);
+
+  useEffect(() => {
+    if (typeof cursor.color === "number") {
+      const color = Canvas.instance?.Pallete.getColor(cursor.color);
+      setColor(color?.hex);
+    } else {
+      setColor(undefined);
+    }
+  }, [setColor, cursor.color]);
+
+  if (!color) return <></>;
+
+  return (
+    <div
+      className="noselect"
+      style={{
+        position: "absolute",
+        top: cursor.y,
+        left: cursor.x,
+        backgroundColor: "#" + color,
+        width: "1px",
+        height: "1px",
+        opacity: 0.5,
+      }}
+    ></div>
   );
 };
 
 const CanvasInner = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>();
   const canvas = useRef<Canvas>();
-  const { config, setCanvasPosition, setCursorPosition, setPixelWhois } =
+  const { config, setCanvasPosition, setCursor, setPixelWhois } =
     useAppContext();
   const PanZoom = useContext(RendererContext);
 
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    canvas.current = new Canvas(canvasRef.current!, PanZoom);
-
-    const handlePixelWhois = ({
-      clientX,
-      clientY,
-    }: {
-      clientX: number;
-      clientY: number;
-    }) => {
+  const handlePixelWhois = useCallback(
+    ({ clientX, clientY }: { clientX: number; clientY: number }) => {
       if (!canvas.current) {
         console.warn(
           "[CanvasWrapper#handlePixelWhois] canvas instance does not exist"
@@ -83,7 +110,20 @@ const CanvasInner = () => {
       const surrounding = canvas.current.getSurroundingPixels(x, y, 3);
 
       setPixelWhois({ x, y, surrounding });
-    };
+    },
+    [canvas.current]
+  );
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    canvas.current = new Canvas(canvasRef.current!, PanZoom);
+    canvas.current.on("canvasReady", () => {
+      console.log("[CanvasWrapper] received canvasReady");
+
+      // refresh because canvas might've resized
+      const initialRouter = Router.get();
+      handleNavigate(initialRouter);
+    });
 
     KeybindManager.on("PIXEL_WHOIS", handlePixelWhois);
 
@@ -91,7 +131,7 @@ const CanvasInner = () => {
       KeybindManager.off("PIXEL_WHOIS", handlePixelWhois);
       canvas.current!.destroy();
     };
-  }, [PanZoom, setCursorPosition]);
+  }, [PanZoom]);
 
   useEffect(() => {
     Router.PanZoom = PanZoom;
@@ -115,10 +155,18 @@ const CanvasInner = () => {
         pos.x > config.canvas.size[0] ||
         pos.y > config.canvas.size[1]
       ) {
-        setCursorPosition();
+        setCursor((v) => ({
+          ...v,
+          x: undefined,
+          y: undefined,
+        }));
       } else {
         // fixes not passing the current value
-        setCursorPosition({ ...pos });
+        setCursor((v) => ({
+          ...v,
+          x: pos.x,
+          y: pos.y,
+        }));
       }
     }, 1);
 
@@ -127,7 +175,7 @@ const CanvasInner = () => {
     return () => {
       canvas.current!.off("cursorPos", handleCursorPos);
     };
-  }, [config, setCursorPosition]);
+  }, [config, setCursor]);
 
   useEffect(() => {
     if (!canvas.current) {
@@ -217,7 +265,7 @@ const CanvasInner = () => {
       PanZoom.removeListener("viewportMove", handleViewportMove);
       Router.off("navigate", handleNavigate);
     };
-  }, [PanZoom, setCanvasPosition, setCursorPosition]);
+  }, [PanZoom, setCanvasPosition]);
 
   return (
     <canvas

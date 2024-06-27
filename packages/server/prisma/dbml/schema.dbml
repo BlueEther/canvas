@@ -9,8 +9,8 @@ Table Setting {
 
 Table User {
   sub String [pk]
-  picture_url String
   display_name String
+  picture_url String
   profile_url String
   lastPixelTime DateTime [default: `now()`, not null]
   pixelStack Int [not null, default: 0]
@@ -42,7 +42,10 @@ Table Pixel {
   x Int [not null]
   y Int [not null]
   color String [not null]
+  isTop Boolean [not null, default: false]
+  isModAction Boolean [not null, default: false]
   createdAt DateTime [default: `now()`, not null]
+  deletedAt DateTime
   user User [not null]
   pallete PaletteColor [not null]
 }

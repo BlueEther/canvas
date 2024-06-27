@@ -13,6 +13,11 @@ export interface ServerToClientEvents {
   undo: (
     data: { available: false } | { available: true; expireAt: number }
   ) => void;
+  square: (
+    start: [x: number, y: number],
+    end: [x: number, y: number],
+    color: number
+  ) => void;
 
   /* --- subscribe events --- */
 
@@ -39,7 +44,9 @@ export interface ClientToServerEvents {
       >
     ) => void
   ) => void;
-  undo: (ack: (_: PacketAck<{}, "no_user" | "unavailable">) => void) => void;
+  undo: (
+    ack: (_: PacketAck<{}, "no_user" | "unavailable" | "pixel_covered">) => void
+  ) => void;
 
   subscribe: (topic: Subscription) => void;
   unsubscribe: (topic: Subscription) => void;

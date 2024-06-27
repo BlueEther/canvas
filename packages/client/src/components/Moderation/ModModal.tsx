@@ -2,7 +2,6 @@ import {
   Modal,
   ModalBody,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   Switch,
 } from "@nextui-org/react";
@@ -32,7 +31,7 @@ export const ModModal = () => {
     return () => {
       KeybindManager.off("TOGGLE_MOD_MENU", handleKeybind);
     };
-  }, []);
+  }, [hasAdmin]);
 
   const setBypassCooldown = useCallback(
     (value: boolean) => {

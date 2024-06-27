@@ -1,12 +1,13 @@
 // load declare module
 import "./types";
 import { Redis } from "./lib/redis";
-import { Logger } from "./lib/Logger";
+import { getLogger } from "./lib/Logger";
 import { ExpressServer } from "./lib/Express";
 import { SocketServer } from "./lib/SocketServer";
 import { OpenID } from "./lib/oidc";
 import { loadSettings } from "./lib/Settings";
-import { Jobs } from "./lib/Jobs";
+
+const Logger = getLogger("MAIN");
 
 // Validate environment variables
 
@@ -86,8 +87,8 @@ Promise.all([
   loadSettings(),
 ]).then(() => {
   Logger.info("Startup tasks have completed, starting server");
+  Logger.warn("Make sure the jobs process is running");
 
-  new Jobs();
   const express = new ExpressServer();
   new SocketServer(express.httpServer);
 });

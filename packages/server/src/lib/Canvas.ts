@@ -2,7 +2,10 @@ import { CanvasConfig } from "@sc07-canvas/lib/src/net";
 import { prisma } from "./prisma";
 import { Redis } from "./redis";
 import { SocketServer } from "./SocketServer";
-import { Logger } from "./Logger";
+import { getLogger } from "./Logger";
+import { Pixel } from "@prisma/client";
+
+const Logger = getLogger("CANVAS");
 
 class Canvas {
   /**
@@ -37,8 +40,14 @@ class Canvas {
    * @param width
    * @param height
    */
-  async setSize(width: number, height: number) {
-    Logger.info("Canvas#setSize has started", {
+  async setSize(width: number, height: number, useStatic = false) {
+    if (useStatic) {
+      this.canvasSize = [width, height];
+      return;
+    }
+
+    const now = Date.now();
+    Logger.info("[Canvas#setSize] has started", {
       old: this.canvasSize,
       new: [width, height],
     });
@@ -56,45 +65,122 @@ class Canvas {
       },
     });
 
-    // we're about to use the redis keys, make sure they are all updated
-    await this.pixelsToRedis();
     // the redis key is 1D, since the dimentions changed we need to update it
     await this.canvasToRedis();
 
-    // announce the new config, which contains the canvas size
-    SocketServer.instance.broadcastConfig();
+    // this gets called on startup, before the SocketServer is initialized
+    // so only call if it's available
+    if (SocketServer.instance) {
+      // announce the new config, which contains the canvas size
+      SocketServer.instance.broadcastConfig();
 
-    // announce new pixel array that was generated previously
-    await this.getPixelsArray().then((pixels) => {
-      SocketServer.instance.io.emit("canvas", pixels);
-    });
+      // announce new pixel array that was generated previously
+      await this.getPixelsArray().then((pixels) => {
+        SocketServer.instance?.io.emit("canvas", pixels);
+      });
+    } else {
+      Logger.warn(
+        "[Canvas#setSize] No SocketServer instance, cannot broadcast config change"
+      );
+    }
 
-    Logger.info("Canvas#setSize has finished");
+    Logger.info(
+      "[Canvas#setSize] has finished in " +
+        ((Date.now() - now) / 1000).toFixed(1) +
+        " seconds"
+    );
   }
 
-  /**
-   * Latest database pixels -> Redis
-   */
-  async pixelsToRedis() {
-    const redis = await Redis.getClient();
-
-    const key = Redis.keyRef("pixelColor");
+  async forceUpdatePixelIsTop() {
+    const now = Date.now();
+    Logger.info("[Canvas#forceUpdatePixelIsTop] is starting...");
 
     for (let x = 0; x < this.canvasSize[0]; x++) {
       for (let y = 0; y < this.canvasSize[1]; y++) {
-        const pixel = await this.getPixel(x, y);
+        const pixel = (
+          await prisma.pixel.findMany({
+            where: { x, y },
+            orderBy: {
+              createdAt: "desc",
+            },
+            take: 1,
+          })
+        )?.[0];
 
-        await redis.set(key(x, y), pixel?.color || "transparent");
+        if (pixel) {
+          await prisma.pixel.update({
+            where: {
+              id: pixel.id,
+            },
+            data: {
+              isTop: true,
+            },
+          });
+        }
       }
+    }
+
+    Logger.info(
+      "[Canvas#forceUpdatePixelIsTop] has finished in " +
+        ((Date.now() - now) / 1000).toFixed(1) +
+        " seconds"
+    );
+  }
+
+  /**
+   * Undo a pixel
+   * @throws Error "Pixel is not on top"
+   * @param pixel
+   */
+  async undoPixel(pixel: Pixel) {
+    if (!pixel.isTop) throw new Error("Pixel is not on top");
+
+    await prisma.pixel.update({
+      where: { id: pixel.id },
+      data: {
+        deletedAt: new Date(),
+        isTop: false,
+      },
+    });
+
+    const coveringPixel = (
+      await prisma.pixel.findMany({
+        where: { x: pixel.x, y: pixel.y, createdAt: { lt: pixel.createdAt } },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      })
+    )?.[0];
+
+    if (coveringPixel) {
+      await prisma.pixel.update({
+        where: { id: coveringPixel.id },
+        data: {
+          isTop: true,
+        },
+      });
     }
   }
 
   /**
-   * Redis pixels -> single Redis comma separated list of hex
+   * Database pixels -> single Redis comma separated list of hex
    * @returns 1D array of pixel values
    */
   async canvasToRedis() {
     const redis = await Redis.getClient();
+
+    const dbpixels = await prisma.pixel.findMany({
+      where: {
+        x: {
+          gte: 0,
+          lt: this.getCanvasConfig().size[0],
+        },
+        y: {
+          gte: 0,
+          lt: this.getCanvasConfig().size[1],
+        },
+        isTop: true,
+      },
+    });
 
     const pixels: string[] = [];
 
@@ -104,7 +190,8 @@ class Canvas {
     for (let y = 0; y < this.canvasSize[1]; y++) {
       for (let x = 0; x < this.canvasSize[0]; x++) {
         pixels.push(
-          (await redis.get(Redis.key("pixelColor", x, y))) || "transparent"
+          dbpixels.find((px) => px.x === x && px.y === y)?.color ||
+            "transparent"
         );
       }
     }
@@ -124,8 +211,25 @@ class Canvas {
       (await redis.get(Redis.key("canvas"))) || ""
     ).split(",");
 
-    pixels[this.canvasSize[0] * y + x] =
-      (await redis.get(Redis.key("pixelColor", x, y))) || "transparent";
+    const dbpixel = await this.getPixel(x, y);
+
+    pixels[this.canvasSize[0] * y + x] = dbpixel?.color || "transparent";
+
+    await redis.set(Redis.key("canvas"), pixels.join(","), { EX: 60 * 5 });
+  }
+
+  async updateCanvasRedisWithBatch(
+    pixelBatch: { x: number; y: number; hex: string }[]
+  ) {
+    const redis = await Redis.getClient();
+
+    const pixels: string[] = (
+      (await redis.get(Redis.key("canvas"))) || ""
+    ).split(",");
+
+    for (const pixel of pixelBatch) {
+      pixels[this.canvasSize[0] * pixel.y + pixel.x] = pixel.hex;
+    }
 
     await redis.set(Redis.key("canvas"), pixels.join(","), { EX: 60 * 5 });
   }
@@ -148,33 +252,89 @@ class Canvas {
    * @returns
    */
   async isPixelEmpty(x: number, y: number) {
-    const redis = await Redis.getClient();
-    const pixelColor = await redis.get(Redis.key("pixelColor", x, y));
-
-    if (pixelColor === null) {
-      return true;
-    }
-
-    return pixelColor === "transparent";
+    const pixel = await this.getPixel(x, y);
+    return pixel === null;
   }
 
   async getPixel(x: number, y: number) {
-    return (
-      await prisma.pixel.findMany({
-        where: {
-          x,
-          y,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 1,
-      })
-    )?.[0];
+    return await prisma.pixel.findFirst({
+      where: {
+        x,
+        y,
+        isTop: true,
+      },
+    });
   }
 
-  async setPixel(user: { sub: string }, x: number, y: number, hex: string) {
-    const redis = await Redis.getClient();
+  async fillArea(
+    user: { sub: string },
+    start: [x: number, y: number],
+    end: [x: number, y: number],
+    hex: string
+  ) {
+    await prisma.pixel.updateMany({
+      where: {
+        x: {
+          gte: start[0],
+          lt: end[0],
+        },
+        y: {
+          gte: start[1],
+          lt: end[1],
+        },
+        isTop: true,
+      },
+      data: {
+        isTop: false,
+      },
+    });
+
+    let pixels: {
+      x: number;
+      y: number;
+    }[] = [];
+
+    for (let x = start[0]; x <= end[0]; x++) {
+      for (let y = start[1]; y <= end[1]; y++) {
+        pixels.push({
+          x,
+          y,
+        });
+      }
+    }
+
+    await prisma.pixel.createMany({
+      data: pixels.map((px) => ({
+        userId: user.sub,
+        color: hex,
+        isTop: true,
+        isModAction: true,
+        ...px,
+      })),
+    });
+
+    await this.updateCanvasRedisWithBatch(
+      pixels.map((px) => ({
+        ...px,
+        hex,
+      }))
+    );
+  }
+
+  async setPixel(
+    user: { sub: string },
+    x: number,
+    y: number,
+    hex: string,
+    isModAction: boolean
+  ) {
+    // only one pixel can be on top at (x,y)
+    await prisma.pixel.updateMany({
+      where: { x, y, isTop: true },
+      data: {
+        isTop: false,
+      },
+    });
 
     await prisma.pixel.create({
       data: {
@@ -182,6 +342,8 @@ class Canvas {
         color: hex,
         x,
         y,
+        isTop: true,
+        isModAction,
       },
     });
 
@@ -189,8 +351,6 @@ class Canvas {
       where: { sub: user.sub },
       data: { lastPixelTime: new Date() },
     });
-
-    await redis.set(Redis.key("pixelColor", x, y), hex);
 
     // maybe only update specific element?
     // i don't think it needs to be awaited
@@ -203,21 +363,15 @@ class Canvas {
    * @param y
    */
   async refreshPixel(x: number, y: number) {
-    const redis = await Redis.getClient();
-    const key = Redis.key("pixelColor", x, y);
-
     // find if any pixels exist at this spot, and pick the most recent one
     const pixel = await this.getPixel(x, y);
     let paletteColorID = -1;
 
     // if pixel exists in redis
     if (pixel) {
-      redis.set(key, pixel.color);
       paletteColorID = (await prisma.paletteColor.findFirst({
         where: { hex: pixel.color },
       }))!.id;
-    } else {
-      redis.del(key);
     }
 
     await this.updateCanvasRedisAtPos(x, y);
@@ -238,7 +392,9 @@ class Canvas {
    * @returns 2 character strings with 0-100 in radix 36 (depends on canvas size)
    */
   async generateHeatmap() {
-    const redis = await Redis.getClient();
+    const redis_set = await Redis.getClient("MAIN");
+    const redis_sub = await Redis.getClient("SUB");
+
     const now = Date.now();
     const minimumDate = new Date();
     minimumDate.setHours(minimumDate.getHours() - 3); // 3 hours ago
@@ -247,23 +403,15 @@ class Canvas {
 
     const heatmap: string[] = [];
 
+    const topPixels = await prisma.pixel.findMany({
+      where: { isTop: true, createdAt: { gte: minimumDate } },
+    });
+
     for (let y = 0; y < this.canvasSize[1]; y++) {
       const arr: number[] = [];
 
       for (let x = 0; x < this.canvasSize[0]; x++) {
-        const pixel = (
-          await prisma.pixel.findMany({
-            where: {
-              x,
-              y,
-              createdAt: { gt: minimumDate },
-            },
-            orderBy: {
-              createdAt: "desc",
-            },
-            take: 1,
-          })
-        )?.[0];
+        const pixel = topPixels.find((px) => px.x === x && px.y === y);
 
         if (pixel) {
           arr.push(
@@ -284,10 +432,11 @@ class Canvas {
     const heatmapStr = heatmap.join("");
 
     // cache for 5 minutes
-    await redis.setEx(Redis.key("heatmap"), 60 * 5, heatmapStr);
+    await redis_set.setEx(Redis.key("heatmap"), 60 * 5, heatmapStr);
 
     // notify anyone interested about the new heatmap
-    SocketServer.instance.io.to("sub:heatmap").emit("heatmap", heatmapStr);
+    await redis_sub.publish(Redis.key("channel_heatmap"), heatmapStr);
+    // SocketServer.instance.io.to("sub:heatmap").emit("heatmap", heatmapStr);
 
     return heatmapStr;
   }

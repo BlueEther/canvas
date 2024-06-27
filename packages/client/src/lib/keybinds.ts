@@ -54,6 +54,11 @@ const KEYBINDS = enforceObjectType({
       key: "KeyM",
     },
   ],
+  DESELECT_COLOR: [
+    {
+      key: "Escape",
+    },
+  ],
 });
 
 class KeybindManager_ extends EventEmitter<{
