@@ -355,6 +355,8 @@ class Canvas {
     // maybe only update specific element?
     // i don't think it needs to be awaited
     await this.updateCanvasRedisAtPos(x, y);
+
+    Logger.info(`${user.sub} placed pixel at (${x}, ${y})`);
   }
 
   /**

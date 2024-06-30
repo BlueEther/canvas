@@ -412,6 +412,18 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
       const dx = Math.abs(this.panning.x - touch.clientX);
       const dy = Math.abs(this.panning.y - touch.clientY);
 
+      if (Date.now() - this.touch.lastTouch < 500 && dx < 5 && dy < 5) {
+        this.emit("click", {
+          clientX: touch.clientX,
+          clientY: touch.clientY,
+          button: "LCLICK",
+          alt: false,
+          shift: false,
+          ctrl: false,
+          meta: false,
+        });
+      }
+
       if (Date.now() - this.touch.lastTouch > 500 && dx < 25 && dy < 25) {
         this.emit("longPress", this.panning.x, this.panning.y);
       }
