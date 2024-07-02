@@ -36,7 +36,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
   lastPlace: number | undefined;
 
   private bypassCooldown = false;
-  private _delayedLoad: ReturnType<typeof setTimeout>;
+  // private _delayedLoad: ReturnType<typeof setTimeout>;
 
   constructor(canvas: HTMLCanvasElement, PanZoom: PanZoom) {
     super();
@@ -47,7 +47,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
 
     this.canvas = canvas;
     this.PanZoom = PanZoom;
-    this._delayedLoad = setTimeout(() => this.delayedLoad(), 1000);
+    this.loadRenderer();
 
     this.PanZoom.addListener("hover", this.handleMouseMove.bind(this));
     this.PanZoom.addListener("click", this.handleMouseDown.bind(this));
@@ -63,7 +63,6 @@ export class Canvas extends EventEmitter<CanvasEvents> {
   destroy() {
     getRenderer().stopRender();
     getRenderer().off("ready");
-    if (this._delayedLoad) clearTimeout(this._delayedLoad);
 
     this.PanZoom.removeListener("hover", this.handleMouseMove.bind(this));
     this.PanZoom.removeListener("click", this.handleMouseDown.bind(this));
@@ -75,9 +74,18 @@ export class Canvas extends EventEmitter<CanvasEvents> {
 
   /**
    * React.Strict remounts the main component, causing a quick remount, which then causes errors related to webworkers
+   *
+   * If #useCanvas fails, it's most likely due to that
    */
-  delayedLoad() {
-    getRenderer().useCanvas(this.canvas, "main");
+  loadRenderer() {
+    try {
+      getRenderer().useCanvas(this.canvas, "main");
+    } catch (e) {
+      console.warn(
+        "[Canvas#loadRenderer] Failed at #useCanvas, this shouldn't be fatal",
+        e
+      );
+    }
   }
 
   setSize(width: number, height: number) {
