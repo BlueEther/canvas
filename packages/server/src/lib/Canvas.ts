@@ -166,6 +166,8 @@ class Canvas {
    * @returns 1D array of pixel values
    */
   async canvasToRedis() {
+    const now = Date.now();
+    Logger.info("Starting canvasToRedis...");
     const redis = await Redis.getClient();
 
     const dbpixels = await prisma.pixel.findMany({
@@ -198,6 +200,11 @@ class Canvas {
 
     await redis.set(Redis.key("canvas"), pixels.join(","), { EX: 60 * 5 });
 
+    Logger.info(
+      "Finished canvasToRedis in " +
+        ((Date.now() - now) / 1000).toFixed(2) +
+        "s"
+    );
     return pixels;
   }
 
@@ -232,6 +239,12 @@ class Canvas {
     }
 
     await redis.set(Redis.key("canvas"), pixels.join(","), { EX: 60 * 5 });
+  }
+
+  async isPixelArrayCached() {
+    const redis = await Redis.getClient();
+
+    return await redis.exists(Redis.key("canvas"));
   }
 
   async getPixelsArray() {

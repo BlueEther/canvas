@@ -181,9 +181,34 @@ export class SocketServer {
     }
 
     socket.emit("config", getClientConfig());
-    Canvas.getPixelsArray().then((pixels) => {
-      socket.emit("canvas", pixels);
-    });
+    {
+      let _clientNotifiedAboutCache = false;
+      Canvas.isPixelArrayCached().then((cached) => {
+        if (!cached) {
+          _clientNotifiedAboutCache = true;
+          socket.emit("alert", {
+            id: "canvas_cache_pending",
+            is: "toast",
+            action: "system",
+            severity: "info",
+            title: "Canvas loading",
+            body: "Canvas not cached, this may take a couple seconds",
+            autoDismiss: true,
+          });
+        }
+      });
+      Canvas.getPixelsArray().then((pixels) => {
+        socket.emit("canvas", pixels);
+        socket.emit("alert_dismiss", "canvas_cache_pending");
+        socket.emit("alert", {
+          is: "toast",
+          action: "system",
+          severity: "success",
+          title: "Canvas loaded!",
+          autoDismiss: true,
+        });
+      });
+    }
 
     socket.on("disconnect", () => {
       Logger.debug(`Socket ${socket.id} disconnected`);

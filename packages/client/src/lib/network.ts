@@ -9,6 +9,7 @@ import {
   Subscription,
 } from "@sc07-canvas/lib/src/net";
 import { toast } from "react-toastify";
+import { handleAlert, handleDismiss } from "./alerts";
 
 export interface INetworkEvents {
   connected: () => void;
@@ -121,6 +122,9 @@ class Network extends EventEmitter<INetworkEvents> {
     this.socket.on("heatmap", (heatmap) => {
       this.emit("heatmap", heatmap);
     });
+
+    this.socket.on("alert", handleAlert);
+    this.socket.on("alert_dismiss", handleDismiss);
   }
 
   subscribe(subscription: Subscription) {

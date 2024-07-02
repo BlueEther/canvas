@@ -19,6 +19,9 @@ export interface ServerToClientEvents {
     color: number
   ) => void;
 
+  alert: (alert: IAlert) => void;
+  alert_dismiss: (id: string) => void;
+
   /* --- subscribe events --- */
 
   /**
@@ -56,6 +59,24 @@ export interface IPosition {
   x: number;
   y: number;
 }
+
+export type IAlert<Is extends "toast" | "modal" = "toast" | "modal"> = {
+  is: Is;
+  action: "system" | "moderation";
+  id?: string;
+  title: string;
+  body?: string;
+} & (
+  | {
+      is: "toast";
+      severity: "info" | "success" | "warning" | "error" | "default";
+      autoDismiss: boolean;
+    }
+  | {
+      is: "modal";
+      dismissable: boolean;
+    }
+);
 
 // other
 
