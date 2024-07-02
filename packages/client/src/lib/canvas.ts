@@ -1,10 +1,5 @@
 import EventEmitter from "eventemitter3";
-import {
-  ClientConfig,
-  IPaletteContext,
-  IPosition,
-  Pixel,
-} from "@sc07-canvas/lib/src/net";
+import { ClientConfig, IPosition, Pixel } from "@sc07-canvas/lib/src/net";
 import Network from "./network";
 import {
   ClickEvent,
@@ -34,7 +29,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
   private canvas: HTMLCanvasElement;
   private PanZoom: PanZoom;
 
-  private cursor = { x: -1, y: -1 };
+  private cursor: { x: number; y: number; color?: number } = { x: -1, y: -1 };
   private pixels: {
     [x_y: string]: { color: number; type: "full" | "pending" };
   } = {};
@@ -174,6 +169,10 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     return pixels;
   }
 
+  getPixel(x: number, y: number): { color: number } | undefined {
+    return this.pixels[x + "_" + y];
+  }
+
   handleLongPress = (clientX: number, clientY: number) => {
     KeybindManager.handleInteraction(
       {
@@ -289,16 +288,15 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     getRenderer().usePixel({ x, y, hex: palette?.hex || "null" });
   };
 
-  palleteCtx: IPaletteContext = {};
   Pallete = {
     getColor: (colorId: number) => {
       return this.config.pallete.colors.find((c) => c.id === colorId);
     },
 
     getSelectedColor: () => {
-      if (!this.palleteCtx.color) return undefined;
+      if (!this.cursor.color) return undefined;
 
-      return this.Pallete.getColor(this.palleteCtx.color);
+      return this.Pallete.getColor(this.cursor.color);
     },
 
     getColorFromHex: (hex: string) => {
@@ -306,8 +304,14 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     },
   };
 
-  updatePallete(pallete: IPaletteContext) {
-    this.palleteCtx = pallete;
+  /**
+   * Changes the cursor color as tracked by the Canvas instance
+   *
+   * @see Toolbar/Palette.tsx
+   * @param color
+   */
+  updateCursor(color?: number) {
+    this.cursor.color = color;
   }
 
   place(x: number, y: number) {

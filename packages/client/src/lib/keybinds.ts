@@ -59,6 +59,11 @@ const KEYBINDS = enforceObjectType({
       key: "Escape",
     },
   ],
+  PICK_COLOR: [
+    {
+      key: "MCLICK",
+    },
+  ],
 });
 
 class KeybindManager_ extends EventEmitter<{
@@ -72,7 +77,11 @@ class KeybindManager_ extends EventEmitter<{
       passive: false,
     });
     document.addEventListener("keyup", this.handleKeyup);
-    document.addEventListener("click", this.handleClick);
+    document.addEventListener("click", this.handleClick); // only gets triggered for left click
+    document.addEventListener("auxclick", (e) => {
+      if (e.button === 0) return; // left button still triggers this
+      this.handleClick(e);
+    });
   }
 
   destroy() {

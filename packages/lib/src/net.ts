@@ -57,10 +57,6 @@ export interface IPosition {
   y: number;
 }
 
-export interface IPaletteContext {
-  color?: number;
-}
-
 // other
 
 export type Pixel = {

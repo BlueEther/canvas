@@ -3,21 +3,14 @@ import { useAppContext } from "../../contexts/AppContext";
 import { Canvas } from "../../lib/canvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
-import { IPaletteContext } from "@sc07-canvas/lib/src/net";
 import { KeybindManager } from "../../lib/keybinds";
 
 export const Palette = () => {
-  const { config, user, setCursor } = useAppContext<true>();
-  const [pallete, setPallete] = useState<IPaletteContext>({});
+  const { config, user, cursor, setCursor } = useAppContext<true>();
 
   useEffect(() => {
-    Canvas.instance?.updatePallete(pallete);
-
-    setCursor((v) => ({
-      ...v,
-      color: pallete.color,
-    }));
-  }, [pallete]);
+    Canvas.instance?.updateCursor(cursor.color);
+  }, [cursor]);
 
   useEffect(() => {
     const handleDeselect = () => {
@@ -42,8 +35,8 @@ export const Palette = () => {
           className="pallete-color--deselect"
           title="Deselect Color"
           onClick={() => {
-            setPallete(({ color, ...pallete }) => {
-              return pallete;
+            setCursor(({ color, ...cursor }) => {
+              return cursor;
             });
           }}
         >
@@ -53,7 +46,7 @@ export const Palette = () => {
           <button
             key={color.id}
             aria-label={color.name}
-            className={["pallete-color", color.id === pallete.color && "active"]
+            className={["pallete-color", color.id === cursor.color && "active"]
               .filter((a) => a)
               .join(" ")}
             style={{
@@ -61,9 +54,9 @@ export const Palette = () => {
             }}
             title={color.name}
             onClick={() => {
-              setPallete((pallete) => {
+              setCursor((cursor) => {
                 return {
-                  ...pallete,
+                  ...cursor,
                   color: color.id,
                 };
               });

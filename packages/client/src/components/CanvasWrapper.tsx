@@ -34,10 +34,6 @@ const Cursor = () => {
   const [color, setColor] = useState<string>();
 
   useEffect(() => {
-    console.log("color", color);
-  }, [color]);
-
-  useEffect(() => {
     if (typeof cursor.color === "number") {
       const color = Canvas.instance?.Pallete.getColor(cursor.color);
       setColor(color?.hex);
@@ -71,17 +67,19 @@ const CanvasInner = () => {
     useAppContext();
   const PanZoom = useContext(RendererContext);
 
-  const handlePixelWhois = useCallback(
-    ({ clientX, clientY }: { clientX: number; clientY: number }) => {
+  /**
+   * Is the canvas coordinate within the bounds of the canvas?
+   */
+  const isCoordInCanvas = useCallback(
+    (x: number, y: number): boolean => {
       if (!canvas.current) {
         console.warn(
-          "[CanvasWrapper#handlePixelWhois] canvas instance does not exist"
+          "[CanvasWrapper#isCoordInCanvas] canvas instance does not exist"
         );
-        return;
+        return false;
       }
 
-      const [x, y] = canvas.current.screenToPos(clientX, clientY);
-      if (x < 0 || y < 0) return; // discard if out of bounds
+      if (x < 0 || y < 0) return false; // not positive, impossible to be on canvas
 
       // canvas size can dynamically change, so we need to check the current config
       // we're depending on canvas.instance's config so we don't have to use a react dependency
@@ -92,13 +90,30 @@ const CanvasInner = () => {
           },
         } = canvas.current.getConfig();
 
-        if (x >= width || y >= height) return; // out of bounds
+        if (x >= width || y >= height) return false; // out of bounds
       } else {
         // although this should never happen, log it
         console.warn(
-          "[CanvasWrapper#handlePixelWhois] canvas config is not available yet"
+          "[CanvasWrapper#isCoordInCanvas] canvas config is not available yet"
         );
       }
+
+      return true;
+    },
+    [canvas.current]
+  );
+
+  const handlePixelWhois = useCallback(
+    ({ clientX, clientY }: { clientX: number; clientY: number }) => {
+      if (!canvas.current) {
+        console.warn(
+          "[CanvasWrapper#handlePixelWhois] canvas instance does not exist"
+        );
+        return;
+      }
+
+      const [x, y] = canvas.current.screenToPos(clientX, clientY);
+      if (!isCoordInCanvas(x, y)) return; // out of bounds
 
       // .......
       // .......
@@ -110,6 +125,30 @@ const CanvasInner = () => {
       const surrounding = canvas.current.getSurroundingPixels(x, y, 3);
 
       setPixelWhois({ x, y, surrounding });
+    },
+    [canvas.current]
+  );
+
+  const handlePickPixel = useCallback(
+    ({ clientX, clientY }: { clientX: number; clientY: number }) => {
+      if (!canvas.current) {
+        console.warn(
+          "[CanvasWrapper#handlePickPixel] canvas instance does not exist"
+        );
+        return;
+      }
+
+      const [x, y] = canvas.current.screenToPos(clientX, clientY);
+      if (!isCoordInCanvas(x, y)) return; // out of bounds
+
+      const pixel = canvas.current.getPixel(x, y);
+      if (!pixel) return;
+
+      // no need to use canvas#setCursor as Palette.tsx already does that
+      setCursor((v) => ({
+        ...v,
+        color: pixel.color,
+      }));
     },
     [canvas.current]
   );
@@ -126,9 +165,11 @@ const CanvasInner = () => {
     });
 
     KeybindManager.on("PIXEL_WHOIS", handlePixelWhois);
+    KeybindManager.on("PICK_COLOR", handlePickPixel);
 
     return () => {
       KeybindManager.off("PIXEL_WHOIS", handlePixelWhois);
+      KeybindManager.off("PICK_COLOR", handlePickPixel);
       canvas.current!.destroy();
     };
   }, [PanZoom]);
