@@ -44,6 +44,7 @@ class Network extends EventEmitter<INetworkEvents> {
     {
       autoConnect: false,
       withCredentials: true,
+      reconnection: true,
     }
   );
   private online_count = 0;
@@ -70,6 +71,22 @@ class Network extends EventEmitter<INetworkEvents> {
       console.log("Disconnected from server", reason, desc);
       toast.warn("Disconnected from server");
       this.emit("disconnected");
+    });
+
+    this.socket.io.on("reconnect", (attempt) => {
+      console.log("Reconnected to server on attempt " + attempt);
+    });
+
+    this.socket.io.on("reconnect_attempt", (attempt) => {
+      console.log("Reconnect attempt " + attempt);
+    });
+
+    this.socket.io.on("reconnect_error", (err) => {
+      console.log("Reconnect error", err);
+    });
+
+    this.socket.io.on("reconnect_failed", () => {
+      console.log("Reconnect failed");
     });
 
     this.socket.on("user", (user: AuthSession) => {
