@@ -26,7 +26,12 @@ export const WelcomeModal = () => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} isDismissable={false}>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      isDismissable={false}
+      placement="center"
+    >
       <ModalContent>
         {(onClose) => (
           <>
