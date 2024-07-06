@@ -4,19 +4,33 @@ import { prisma } from "../lib/prisma";
 import {
   AuthSession,
   ClientToServerEvents,
+  IAlert,
   ServerToClientEvents,
 } from "@sc07-canvas/lib/src/net";
+import { Ban, User as UserDB } from "@prisma/client";
+import { Instance } from "./Instance";
 
 const Logger = getLogger();
 
-interface IUserData {
-  sub: string;
-  lastPixelTime: Date;
-  pixelStack: number;
-  undoExpires: Date | null;
-  isAdmin: boolean;
-  isModerator: boolean;
-}
+/**
+ * Represents a user ban
+ *
+ * Has implementation in here for making instance bans retroactive,
+ * but at time of writing, instance bans will only block new users
+ */
+export type IUserBan = {
+  id: number;
+  expires: Date;
+  publicNote: string | null;
+} & (
+  | {
+      type: "user";
+    }
+  | {
+      type: "instance";
+      hostname: string;
+    }
+);
 
 export class User {
   static instances: Map<string, User> = new Map();
@@ -26,6 +40,7 @@ export class User {
   pixelStack: number;
   authSession?: AuthSession;
   undoExpires?: Date;
+  ban?: IUserBan;
 
   isAdmin: boolean;
   isModerator: boolean;
@@ -34,7 +49,7 @@ export class User {
 
   private _updatedAt: number;
 
-  private constructor(data: IUserData) {
+  private constructor(data: UserDB & { Ban: Ban | null }) {
     Logger.debug("User class instansiated for " + data.sub);
 
     this.sub = data.sub;
@@ -44,6 +59,8 @@ export class User {
 
     this.isAdmin = data.isAdmin;
     this.isModerator = data.isModerator;
+
+    this.updateBanFromUserData(data).then(() => {});
 
     this._updatedAt = Date.now();
   }
@@ -55,6 +72,9 @@ export class User {
       where: {
         sub: this.sub,
       },
+      include: {
+        Ban: true,
+      },
     });
 
     if (!userData) throw new UserNotFound();
@@ -64,6 +84,38 @@ export class User {
     this.undoExpires = userData.undoExpires || undefined;
     this.isAdmin = userData.isAdmin;
     this.isModerator = userData.isModerator;
+
+    await this.updateBanFromUserData(userData);
+  }
+
+  private async updateBanFromUserData(userData: UserDB & { Ban: Ban | null }) {
+    if (userData.Ban) {
+      this.ban = {
+        id: userData.Ban.id,
+        expires: userData.Ban.expiresAt,
+        publicNote: userData.Ban.publicNote,
+        type: "user",
+      };
+    } else {
+      // the code below is for making instance bans retroactive
+      //
+      // const instance = await this.getInstance();
+      // const instanceBan = await instance.getEffectiveBan();
+      // if (instanceBan) {
+      //   this.ban = {
+      //     id: instanceBan.id,
+      //     expires: instanceBan.expiresAt,
+      //     publicNote: instanceBan.publicNote,
+      //     type: "instance",
+      //     hostname: instanceBan.hostname,
+      //   };
+      // }
+    }
+  }
+
+  async getInstance(): Promise<Instance> {
+    const [local, hostname] = this.sub.split("@");
+    return await Instance.fromDomain(hostname);
   }
 
   async modifyStack(modifyBy: number): Promise<any> {
@@ -118,6 +170,35 @@ export class User {
   }
 
   /**
+   * Sends packet to all user's sockets with current standing information
+   */
+  updateStanding() {
+    if (this.ban) {
+      for (const socket of this.sockets) {
+        socket.emit("standing", {
+          banned: true,
+          until: this.ban.expires.toISOString(),
+          reason: this.ban.publicNote || undefined,
+        });
+      }
+    } else {
+      for (const socket of this.sockets) {
+        socket.emit("standing", { banned: false });
+      }
+    }
+  }
+
+  /**
+   * Notifies all sockets for this user of a message
+   * @param alert
+   */
+  notify(alert: IAlert) {
+    for (const socket of this.sockets) {
+      socket.emit("alert", alert);
+    }
+  }
+
+  /**
    * Determine if this user data is stale and should be updated
    * @see User#update
    * @returns if this user data is stale
@@ -148,6 +229,9 @@ export class User {
     const userData = await prisma.user.findFirst({
       where: {
         sub,
+      },
+      include: {
+        Ban: true,
       },
     });
 

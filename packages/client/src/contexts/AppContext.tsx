@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { AuthSession, ClientConfig, IPosition } from "@sc07-canvas/lib/src/net";
+import { AuthSession, ClientConfig } from "@sc07-canvas/lib/src/net";
 import Network from "../lib/network";
 import { Spinner } from "@nextui-org/react";
 import { api } from "../lib/utils";
@@ -178,7 +178,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
 
     Network.on("user", handleUser);
     Network.on("config", handleConfig);
-    Network.waitFor("pixels").then(([data]) => handlePixels(data));
+    Network.waitForState("pixels").then(([data]) => handlePixels(data));
     Network.on("pixels", handlePixels);
     Network.on("undo", handleUndo);
 

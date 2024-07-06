@@ -3,6 +3,7 @@ import { useAppContext } from "../../contexts/AppContext";
 import { User } from "./User";
 import { Debug } from "@sc07-canvas/lib/src/debug";
 import React, { lazy } from "react";
+import { AccountStanding } from "./AccountStanding";
 
 const OpenChatButton = lazy(() => import("../Chat/OpenChatButton"));
 
@@ -37,6 +38,7 @@ const HeaderLeft = () => {
 
   return (
     <div className="box">
+      <AccountStanding />
       <Button onPress={() => setInfoSidebar(true)}>Info</Button>
       <Button onPress={() => Debug.openDebugTools()}>Debug Tools</Button>
     </div>

@@ -28,7 +28,7 @@ export const AuthErrors = () => {
   const onClose = () => {
     const url = new URL(window.location.href);
     url.search = "";
-    // window.history.replaceState({}, "", url.toString());
+    window.history.replaceState({}, "", url.toString());
 
     setParams(new URLSearchParams(window.location.search));
   };
@@ -45,7 +45,44 @@ export const AuthErrors = () => {
         onClose={onClose}
         params={params}
       />
+      <BannedError
+        isOpen={params.get(Params.TYPE) === "banned"}
+        onClose={onClose}
+        params={params}
+      />
     </>
+  );
+};
+
+const BannedError = ({
+  isOpen,
+  onClose,
+  params,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  params: URLSearchParams;
+}) => {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} isDismissable={false}>
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader>Login Error</ModalHeader>
+            <ModalBody>
+              <b>Your instance is banned.</b> You cannot proceed.
+              <br />
+              <br />
+              {params.has(Params.ERROR_DESC) ? (
+                <>Reason: {params.get(Params.ERROR_DESC)}</>
+              ) : (
+                <>No reason provided</>
+              )}
+            </ModalBody>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
   );
 };
 
@@ -67,7 +104,7 @@ const RPError = ({
   params: URLSearchParams;
 }) => {
   return (
-    <Modal isOpen={isOpen} onOpenChange={onClose} isDismissable={false}>
+    <Modal isOpen={isOpen} onClose={onClose} isDismissable={false}>
       <ModalContent>
         {(onClose) => (
           <>
@@ -117,7 +154,7 @@ const OPError = ({
   }, [params]);
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onClose} isDismissable={false}>
+    <Modal isOpen={isOpen} onClose={onClose} isDismissable={false}>
       <ModalContent>
         {(onClose) => (
           <>

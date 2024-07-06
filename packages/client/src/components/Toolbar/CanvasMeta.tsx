@@ -57,7 +57,7 @@ const OnlineCount = () => {
       setOnline(count);
     }
 
-    network.waitFor("online").then(([count]) => setOnline(count));
+    network.waitForState("online").then(([count]) => setOnline(count));
     network.on("online", handleOnline);
 
     return () => {

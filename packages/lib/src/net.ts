@@ -5,6 +5,7 @@ export type Subscription = "heatmap";
 export interface ServerToClientEvents {
   canvas: (pixels: string[]) => void;
   user: (user: AuthSession) => void;
+  standing: (standing: IAccountStanding) => void;
   config: (config: ClientConfig) => void;
   pixel: (pixel: Pixel) => void;
   online: (count: { count: number }) => void;
@@ -44,6 +45,7 @@ export interface ClientToServerEvents {
         | "pixel_cooldown"
         | "palette_color_invalid"
         | "you_already_placed_that"
+        | "banned"
       >
     ) => void
   ) => void;
@@ -60,12 +62,39 @@ export interface IPosition {
   y: number;
 }
 
+export type IAccountStanding =
+  | {
+      banned: false;
+    }
+  | {
+      banned: true;
+      /**
+       * ISO timestamp
+       */
+      until: string;
+      reason?: string;
+    };
+
+/**
+ * Typescript magic
+ *
+ * key => name of the event
+ * value => what metadata the message will include
+ */
+export interface IAlertKeyedMessages {
+  banned: {
+    /**
+     * ISO date
+     */
+    until: string;
+  };
+  unbanned: {};
+}
+
 export type IAlert<Is extends "toast" | "modal" = "toast" | "modal"> = {
   is: Is;
   action: "system" | "moderation";
   id?: string;
-  title: string;
-  body?: string;
 } & (
   | {
       is: "toast";
@@ -76,7 +105,22 @@ export type IAlert<Is extends "toast" | "modal" = "toast" | "modal"> = {
       is: "modal";
       dismissable: boolean;
     }
-);
+) &
+  (IAlertKeyed | { title: string; body?: string });
+
+/**
+ * Typescript magic
+ *
+ * #metadata depends on message_key and is mapped via IAlertKeyedMessages
+ */
+type IAlertKeyed = keyof IAlertKeyedMessages extends infer MessageKey
+  ? MessageKey extends keyof IAlertKeyedMessages
+    ? {
+        message_key: MessageKey;
+        metadata: IAlertKeyedMessages[MessageKey];
+      }
+    : never
+  : never;
 
 // other
 

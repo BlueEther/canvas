@@ -4,6 +4,7 @@ import {
   AuthSession,
   ClientConfig,
   ClientToServerEvents,
+  IAccountStanding,
   Pixel,
   ServerToClientEvents,
   Subscription,
@@ -16,6 +17,7 @@ export interface INetworkEvents {
   disconnected: () => void;
 
   user: (user: AuthSession) => void;
+  standing: (standing: IAccountStanding) => void;
   config: (user: ClientConfig) => void;
   canvas: (pixels: string[]) => void;
   pixels: (data: { available: number }) => void;
@@ -48,7 +50,7 @@ class Network extends EventEmitter<INetworkEvents> {
     }
   );
   private online_count = 0;
-  private sentEvents: {
+  private stateEvents: {
     [key in keyof INetworkEvents]?: SentEventValue<key>;
   } = {};
 
@@ -89,8 +91,12 @@ class Network extends EventEmitter<INetworkEvents> {
       console.log("Reconnect failed");
     });
 
-    this.socket.on("user", (user: AuthSession) => {
+    this.socket.on("user", (user) => {
       this.emit("user", user);
+    });
+
+    this.socket.on("standing", (standing) => {
+      this.acceptState("standing", standing);
     });
 
     this.socket.on("config", (config) => {
@@ -109,19 +115,19 @@ class Network extends EventEmitter<INetworkEvents> {
     });
 
     this.socket.on("canvas", (pixels) => {
-      this._emit("canvas", pixels);
+      this.acceptState("canvas", pixels);
     });
 
     this.socket.on("availablePixels", (count) => {
-      this._emit("pixels", { available: count });
+      this.acceptState("pixels", { available: count });
     });
 
     this.socket.on("pixelLastPlaced", (time) => {
-      this._emit("pixelLastPlaced", time);
+      this.acceptState("pixelLastPlaced", time);
     });
 
     this.socket.on("online", ({ count }) => {
-      this._emit("online", count);
+      this.acceptState("online", count);
     });
 
     this.socket.on("pixel", (pixel) => {
@@ -161,8 +167,8 @@ class Network extends EventEmitter<INetworkEvents> {
    * @param args
    * @returns
    */
-  private _emit: typeof this.emit = (event, ...args) => {
-    this.sentEvents[event] = args;
+  acceptState: typeof this.emit = (event, ...args) => {
+    this.stateEvents[event] = args;
     return this.emit(event, ...args);
   };
 
@@ -170,8 +176,10 @@ class Network extends EventEmitter<INetworkEvents> {
    * Discard the existing state-like event, if it exists in cache
    * @param ev
    */
-  clearPrevious<Ev extends keyof INetworkEvents & (string | symbol)>(ev: Ev) {
-    delete this.sentEvents[ev];
+  clearPreviousState<Ev extends keyof INetworkEvents & (string | symbol)>(
+    ev: Ev
+  ) {
+    delete this.stateEvents[ev];
   }
 
   /**
@@ -182,16 +190,27 @@ class Network extends EventEmitter<INetworkEvents> {
    * @param ev
    * @returns
    */
-  waitFor<Ev extends keyof INetworkEvents & (string | symbol)>(
+  waitForState<Ev extends keyof INetworkEvents & (string | symbol)>(
     ev: Ev
   ): Promise<SentEventValue<Ev>> {
     return new Promise((res) => {
-      if (this.sentEvents[ev]) return res(this.sentEvents[ev]!);
+      if (this.stateEvents[ev]) return res(this.stateEvents[ev]!);
 
       this.once(ev, (...data) => {
         res(data);
       });
     });
+  }
+
+  /**
+   * Get current value of state event
+   * @param event
+   * @returns
+   */
+  getState<Ev extends keyof INetworkEvents>(
+    event: Ev
+  ): SentEventValue<Ev> | undefined {
+    return this.stateEvents[event];
   }
 
   /**

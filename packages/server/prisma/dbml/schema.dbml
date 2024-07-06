@@ -19,6 +19,7 @@ Table User {
   isModerator Boolean [not null, default: false]
   pixels Pixel [not null]
   FactionMember FactionMember [not null]
+  Ban Ban
 }
 
 Table Instance {
@@ -27,6 +28,7 @@ Table Instance {
   name String
   logo_url String
   banner_url String
+  Ban Ban
 }
 
 Table PaletteColor {
@@ -102,6 +104,17 @@ Table FactionSettingDefinition {
   FactionSetting FactionSetting [not null]
 }
 
+Table Ban {
+  id Int [pk, increment]
+  userId String [unique]
+  instanceId Int [unique]
+  privateNote String
+  publicNote String
+  expiresAt DateTime [not null]
+  user User
+  instance Instance
+}
+
 Ref: Pixel.userId > User.sub
 
 Ref: Pixel.color > PaletteColor.hex
@@ -117,3 +130,7 @@ Ref: FactionSocial.factionId > Faction.id
 Ref: FactionSetting.key > FactionSettingDefinition.id
 
 Ref: FactionSetting.factionId > Faction.id
+
+Ref: Ban.userId - User.sub
+
+Ref: Ban.instanceId - Instance.id

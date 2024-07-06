@@ -53,7 +53,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     this.PanZoom.addListener("click", this.handleMouseDown.bind(this));
     this.PanZoom.addListener("longPress", this.handleLongPress);
 
-    Network.waitFor("pixelLastPlaced").then(
+    Network.waitForState("pixelLastPlaced").then(
       ([time]) => (this.lastPlace = time)
     );
     Network.on("pixel", this.handlePixel);
@@ -100,9 +100,10 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     // we want the new one if possible
     // (this might cause a timing issue though)
     // if we don't clear the old one, if the canvas gets resized we get weird stretching
-    if (Object.keys(this.pixels).length > 0) Network.clearPrevious("canvas");
+    if (Object.keys(this.pixels).length > 0)
+      Network.clearPreviousState("canvas");
 
-    Network.waitFor("canvas").then(([pixels]) => {
+    Network.waitForState("canvas").then(([pixels]) => {
       console.log("loadConfig just received new canvas data");
       this.handleBatch(pixels);
     });

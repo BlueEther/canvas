@@ -5,6 +5,7 @@ import { TokenSet, errors as OIDC_Errors } from "openid-client";
 import { getLogger } from "../lib/Logger";
 import Canvas from "../lib/Canvas";
 import { RateLimiter } from "../lib/RateLimiter";
+import { Instance } from "../models/Instance";
 
 const Logger = getLogger("HTTP/CLIENT");
 
@@ -38,7 +39,17 @@ app.get("/login", (req, res) => {
   );
 });
 
-// TODO: logout endpoint
+app.get("/logout", (req, res) => {
+  res.send(
+    `<form method="post"><input type="submit" value="Confirm Logout" /></form>`
+  );
+});
+
+app.post("/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.redirect("/");
+  });
+});
 
 /**
  * Process token exchange from openid server
@@ -144,6 +155,19 @@ app.get("/callback", RateLimiter.HIGH, async (req, res) => {
 
   const [username, hostname] = whoami.sub.split("@");
 
+  const instance = await Instance.fromAuth(hostname, whoami.instance.instance);
+  const instanceBan = await instance.getEffectiveBan();
+  if (instanceBan) {
+    res.redirect(
+      "/" +
+        buildQuery({
+          TYPE: "banned",
+          ERROR_DESC: instanceBan.publicNote || undefined,
+        })
+    );
+    return;
+  }
+
   const sub = [username, hostname].join("@");
   await prisma.user.upsert({
     where: {
@@ -160,24 +184,6 @@ app.get("/callback", RateLimiter.HIGH, async (req, res) => {
       display_name: whoami.name,
       picture_url: whoami.picture,
       profile_url: whoami.profile,
-    },
-  });
-
-  await prisma.instance.upsert({
-    where: {
-      hostname,
-    },
-    update: {
-      hostname,
-      name: whoami.instance.instance.name,
-      logo_url: whoami.instance.instance.logo_uri,
-      banner_url: whoami.instance.instance.banner_uri,
-    },
-    create: {
-      hostname,
-      name: whoami.instance.instance.name,
-      logo_url: whoami.instance.instance.logo_uri,
-      banner_url: whoami.instance.instance.banner_uri,
     },
   });
 

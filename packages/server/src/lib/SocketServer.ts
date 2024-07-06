@@ -173,6 +173,17 @@ export class SocketServer {
     if (socket.request.session.user) {
       // inform the client of their session if it exists
       socket.emit("user", socket.request.session.user);
+
+      socket.emit(
+        "standing",
+        user?.ban
+          ? {
+              banned: true,
+              until: user.ban.expires.toISOString(),
+              reason: user.ban.publicNote || undefined,
+            }
+          : { banned: false }
+      );
     }
 
     if (user) {
@@ -247,6 +258,11 @@ export class SocketServer {
 
       if (!bypassCooldown && user.pixelStack < 1) {
         ack({ success: false, error: "pixel_cooldown" });
+        return;
+      }
+
+      if (user.ban && user.ban.expires > new Date()) {
+        ack({ success: false, error: "banned" });
         return;
       }
 

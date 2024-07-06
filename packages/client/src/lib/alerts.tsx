@@ -2,7 +2,8 @@
  * Handle alerts sent by the server (moderation or internal)
  */
 
-import { IAlert } from "@sc07-canvas/lib/src/net";
+import { IAlert, IAlertKeyedMessages } from "@sc07-canvas/lib/src/net";
+import EventEmitter from "eventemitter3";
 import { toast } from "react-toastify";
 
 /**
@@ -24,13 +25,73 @@ export const handleDismiss = (id: string) => {
   toast.dismiss(id);
 };
 
+export interface IDynamicModal {
+  title: string | JSX.Element;
+  body: string | JSX.Element;
+}
+
+/**
+ * Dynamic modal event root
+ *
+ * These are consumed by src/DynamicModals.tsx
+ */
+interface IDynamicModalEvents {
+  showModal: (modal: IDynamicModal) => void;
+}
+class DynamicModalClass extends EventEmitter<IDynamicModalEvents> {}
+export const DynamicModal = new DynamicModalClass();
+
+const getMessage = <T extends keyof IAlertKeyedMessages>(
+  key: T,
+  metadata: IAlertKeyedMessages[T]
+): { title: string | JSX.Element; body: string | JSX.Element } => {
+  switch (key) {
+    case "banned": {
+      let metadata_ = metadata as IAlertKeyedMessages["banned"];
+      const until = new Date(metadata_.until);
+
+      return {
+        title: "You have been banned.",
+        body:
+          "You will be unbanned in " +
+          ((until.getTime() - Date.now()) / 1000).toFixed(0) +
+          " seconds",
+      };
+    }
+    case "unbanned": {
+      return {
+        title: "You have been unbanned.",
+        body: "",
+      };
+    }
+    default:
+      return {
+        title: "Unknown Message?",
+        body: "Unknown message: " + key,
+      };
+  }
+};
+
 const handleToast = (alert: IAlert<"toast">) => {
-  const Body = (
-    <>
-      <b>{alert.title}</b>
-      {alert.body && <> {alert.body}</>}
-    </>
-  );
+  let Body: JSX.Element;
+
+  if ("title" in alert) {
+    Body = (
+      <>
+        <b>{alert.title}</b>
+        {alert.body && <> {alert.body}</>}
+      </>
+    );
+  } else {
+    const message = getMessage(alert.message_key, alert.metadata);
+
+    Body = (
+      <>
+        <b>{message.title}</b>
+        {message.body}
+      </>
+    );
+  }
 
   toast(Body, {
     toastId: alert.id,
@@ -40,5 +101,21 @@ const handleToast = (alert: IAlert<"toast">) => {
 };
 
 const handleModal = (alert: IAlert<"modal">) => {
-  window.alert("alerts#handleModal triggered, but no implementation exists");
+  let modal: IDynamicModal;
+
+  if ("title" in alert) {
+    modal = {
+      title: alert.title,
+      body: alert.body || "",
+    };
+  } else {
+    const message = getMessage(alert.message_key, alert.metadata);
+
+    modal = {
+      title: message.title,
+      body: message.body,
+    };
+  }
+
+  DynamicModal.emit("showModal", modal);
 };

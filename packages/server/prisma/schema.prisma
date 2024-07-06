@@ -34,6 +34,7 @@ model User {
 
   pixels        Pixel[]
   FactionMember FactionMember[]
+  Ban           Ban?
 }
 
 model Instance {
@@ -42,6 +43,7 @@ model Instance {
   name       String?
   logo_url   String?
   banner_url String?
+  Ban        Ban?
 }
 
 model PaletteColor {
@@ -127,4 +129,19 @@ model FactionSettingDefinition {
   type           String // enum of type of setting (eg. text, checkbox)
   minimumLevel   Int // what level is needed to modify this setting (>=)
   FactionSetting FactionSetting[]
+}
+
+model Ban {
+  id         Int     @id @default(autoincrement())
+  userId     String? @unique
+  instanceId Int?    @unique
+
+  privateNote String?
+  publicNote  String?
+  expiresAt   DateTime
+
+  // TODO: link audit log
+
+  user     User?     @relation(fields: [userId], references: [sub])
+  instance Instance? @relation(fields: [instanceId], references: [id])
 }

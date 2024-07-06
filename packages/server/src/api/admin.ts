@@ -1,10 +1,15 @@
 import { Router } from "express";
-import { User } from "../models/User";
+import { User, UserNotFound } from "../models/User";
 import Canvas from "../lib/Canvas";
 import { getLogger } from "../lib/Logger";
 import { RateLimiter } from "../lib/RateLimiter";
 import { prisma } from "../lib/prisma";
 import { SocketServer } from "../lib/SocketServer";
+import {
+  Instance,
+  InstanceNotBanned,
+  InstanceNotFound,
+} from "../models/Instance";
 
 const app = Router();
 const Logger = getLogger("HTTP/ADMIN");
@@ -197,6 +202,307 @@ app.put("/canvas/fill", async (req, res) => {
     end_position,
     palette.id
   );
+
+  res.json({ success: true });
+});
+
+app.put("/user/:sub/ban", async (req, res) => {
+  let user: User;
+  let expires: Date;
+  let publicNote: string | undefined | null;
+  let privateNote: string | undefined | null;
+
+  try {
+    user = await User.fromSub(req.params.sub);
+  } catch (e) {
+    if (e instanceof UserNotFound) {
+      res.status(404).json({ success: false, error: "User not found" });
+    } else {
+      Logger.error(`/user/${req.params.sub}/ban Error ` + (e as any)?.message);
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  if (typeof req.body.expiresAt !== "string") {
+    res
+      .status(400)
+      .json({ success: false, error: "expiresAt is not a string" });
+    return;
+  }
+
+  expires = new Date(req.body.expiresAt);
+
+  if (!isFinite(expires.getTime())) {
+    res
+      .status(400)
+      .json({ success: false, error: "expiresAt is not a valid date" });
+    return;
+  }
+
+  if (typeof req.body.publicNote !== "undefined") {
+    if (
+      typeof req.body.publicNote !== "string" &&
+      req.body.privateNote !== null
+    ) {
+      res.status(400).json({
+        success: false,
+        error: "publicNote is set and is not a string",
+      });
+      return;
+    }
+
+    publicNote = req.body.publicNote;
+  }
+
+  if (typeof req.body.privateNote !== "undefined") {
+    if (
+      typeof req.body.privateNote !== "string" &&
+      req.body.privateNote !== null
+    ) {
+      res.status(400).json({
+        success: false,
+        error: "privateNote is set and is not a string",
+      });
+      return;
+    }
+
+    privateNote = req.body.privateNote;
+  }
+
+  const existingBan = user.ban;
+
+  const ban = await prisma.ban.upsert({
+    where: { userId: user.sub },
+    create: {
+      userId: user.sub,
+      expiresAt: expires,
+      publicNote,
+      privateNote,
+    },
+    update: {
+      expiresAt: expires,
+      publicNote,
+      privateNote,
+    },
+  });
+  await user.update(true);
+
+  let shouldNotifyUser = false;
+
+  if (existingBan) {
+    if (existingBan.expires.getTime() !== ban.expiresAt.getTime()) {
+      shouldNotifyUser = true;
+    }
+  } else {
+    shouldNotifyUser = true;
+  }
+
+  if (shouldNotifyUser) {
+    user.notify({
+      is: "modal",
+      action: "moderation",
+      dismissable: true,
+      message_key: "banned",
+      metadata: {
+        until: expires.toISOString(),
+      },
+    });
+  }
+
+  user.updateStanding();
+
+  // todo: audit log
+
+  res.json({ success: true });
+});
+
+app.delete("/user/:sub/ban", async (req, res) => {
+  // delete ban ("unban")
+
+  let user: User;
+
+  try {
+    user = await User.fromSub(req.params.sub);
+  } catch (e) {
+    if (e instanceof UserNotFound) {
+      res.status(404).json({ success: false, error: "User not found" });
+    } else {
+      Logger.error(`/user/${req.params.sub}/ban Error ` + (e as any)?.message);
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  if (!user.ban?.id) {
+    res.status(400).json({
+      success: false,
+      error: "User is not banned",
+    });
+    return;
+  }
+
+  await prisma.ban.delete({
+    where: { id: user.ban.id },
+  });
+
+  user.notify({
+    is: "modal",
+    action: "moderation",
+    dismissable: true,
+    message_key: "unbanned",
+    metadata: {},
+  });
+
+  await user.update(true);
+  user.updateStanding();
+
+  // todo: audit log
+
+  res.json({ success: true });
+});
+
+app.get("/instance/:domain/ban", async (req, res) => {
+  // get ban information
+
+  let instance: Instance;
+
+  try {
+    instance = await Instance.fromDomain(req.params.domain);
+  } catch (e) {
+    if (e instanceof InstanceNotFound) {
+      res.status(404).json({ success: false, error: "instance not found" });
+    } else {
+      Logger.error(
+        `/instance/${req.params.domain}/ban Error ` + (e as any)?.message
+      );
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  const ban = await instance.getEffectiveBan();
+
+  if (!ban) {
+    return res
+      .status(404)
+      .json({ success: false, error: "Instance not banned" });
+  }
+
+  res.json({ success: true, ban });
+});
+
+app.put("/instance/:domain/ban", async (req, res) => {
+  // ban domain & subdomains
+
+  let instance: Instance;
+  let expires: Date;
+  let publicNote: string | null | undefined;
+  let privateNote: string | null | undefined;
+
+  try {
+    instance = await Instance.fromDomain(req.params.domain);
+  } catch (e) {
+    if (e instanceof InstanceNotFound) {
+      res.status(404).json({ success: false, error: "instance not found" });
+    } else {
+      Logger.error(
+        `/instance/${req.params.domain}/ban Error ` + (e as any)?.message
+      );
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  if (typeof req.body.expiresAt !== "string") {
+    res
+      .status(400)
+      .json({ success: false, error: "expiresAt is not a string" });
+    return;
+  }
+
+  expires = new Date(req.body.expiresAt);
+
+  if (!isFinite(expires.getTime())) {
+    res
+      .status(400)
+      .json({ success: false, error: "expiresAt is not a valid date" });
+    return;
+  }
+
+  if (typeof req.body.publicNote !== "undefined") {
+    if (
+      typeof req.body.publicNote !== "string" &&
+      req.body.privateNote !== null
+    ) {
+      res.status(400).json({
+        success: false,
+        error: "publicNote is set and is not a string",
+      });
+      return;
+    }
+
+    publicNote = req.body.publicNote;
+  }
+
+  if (typeof req.body.privateNote !== "undefined") {
+    if (
+      typeof req.body.privateNote !== "string" &&
+      req.body.privateNote !== null
+    ) {
+      res.status(400).json({
+        success: false,
+        error: "privateNote is set and is not a string",
+      });
+      return;
+    }
+
+    privateNote = req.body.privateNote;
+  }
+
+  await instance.ban(expires, publicNote, privateNote);
+
+  // todo: audit log
+
+  res.json({
+    success: true,
+  });
+});
+
+app.delete("/instance/:domain/ban", async (req, res) => {
+  // unban domain & subdomains
+
+  let instance: Instance;
+
+  try {
+    instance = await Instance.fromDomain(req.params.domain);
+  } catch (e) {
+    if (e instanceof InstanceNotFound) {
+      res.status(404).json({ success: false, error: "instance not found" });
+    } else {
+      Logger.error(
+        `/instance/${req.params.domain}/ban Error ` + (e as any)?.message
+      );
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  try {
+    await instance.unban();
+  } catch (e) {
+    if (e instanceof InstanceNotBanned) {
+      res.status(404).json({ success: false, error: "instance not banned" });
+    } else {
+      Logger.error(
+        `/instance/${req.params.domain}/ban Error ` + (e as any)?.message
+      );
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  // todo: audit log
 
   res.json({ success: true });
 });
