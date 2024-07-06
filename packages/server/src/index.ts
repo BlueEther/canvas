@@ -58,24 +58,26 @@ if (!process.env.REDIS_RATELIMIT_PREFIX) {
   );
 }
 
-if (!process.env.AUTH_ENDPOINT) {
-  Logger.error("AUTH_ENDPOINT is not defined");
-  process.exit(1);
-}
+if (!process.env.INHIBIT_LOGIN) {
+  if (!process.env.AUTH_ENDPOINT) {
+    Logger.error("AUTH_ENDPOINT is not defined");
+    process.exit(1);
+  }
 
-if (!process.env.AUTH_CLIENT) {
-  Logger.error("AUTH_CLIENT is not defined");
-  process.exit(1);
-}
+  if (!process.env.AUTH_CLIENT) {
+    Logger.error("AUTH_CLIENT is not defined");
+    process.exit(1);
+  }
 
-if (!process.env.AUTH_SECRET) {
-  Logger.error("AUTH_SECRET is not defined");
-  process.exit(1);
-}
+  if (!process.env.AUTH_SECRET) {
+    Logger.error("AUTH_SECRET is not defined");
+    process.exit(1);
+  }
 
-if (!process.env.OIDC_CALLBACK_HOST) {
-  Logger.error("OIDC_CALLBACK_HOST is not defined");
-  process.exit(1);
+  if (!process.env.OIDC_CALLBACK_HOST) {
+    Logger.error("OIDC_CALLBACK_HOST is not defined");
+    process.exit(1);
+  }
 }
 
 // run startup tasks, all of these need to be completed to serve

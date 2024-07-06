@@ -45,12 +45,23 @@ export const InfoSidebar = () => {
             Discord
           </Button>
         </div>
-        <Button as={Link} href="https://toast.ooo/c/canvas">
+        <Button as={Link} href="https://toast.ooo/c/canvas" target="_blank">
           <div className="flex flex-col text-center">
             <span>Lemmy</span>
             <span className="text-xs">!canvas@toast.ooo</span>
           </div>
         </Button>
+        <Button
+          as={Link}
+          href="https://social.fediverse.events/@canvas"
+          target="_blank"
+        >
+          <div className="flex flex-col text-center">
+            <span>Mastodon</span>
+            <span className="text-xs">@canvas@fediverse.events</span>
+          </div>
+        </Button>
+        <b>Build {__COMMIT_HASH__}</b>
       </section>
     </div>
   );

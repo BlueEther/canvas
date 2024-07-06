@@ -67,10 +67,16 @@ export const Palette = () => {
 
       {!user && (
         <div className="pallete-user-overlay">
-          You are not logged in
-          <a href="/api/login" className="user-login">
-            Login
-          </a>
+          {import.meta.env.VITE_INCLUDE_EVENT_INFO ? (
+            <>The event hasn't started yet</>
+          ) : (
+            <>
+              You are not logged in
+              <a href="/api/login" className="user-login">
+                Login
+              </a>
+            </>
+          )}
         </div>
       )}
     </div>

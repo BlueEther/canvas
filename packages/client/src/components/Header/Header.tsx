@@ -4,6 +4,7 @@ import { User } from "./User";
 import { Debug } from "@sc07-canvas/lib/src/debug";
 import React, { lazy } from "react";
 import { AccountStanding } from "./AccountStanding";
+import { EventInfoOverlay } from "../EventInfoOverlay";
 
 const OpenChatButton = lazy(() => import("../Chat/OpenChatButton"));
 
@@ -18,6 +19,7 @@ export const Header = () => {
 
   return (
     <header id="main-header">
+      {import.meta.env.VITE_INCLUDE_EVENT_INFO && <EventInfoOverlay />}
       <HeaderLeft />
       <div className="spacer"></div>
       {!connected && (

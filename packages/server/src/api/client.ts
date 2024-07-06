@@ -31,6 +31,14 @@ const app = Router();
  * Redirect to actual authorization page
  */
 app.get("/login", (req, res) => {
+  if (process.env.INHIBIT_LOGINS) {
+    res.status(400).json({
+      success: false,
+      error: "Login is not permitted.",
+    });
+    return;
+  }
+
   res.redirect(
     OpenID.client.authorizationUrl({
       prompt: "consent",
@@ -57,6 +65,14 @@ app.post("/logout", (req, res) => {
  * This executes multiple database queries and should be ratelimited
  */
 app.get("/callback", RateLimiter.HIGH, async (req, res) => {
+  if (process.env.INHIBIT_LOGINS) {
+    res.status(400).json({
+      success: false,
+      error: "Login is not permitted.",
+    });
+    return;
+  }
+
   let exchange: TokenSet;
 
   try {
