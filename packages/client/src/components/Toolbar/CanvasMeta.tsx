@@ -69,8 +69,7 @@ const OnlineCount = () => {
 };
 
 export const CanvasMeta = () => {
-  const { canvasPosition, cursorPosition, pixels, config } =
-    useAppContext<true>();
+  const { canvasPosition, cursor, pixels, config } = useAppContext<true>();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (
@@ -81,11 +80,11 @@ export const CanvasMeta = () => {
             <button className="btn-link" onClick={onOpen}>
               ({canvasPosition.x}, {canvasPosition.y})
             </button>
-            {cursorPosition && (
+            {cursor.x !== undefined && cursor.y !== undefined && (
               <>
                 {" "}
                 <span className="canvas-meta--cursor-pos">
-                  (Cursor: {cursorPosition.x}, {cursorPosition.y})
+                  (Cursor: {cursor.x}, {cursor.y})
                 </span>
               </>
             )}
