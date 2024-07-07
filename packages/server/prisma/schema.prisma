@@ -35,6 +35,7 @@ model User {
   pixels        Pixel[]
   FactionMember FactionMember[]
   Ban           Ban?
+  AuditLog      AuditLog[]
 }
 
 model Instance {
@@ -140,8 +141,32 @@ model Ban {
   publicNote  String?
   expiresAt   DateTime
 
-  // TODO: link audit log
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
 
-  user     User?     @relation(fields: [userId], references: [sub])
-  instance Instance? @relation(fields: [instanceId], references: [id])
+  user     User?      @relation(fields: [userId], references: [sub])
+  instance Instance?  @relation(fields: [instanceId], references: [id])
+  AuditLog AuditLog[]
+}
+
+enum AuditLogAction {
+  BAN_CREATE
+  BAN_UPDATE
+  BAN_DELETE
+}
+
+model AuditLog {
+  id      Int            @id @default(autoincrement())
+  userId  String?
+  action  AuditLogAction
+  reason  String?
+  comment String? // service comment
+
+  banId Int?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+
+  user User? @relation(fields: [userId], references: [sub])
+  ban  Ban?  @relation(fields: [banId], references: [id])
 }
