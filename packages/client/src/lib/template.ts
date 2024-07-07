@@ -1,6 +1,7 @@
 import EventEmitter from "eventemitter3";
 import { WebGLUtils } from "./webgl";
 import { ClientConfig } from "@sc07-canvas/lib/src/net";
+import { rgbToHex } from "./utils";
 
 interface TemplateEvents {
   updateImageURL(url: string | undefined): void;
@@ -28,6 +29,8 @@ enum TemplateStyle {
 }
 
 export class Template extends EventEmitter<TemplateEvents> {
+  static instance: Template;
+
   config: ClientConfig;
 
   $wrapper: HTMLDivElement;
@@ -43,9 +46,10 @@ export class Template extends EventEmitter<TemplateEvents> {
 
   constructor(config: ClientConfig, templateHolder: HTMLDivElement) {
     super();
+    Template.instance = this;
     this.config = config;
 
-    console.log("template init", config, templateHolder);
+    console.log("[Template] Initialize", config, templateHolder);
 
     this.$wrapper = templateHolder;
 
@@ -53,7 +57,7 @@ export class Template extends EventEmitter<TemplateEvents> {
     this.$imageLoader.style.setProperty("display", "none");
     this.$imageLoader.setAttribute("crossorigin", "");
     this.$imageLoader.addEventListener("load", () => {
-      console.log("imageLoader loaded image");
+      console.log("[Template] Image loaded");
       if (!this.options.width) {
         this.setOption("width", this.$imageLoader.naturalWidth);
         this.emit("autoDetectWidth", this.$imageLoader.naturalWidth);
@@ -113,6 +117,57 @@ export class Template extends EventEmitter<TemplateEvents> {
     for (const el of els) {
       el.style.display = visible ? "block" : "none";
     }
+  }
+
+  getPixel(x: number, y: number): string | undefined {
+    if (!this.context) {
+      console.warn("[Template#getPixel] No context is available");
+      return undefined;
+    }
+
+    const width = this.context.drawingBufferWidth;
+    const height = this.context.drawingBufferHeight;
+
+    const arr = new Uint8Array(4 * width * height);
+    this.context.bindFramebuffer(
+      this.context.FRAMEBUFFER,
+      this.framebuffers.intermediate
+    );
+
+    if (x < 0 || y < 0 || x > width || y > height) {
+      return undefined;
+    }
+
+    this.context.readPixels(
+      0,
+      0,
+      width,
+      height,
+      this.context.RGBA,
+      this.context.UNSIGNED_BYTE,
+      arr
+    );
+    this.context.bindFramebuffer(
+      this.context.FRAMEBUFFER,
+      this.framebuffers.main
+    );
+
+    const pixels = new Uint8Array(4 * width * height);
+    const length = width * height * 4;
+    const row = width * 4;
+    const end = (height - 1) * row;
+    for (let i = 0; i < length; i += row) {
+      pixels.set(arr.subarray(i, i + row), end - i);
+    }
+
+    const [r, g, b, a] = pixels.slice(
+      4 * (y * this.context.drawingBufferWidth + x),
+      4 * (y * this.context.drawingBufferWidth + x) + 4
+    );
+
+    if (a === 254) return undefined;
+
+    return rgbToHex(r, g, b);
   }
 
   rasterizeTemplate() {

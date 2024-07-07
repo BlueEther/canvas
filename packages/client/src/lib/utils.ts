@@ -17,6 +17,20 @@ export const getRenderer = (): Renderer => {
 
 Debug._getRenderer = getRenderer;
 
+export const rgbToHex = (r: number, g: number, b: number) => {
+  function componentToHex(c: number) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+  }
+
+  return (
+    "#" +
+    componentToHex(r) +
+    componentToHex(g) +
+    componentToHex(b)
+  ).toUpperCase();
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const api = async <T = unknown, Error = string>(
   endpoint: string,
