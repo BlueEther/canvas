@@ -125,10 +125,16 @@ export class Template extends EventEmitter<TemplateEvents> {
         this.setElementVisible([this.$canvas], !!value);
         break;
       case "style":
-        this.$style.setAttribute(
-          "src",
-          TemplateStyle[value as keyof typeof TemplateStyle]
-        );
+        if ((value as keyof typeof TemplateStyle) in TemplateStyle) {
+          const key = value as keyof typeof TemplateStyle;
+
+          this.$style.setAttribute("src", TemplateStyle[key]);
+          this.$imageLoader.style.display = key === "SOURCE" ? "block" : "none";
+
+          if (key === "SOURCE") {
+            this.stylizeTemplate();
+          }
+        }
         break;
     }
 
