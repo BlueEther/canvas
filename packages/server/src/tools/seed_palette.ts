@@ -24,6 +24,10 @@ async function main() {
       hex: "4B4F58",
     },
     {
+      name: "Dark Grey",
+      hex: "1F1E26",
+    },
+    {
       name: "Black",
       hex: "000000",
     },
