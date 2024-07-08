@@ -7,10 +7,12 @@ import { ViewportMoveEvent } from "@sc07-canvas/lib/src/renderer/PanZoom";
 import throttle from "lodash.throttle";
 import { IPosition } from "@sc07-canvas/lib/src/net";
 import { Template } from "./Templating/Template";
+import { Template as TemplateCl } from "../lib/template";
 import { IRouterData, Router } from "../lib/router";
 import { KeybindManager } from "../lib/keybinds";
 import { BlankOverlay } from "./Overlay/BlankOverlay";
 import { HeatmapOverlay } from "./Overlay/HeatmapOverlay";
+import { useTemplateContext } from "../contexts/TemplateContext";
 
 export const CanvasWrapper = () => {
   const { config } = useAppContext();
@@ -65,6 +67,11 @@ const CanvasInner = () => {
   const canvas = useRef<Canvas>();
   const { config, setCanvasPosition, setCursor, setPixelWhois } =
     useAppContext();
+  const {
+    x: templateX,
+    y: templateY,
+    enable: templateEnable,
+  } = useTemplateContext();
   const PanZoom = useContext(RendererContext);
 
   /**
@@ -129,6 +136,19 @@ const CanvasInner = () => {
     [canvas.current]
   );
 
+  const getTemplatePixel = useCallback(
+    (x: number, y: number) => {
+      if (!templateEnable) return;
+      if (x < templateX || y < templateY) return;
+
+      x -= templateX;
+      y -= templateY;
+
+      return TemplateCl.instance.getPixel(x, y);
+    },
+    [templateX, templateY]
+  );
+
   const handlePickPixel = useCallback(
     ({ clientX, clientY }: { clientX: number; clientY: number }) => {
       if (!canvas.current) {
@@ -141,13 +161,27 @@ const CanvasInner = () => {
       const [x, y] = canvas.current.screenToPos(clientX, clientY);
       if (!isCoordInCanvas(x, y)) return; // out of bounds
 
-      const pixel = canvas.current.getPixel(x, y);
-      if (!pixel) return;
+      let pixelColor = -1;
+
+      const templatePixel = getTemplatePixel(x, y);
+      if (templatePixel) {
+        pixelColor =
+          canvas.current.Pallete.getColorFromHex(templatePixel.slice(1))?.id ||
+          -1;
+      }
+
+      if (pixelColor === -1) {
+        pixelColor = canvas.current.getPixel(x, y)?.color || -1;
+      }
+
+      if (pixelColor === -1) {
+        return;
+      }
 
       // no need to use canvas#setCursor as Palette.tsx already does that
       setCursor((v) => ({
         ...v,
-        color: pixel.color,
+        color: pixelColor,
       }));
     },
     [canvas.current]

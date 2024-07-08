@@ -6,7 +6,7 @@ import { Canvas } from "../../lib/canvas";
 
 export const Template = () => {
   const { config } = useAppContext();
-  const { enable, url, width, setWidth, x, y, opacity, setX, setY } =
+  const { enable, url, width, setWidth, x, y, opacity, setX, setY, style } =
     useTemplateContext();
   const templateHolder = useRef<HTMLDivElement>(null);
   const instance = useRef<TemplateCl>();
@@ -87,7 +87,9 @@ export const Template = () => {
 
   useEffect(() => {
     if (!instance.current) {
-      console.warn("Received template enable but no instance exists");
+      console.warn(
+        "[Template] Received template enable but no instance exists"
+      );
       return;
     }
 
@@ -95,7 +97,7 @@ export const Template = () => {
 
     if (enable && url) {
       instance.current.loadImage(url).then(() => {
-        console.log("enable: load image finished");
+        console.log("[Template] enable: load image finished");
       });
     }
   }, [enable]);
@@ -103,35 +105,44 @@ export const Template = () => {
   useEffect(() => {
     if (!instance.current) {
       console.warn(
-        "recieved template url update but no template instance exists"
+        "[Template] Recieved template url update but no template instance exists"
       );
       return;
     }
 
     if (!url) {
-      console.warn("received template url blank");
+      console.warn("[Template] Received template url blank");
       return;
     }
 
     if (!enable) {
-      console.info("Got template URL but not enabled, ignoring");
+      console.info("[Template] Got template URL but not enabled, ignoring");
       return;
     }
 
     instance.current.loadImage(url).then(() => {
-      console.log("template loader finished");
+      console.log("[Template] Template loader finished");
     });
   }, [url]);
 
   useEffect(() => {
     if (!instance.current) {
-      console.warn("received template width with no instance");
+      console.warn("[Template] Received template width with no instance");
       return;
     }
 
     instance.current.setOption("width", width);
     instance.current.rasterizeTemplate();
   }, [width]);
+
+  useEffect(() => {
+    if (!instance.current) {
+      console.warn("[Template] Received style update with no instance");
+      return;
+    }
+
+    instance.current.setOption("style", style);
+  }, [style]);
 
   return (
     <div
