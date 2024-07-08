@@ -35,6 +35,7 @@ const TemplateStyle = {
 };
 
 export type TemplateStyle = keyof typeof TemplateStyle;
+export const TemplateStyles = Object.keys(TemplateStyle);
 
 const STYLES_Y = 16;
 const STYLES_X = 16;
@@ -59,9 +60,6 @@ export class Template extends EventEmitter<TemplateEvents> {
     super();
     Template.instance = this;
     this.config = config;
-
-    // @ts-ignore
-    window.TEST_TEMPLATE = this;
 
     console.log("[Template] Initialize", config, templateHolder);
 
