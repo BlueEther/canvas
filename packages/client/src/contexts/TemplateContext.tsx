@@ -8,6 +8,7 @@ import {
 } from "react";
 import { IRouterData, Router } from "../lib/router";
 import { KeybindManager } from "../lib/keybinds";
+import { TemplateStyle } from "../lib/template";
 
 interface ITemplate {
   /**
@@ -30,6 +31,7 @@ interface ITemplate {
   x: number;
   y: number;
   opacity: number;
+  style: TemplateStyle;
 
   showMobileTools: boolean;
 
@@ -39,6 +41,7 @@ interface ITemplate {
   setX(v: number): void;
   setY(v: number): void;
   setOpacity(v: number): void;
+  setStyle(style: TemplateStyle): void;
   setShowMobileTools(v: boolean): void;
 }
 
@@ -56,6 +59,9 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
   const [x, setX] = useState(routerData.template?.x || 0);
   const [y, setY] = useState(routerData.template?.y || 0);
   const [opacity, setOpacity] = useState(100);
+  const [style, setStyle] = useState<TemplateStyle>(
+    routerData.template?.style || "ONE_TO_ONE"
+  );
   const [showMobileTools, setShowMobileTools] = useState(true);
 
   const initAt = useRef<number>();
@@ -70,6 +76,7 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
         setWidth(data.template.width);
         setX(data.template.x || 0);
         setY(data.template.y || 0);
+        setStyle(data.template.style || "ONE_TO_ONE");
       } else {
         setEnable(false);
       }
@@ -89,7 +96,7 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
   }, []);
 
   useEffect(() => {
-    Router.setTemplate({ enabled: enable, width, x, y, url });
+    Router.setTemplate({ enabled: enable, width, x, y, url, style });
 
     if (!initAt.current) {
       console.debug("TemplateContext updating router but no initAt");
@@ -102,7 +109,7 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
 
     if (initAt.current && Date.now() - initAt.current > 2 * 1000)
       Router.queueUpdate();
-  }, [enable, width, x, y, url]);
+  }, [enable, width, x, y, url, style]);
 
   return (
     <templateContext.Provider
@@ -119,6 +126,8 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
         setY,
         opacity,
         setOpacity,
+        style,
+        setStyle,
         showMobileTools,
         setShowMobileTools,
       }}
