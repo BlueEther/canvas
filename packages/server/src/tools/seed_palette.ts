@@ -6,6 +6,8 @@ const prisma = new PrismaClient();
 const log = (...msg: any[]) => console.log(...msg);
 
 async function main() {
+  // pxls palette 13
+  // https://github.com/pxlsspace/Pxls/commit/1e0d85ddfc1258e6fc0ff9a0c1b1bff06cd9ee21
   const palette: { name: string; hex: string }[] = [
     {
       name: "White",
@@ -13,15 +15,15 @@ async function main() {
     },
     {
       name: "Light Grey",
-      hex: "C2CBD4",
+      hex: "B9C3CF",
     },
     {
       name: "Medium Grey",
-      hex: "858D98",
+      hex: "777F8C",
     },
     {
       name: "Deep Grey",
-      hex: "4B4F58",
+      hex: "424651",
     },
     {
       name: "Dark Grey",
@@ -33,115 +35,115 @@ async function main() {
     },
     {
       name: "Dark Chocolate",
-      hex: "38271D",
+      hex: "382215",
     },
     {
       name: "Chocolate",
-      hex: "6C422C",
+      hex: "7C3F20",
     },
     {
       name: "Brown",
-      hex: "BC7541",
+      hex: "C06F37",
     },
     {
       name: "Peach",
-      hex: "FFB27F",
+      hex: "FEAD6C",
     },
     {
       name: "Beige",
-      hex: "FFD68F",
+      hex: "FFD2B1",
     },
     {
       name: "Pink",
-      hex: "FEB2D9",
+      hex: "FFA4D0",
     },
     {
       name: "Magenta",
-      hex: "F854CF",
+      hex: "F14FB4",
     },
     {
       name: "Mauve",
-      hex: "C785F3",
+      hex: "E973FF",
     },
     {
       name: "Purple",
-      hex: "9C29BC",
+      hex: "A630D2",
     },
     {
       name: "Dark Purple",
-      hex: "562972",
+      hex: "531D8C",
     },
     {
       name: "Navy",
-      hex: "1E1E5B",
+      hex: "242367",
     },
     {
       name: "Blue",
-      hex: "153FA2",
+      hex: "0334BF",
     },
     {
       name: "Azure",
-      hex: "1C95DF",
+      hex: "149CFF",
     },
     {
       name: "Aqua",
-      hex: "A0E8FF",
+      hex: "8DF5FF",
     },
     {
       name: "Light Teal",
-      hex: "17A8A3",
+      hex: "01BFA5",
     },
     {
       name: "Dark Teal",
-      hex: "226677",
+      hex: "16777E",
     },
     {
       name: "Forest",
-      hex: "094C45",
+      hex: "054523",
     },
     {
       name: "Dark Green",
-      hex: "278242",
+      hex: "18862F",
     },
     {
       name: "Green",
-      hex: "43C91E",
+      hex: "61E021",
     },
     {
       name: "Lime",
-      hex: "B7F954",
+      hex: "B1FF37",
     },
     {
       name: "Pastel Yellow",
-      hex: "FFFFAF",
+      hex: "FFFFA5",
     },
     {
       name: "Yellow",
-      hex: "FAE70F",
+      hex: "FDE111",
     },
     {
       name: "Orange",
-      hex: "FEA815",
+      hex: "FF9F17",
     },
     {
       name: "Rust",
-      hex: "EA5B15",
+      hex: "F66E08",
     },
     {
       name: "Maroon",
-      hex: "5A0400",
+      hex: "550022",
     },
     {
       name: "Rose",
-      hex: "990700",
+      hex: "99011A",
     },
     {
       name: "Red",
-      hex: "D81515",
+      hex: "F30F0C",
     },
     {
       name: "Watermelon",
-      hex: "FF635E",
+      hex: "FF7872",
     },
   ];
 
