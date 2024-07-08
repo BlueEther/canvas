@@ -2,6 +2,7 @@ import { PanZoom } from "@sc07-canvas/lib/src/renderer/PanZoom";
 import { Canvas } from "./canvas";
 import throttle from "lodash.throttle";
 import EventEmitter from "eventemitter3";
+import { TemplateStyle, TemplateStyles } from "./template";
 
 const CLIENT_PARAMS = {
   canvas_x: "x",
@@ -11,6 +12,7 @@ const CLIENT_PARAMS = {
   template_width: "tw",
   template_x: "tx",
   template_y: "ty",
+  template_style: "ts",
 };
 
 export interface IRouterData {
@@ -24,6 +26,7 @@ export interface IRouterData {
     width?: number;
     x?: number;
     y?: number;
+    style?: TemplateStyle;
   };
 }
 
@@ -41,10 +44,12 @@ class _Router extends EventEmitter<RouterEvents> {
     x: number;
     y: number;
     url?: string;
+    style: TemplateStyle;
   } = {
     enabled: false,
     x: 0,
     y: 0,
+    style: "ONE_TO_ONE",
   };
 
   constructor() {
@@ -105,6 +110,8 @@ class _Router extends EventEmitter<RouterEvents> {
         params.set(CLIENT_PARAMS.template_width, this.templateState.width + "");
       params.set(CLIENT_PARAMS.template_x, this.templateState.x + "");
       params.set(CLIENT_PARAMS.template_y, this.templateState.y + "");
+      if (this.templateState.style)
+        params.set(CLIENT_PARAMS.template_style, this.templateState.style + "");
     }
 
     return (
@@ -161,6 +168,7 @@ class _Router extends EventEmitter<RouterEvents> {
           width?: number;
           x?: number;
           y?: number;
+          style?: TemplateStyle;
         }
       | undefined = undefined;
 
@@ -190,6 +198,14 @@ class _Router extends EventEmitter<RouterEvents> {
           template.y = y;
         }
       }
+
+      if (params.has(CLIENT_PARAMS.template_style)) {
+        let style = params.get(CLIENT_PARAMS.template_style);
+
+        if (style && TemplateStyles.indexOf(style) > -1) {
+          template.style = style as any;
+        }
+      }
     }
 
     return {
@@ -208,6 +224,7 @@ class _Router extends EventEmitter<RouterEvents> {
     x: number;
     y: number;
     url?: string;
+    style: TemplateStyle;
   }) {
     this.templateState = args;
   }

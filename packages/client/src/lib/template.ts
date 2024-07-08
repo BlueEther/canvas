@@ -15,18 +15,30 @@ interface TemplateEvents {
 interface ITemplateOptions {
   enable: boolean;
   width?: number;
-  style: TemplateStyle;
+  style: keyof typeof TemplateStyle;
 }
 
-enum TemplateStyle {
-  SOURCE = "",
-  ONE_TO_ONE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGklEQVQoz2P8//8/AymAiYFEMKphVMPQ0QAAVW0DHZ8uFaIAAAAASUVORK5CYII=",
-  ONE_TO_ONE_INCORRECT = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGklEQVQoz2P8//8/AymAiYFEMKphVMPQ0QAAVW0DHZ8uFaIAAAAASUVORK5CYII=",
-  DOTTED_SMALL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAQAAAD9CzEMAAAAAmJLR0QA/4ePzL8AAAAzSURBVFjD7dBBDQAACMSw828aVEAI6R4T0GShGv6DECFChAgRIkSIECFChAgRIkSIruA0nub+AuTzLZoAAAAASUVORK5CYII=",
-  DOTTED_BIG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAWklEQVR42u3UwQkAIAwEwcX+e9aP2INkBvK4d2CLqva9cXv5PWgAoAGgARoAGqABoAEaABqgAaABGgAaoAGgARoAGqABoAEaABqgAaABGgAaoAGgAT/vRwOmO8dS/DI1VxCbAAAAAElFTkSuQmCC",
-  SYMBOLS = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABwAQMAAAD8LmYIAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAZQTFRFAAAAAwMDFQUF7wAAAAJ0Uk5TAP9bkSK1AAAAuUlEQVR4nGNgQAUhjQvdz0uwMfx82OrVIgPkBj/xaOEQ6GRuP9vHAeQGsPjzyVj8LH5+iAXEDTziMd+uplHg+VE+GQaNjwHt5+WB3A+HO+bbMRACDoed+Xg0FIMW97dIMLAwNC45OF8ip+Dh8aN8Ngwsjc2sXfNFBAoePz8xX46B5+DhNj4WlpwCx+NH5W0Yan5+fn6+xU5DwWlxf58EAWs0DFC4NQX4uBaoXAFUvaNgFIyCUTAKaAYAzI49GM5w0hQAAAAOZVhJZk1NACoAAAAIAAAAAAAAANJTkwAAAABJRU5ErkJggg==",
-  NUMBERS = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALAAAACwCAYAAACvt+ReAAAE10lEQVR42u3d3bKjKBQGULDy/q/MXE1VdzqRH9kqZq2bqZn5JKAmErbm5JRSSbCw0pGTlb1VdttpoAS9AUpANgW1u0q2dGxTOo7faLu92TTa7vZlozz55P2/zRyQ7RXRj97+zsyWjm1GT97aGI9kR8aWaydwxIEg7g05ms0nvcnCsq8bzrVnvVNr2RyQzReP7eeO33bBp0We/E6NnJr0nJAR7UZOpR5x/LYEC9smrCyMrETMXErpvazd4fI9c3+VnW/2teze8Ss7qwAt7ZYJ50y13deqk/fBbVYb28iY8mLZvf9ebTcnlTgeOIWAZShJyi6bfX3YOH84sfOXF7oyW3amQrXs++vMarc3m7/048w+rJT957htlU/i3HCQ93J77R7N5o4vD+/ZUvmSkRvHdiSbOvqwt/2RbA7av6cdt+0Bqw8jlMDX9M9xq5WS71xKjS5VtmxbDvZ3JJsDsvnEsU09dq+GM75MPnl72s2VQZx1JehdA23pb8/YevdDax/KhWMrM84Vy2gs7dOXuJGSZMslYLTUWbsUtbT7nm25ibqlhPqp3Z7+po7+RuyHnj707t/S8fql8/XLyHzE2qPs7bJKyTxmCgFLcimSXTa7fdiwfPn3NDGbgtq9ezYNZke++JaAbApqdzj75zrw+9rd3lrekeye1vsljmZ7+5snZL/1q2clJw3uwxnZXlGPWP3VX3PgNSh9f/HaeaeXzk+FEpzNAdl88dhSQPanjttWeafX7lZq/ZRovQPqSLanDyWo3ci70XqyvXeutbQbeVdez91onkrmmVOII3c1RV02I+8Ei2g36sc/SuOVo+WSfKS/EdOfw/2wnii7bFYpmaWZA7M8lyLZZbOvD0sUf/4z7XyJ68n++f88PfyDTw9H9WHWI0W17JFHXmqv+WnHzcymjj7Utj2yvpwC9u/yx+3uc2Al1DWddtxelfnw7DJjxI9Kt14pSuM7flY2B2TzxWO73XF7/12IM8qMtXeuEmpDCfWEsR2dSvVOu4ZuWbCMxtJaf9gkHcjNKM3WVgBqlzGl7/7+HhlfrfQ9ejdaOXqSysreKquUzNLMgVmeS5Hsstlv9wMroY5lW7+4KH1Pyr6vQiihHnsquTSMy1Pf4/v3n6w58FxK3yf7VkpWQo35M7Ol4xPzvd0SnM0B2Rw9tq1y+f7Fp4fPOHlr/SgdYysHxta7H3pOyIh2/a1kfmMK0fqJ0rrd3Uq5nh6O3Q8peP8Obywre6usUjJLMwdmeS5Fsstma6Xkb8scSqjPyC5/3Fp+nfKbI0+hRq0vp45s72MsOaC/V2eXP26z5sBKqGta/rjNWgfuyfrh7Pix/cxx2w68Iy95CvWiS5wfzt7f/rKnvi2j8egpxC2fQr355TCiXU9972xrPVF22axSMo+aQkCUsCU7lyLZM7Lhn8BKqOf39xdL31PN+kOHSqhj+yF1ju0ppe+wE9h8jKW/xK1WQj1D5GM3I9mIH5vOF49tyifwij/AfOYndk8JNqLNiDJ/CWr3tOOmlMxjphB+gPn4VErp+4Jpn3VK2TOyYXM7pWTO+h4BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE/1H4IIqRgL4W2oAAAAAElFTkSuQmCC",
-}
+const TemplateStyle = {
+  SOURCE: "",
+  ONE_TO_ONE:
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGklEQVQoz2P8//8/AymAiYFEMKphVMPQ0QAAVW0DHZ8uFaIAAAAASUVORK5CYII=",
+  ONE_TO_ONE_INCORRECT:
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGklEQVQoz2P8//8/AymAiYFEMKphVMPQ0QAAVW0DHZ8uFaIAAAAASUVORK5CYII=",
+  DOTTED_SMALL:
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAQAAAD9CzEMAAAAAmJLR0QA/4ePzL8AAAAzSURBVFjD7dBBDQAACMSw828aVEAI6R4T0GShGv6DECFChAgRIkSIECFChAgRIkSIruA0nub+AuTzLZoAAAAASUVORK5CYII=",
+  DOTTED_BIG:
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAWklEQVR42u3UwQkAIAwEwcX+e9aP2INkBvK4d2CLqva9cXv5PWgAoAGgARoAGqABoAEaABqgAaABGgAaoAGgARoAGqABoAEaABqgAaABGgAaoAGgAT/vRwOmO8dS/DI1VxCbAAAAAElFTkSuQmCC",
+  SYMBOLS:
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABwAQMAAAD8LmYIAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAZQTFRFAAAAAwMDFQUF7wAAAAJ0Uk5TAP9bkSK1AAAAuUlEQVR4nGNgQAUhjQvdz0uwMfx82OrVIgPkBj/xaOEQ6GRuP9vHAeQGsPjzyVj8LH5+iAXEDTziMd+uplHg+VE+GQaNjwHt5+WB3A+HO+bbMRACDoed+Xg0FIMW97dIMLAwNC45OF8ip+Dh8aN8Ngwsjc2sXfNFBAoePz8xX46B5+DhNj4WlpwCx+NH5W0Yan5+fn6+xU5DwWlxf58EAWs0DFC4NQX4uBaoXAFUvaNgFIyCUTAKaAYAzI49GM5w0hQAAAAOZVhJZk1NACoAAAAIAAAAAAAAANJTkwAAAABJRU5ErkJggg==",
+  NUMBERS:
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALAAAACwCAYAAACvt+ReAAAE10lEQVR42u3d3bKjKBQGULDy/q/MXE1VdzqRH9kqZq2bqZn5JKAmErbm5JRSSbCw0pGTlb1VdttpoAS9AUpANgW1u0q2dGxTOo7faLu92TTa7vZlozz55P2/zRyQ7RXRj97+zsyWjm1GT97aGI9kR8aWaydwxIEg7g05ms0nvcnCsq8bzrVnvVNr2RyQzReP7eeO33bBp0We/E6NnJr0nJAR7UZOpR5x/LYEC9smrCyMrETMXErpvazd4fI9c3+VnW/2teze8Ss7qwAt7ZYJ50y13deqk/fBbVYb28iY8mLZvf9ebTcnlTgeOIWAZShJyi6bfX3YOH84sfOXF7oyW3amQrXs++vMarc3m7/048w+rJT957htlU/i3HCQ93J77R7N5o4vD+/ZUvmSkRvHdiSbOvqwt/2RbA7av6cdt+0Bqw8jlMDX9M9xq5WS71xKjS5VtmxbDvZ3JJsDsvnEsU09dq+GM75MPnl72s2VQZx1JehdA23pb8/YevdDax/KhWMrM84Vy2gs7dOXuJGSZMslYLTUWbsUtbT7nm25ibqlhPqp3Z7+po7+RuyHnj707t/S8fql8/XLyHzE2qPs7bJKyTxmCgFLcimSXTa7fdiwfPn3NDGbgtq9ezYNZke++JaAbApqdzj75zrw+9rd3lrekeye1vsljmZ7+5snZL/1q2clJw3uwxnZXlGPWP3VX3PgNSh9f/HaeaeXzk+FEpzNAdl88dhSQPanjttWeafX7lZq/ZRovQPqSLanDyWo3ci70XqyvXeutbQbeVdez91onkrmmVOII3c1RV02I+8Ei2g36sc/SuOVo+WSfKS/EdOfw/2wnii7bFYpmaWZA7M8lyLZZbOvD0sUf/4z7XyJ68n++f88PfyDTw9H9WHWI0W17JFHXmqv+WnHzcymjj7Utj2yvpwC9u/yx+3uc2Al1DWddtxelfnw7DJjxI9Kt14pSuM7flY2B2TzxWO73XF7/12IM8qMtXeuEmpDCfWEsR2dSvVOu4ZuWbCMxtJaf9gkHcjNKM3WVgBqlzGl7/7+HhlfrfQ9ejdaOXqSysreKquUzNLMgVmeS5Hsstlv9wMroY5lW7+4KH1Pyr6vQiihHnsquTSMy1Pf4/v3n6w58FxK3yf7VkpWQo35M7Ol4xPzvd0SnM0B2Rw9tq1y+f7Fp4fPOHlr/SgdYysHxta7H3pOyIh2/a1kfmMK0fqJ0rrd3Uq5nh6O3Q8peP8Obywre6usUjJLMwdmeS5Fsstma6Xkb8scSqjPyC5/3Fp+nfKbI0+hRq0vp45s72MsOaC/V2eXP26z5sBKqGta/rjNWgfuyfrh7Pix/cxx2w68Iy95CvWiS5wfzt7f/rKnvi2j8egpxC2fQr355TCiXU9972xrPVF22axSMo+aQkCUsCU7lyLZM7Lhn8BKqOf39xdL31PN+kOHSqhj+yF1ju0ppe+wE9h8jKW/xK1WQj1D5GM3I9mIH5vOF49tyifwij/AfOYndk8JNqLNiDJ/CWr3tOOmlMxjphB+gPn4VErp+4Jpn3VK2TOyYXM7pWTO+h4BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE/1H4IIqRgL4W2oAAAAAElFTkSuQmCC",
+};
+
+export type TemplateStyle = keyof typeof TemplateStyle;
+export const TemplateStyles = Object.keys(TemplateStyle);
+
+const STYLES_Y = 16;
+const STYLES_X = 16;
 
 export class Template extends EventEmitter<TemplateEvents> {
   static instance: Template;
@@ -41,7 +53,7 @@ export class Template extends EventEmitter<TemplateEvents> {
 
   options: ITemplateOptions = {
     enable: false,
-    style: TemplateStyle.ONE_TO_ONE,
+    style: "ONE_TO_ONE",
   };
 
   constructor(config: ClientConfig, templateHolder: HTMLDivElement) {
@@ -67,7 +79,11 @@ export class Template extends EventEmitter<TemplateEvents> {
 
     this.$style = document.createElement("img");
     this.$style.setAttribute("crossorigin", "");
-    this.$style.setAttribute("src", this.options!.style);
+    this.$style.setAttribute("src", TemplateStyle[this.options!.style]);
+    this.$style.addEventListener("load", () => {
+      console.log("[Template] Style loaded");
+      this.loadStyle();
+    });
 
     this.$canvas = document.createElement("canvas");
 
@@ -107,6 +123,18 @@ export class Template extends EventEmitter<TemplateEvents> {
     switch (key) {
       case "enable":
         this.setElementVisible([this.$canvas], !!value);
+        break;
+      case "style":
+        if ((value as keyof typeof TemplateStyle) in TemplateStyle) {
+          const key = value as keyof typeof TemplateStyle;
+
+          this.$style.setAttribute("src", TemplateStyle[key]);
+          this.$imageLoader.style.display = key === "SOURCE" ? "block" : "none";
+
+          if (key === "SOURCE") {
+            this.stylizeTemplate();
+          }
+        }
         break;
     }
 
@@ -208,15 +236,27 @@ export class Template extends EventEmitter<TemplateEvents> {
       width: this.$imageLoader.naturalWidth,
       height: this.$imageLoader.naturalHeight,
     };
+    let style = {
+      width: this.$style.naturalWidth / STYLES_X,
+      height: this.$style.naturalHeight / STYLES_Y,
+    };
 
     let aspectRatio = source.height / source.width;
 
+    let display = {
+      width: Math.round(this.options?.width || source.width),
+      height: Math.round((this.options?.width || source.width) * aspectRatio),
+    };
+    let internal = {
+      width: display.width * style.width,
+      height: display.height * style.height,
+    };
+
     return {
       source,
-      display: {
-        width: Math.round(this.options?.width || source.width),
-        height: Math.round((this.options?.width || source.width) * aspectRatio),
-      },
+      style,
+      display,
+      internal,
       aspectRatio,
     };
   }
@@ -240,15 +280,14 @@ export class Template extends EventEmitter<TemplateEvents> {
   } = { downscaling: {} } as any;
 
   updateSize() {
-    const {
-      display: { width, height },
-    } = this.getDimentions();
+    const { display, internal } = this.getDimentions();
 
-    this.$wrapper.style.width = width + "px";
-    this.$imageLoader.style.width = width + "px";
+    this.$wrapper.style.width = display.width + "px";
+    this.$imageLoader.style.width = display.width + "px";
+    this.$canvas.style.width = display.width + "px";
 
-    this.$canvas.width = width;
-    this.$canvas.height = height;
+    this.$canvas.width = internal.width;
+    this.$canvas.height = internal.height;
   }
 
   /**
@@ -261,8 +300,6 @@ export class Template extends EventEmitter<TemplateEvents> {
     const palette: { value: string }[] = this.config.pallete.colors.map(
       (color) => ({ value: color.hex })
     );
-    const STYLES_Y = 16;
-    const STYLES_X = 16;
 
     const context = this.$canvas.getContext("webgl", {
       premultipliedAlpha: true,
@@ -589,11 +626,9 @@ export class Template extends EventEmitter<TemplateEvents> {
   stylizeTemplate() {
     this.updateSize();
 
-    const {
-      display: { width, height },
-    } = this.getDimentions();
+    const { internal, display } = this.getDimentions();
 
-    if (this.context == null || width === 0 || height === 0) {
+    if (this.context == null || internal.width === 0 || internal.height === 0) {
       return;
     }
 
@@ -602,14 +637,14 @@ export class Template extends EventEmitter<TemplateEvents> {
       this.framebuffers.main
     );
     this.context.clear(this.context.COLOR_BUFFER_BIT);
-    this.context.viewport(0, 0, width, height);
+    this.context.viewport(0, 0, internal.width, internal.height);
 
     this.context.useProgram(this.programs.stylize);
 
     this.context.uniform2f(
       this.context.getUniformLocation(this.programs.stylize, "u_TexelSize"),
-      1 / width,
-      1 / height
+      1 / display.width,
+      1 / display.height
     );
 
     this.context.activeTexture(this.context.TEXTURE0);
