@@ -8,6 +8,7 @@ import {
 } from "react";
 import { IRouterData, Router } from "../lib/router";
 import { KeybindManager } from "../lib/keybinds";
+import { TemplateStyle } from "../lib/template";
 
 interface ITemplate {
   /**
@@ -30,6 +31,7 @@ interface ITemplate {
   x: number;
   y: number;
   opacity: number;
+  style: TemplateStyle;
 
   showMobileTools: boolean;
 
@@ -39,6 +41,7 @@ interface ITemplate {
   setX(v: number): void;
   setY(v: number): void;
   setOpacity(v: number): void;
+  setStyle(style: TemplateStyle): void;
   setShowMobileTools(v: boolean): void;
 }
 
@@ -56,6 +59,7 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
   const [x, setX] = useState(routerData.template?.x || 0);
   const [y, setY] = useState(routerData.template?.y || 0);
   const [opacity, setOpacity] = useState(100);
+  const [style, setStyle] = useState<TemplateStyle>("ONE_TO_ONE");
   const [showMobileTools, setShowMobileTools] = useState(true);
 
   const initAt = useRef<number>();
@@ -119,6 +123,8 @@ export const TemplateContext = ({ children }: PropsWithChildren) => {
         setY,
         opacity,
         setOpacity,
+        style,
+        setStyle,
         showMobileTools,
         setShowMobileTools,
       }}
