@@ -147,16 +147,25 @@ async function main() {
     },
   ];
 
-  for (const { name, hex } of palette) {
-    log("Ensuring color", { name, hex });
-    await prisma.paletteColor.upsert({
-      where: { hex },
-      update: {},
-      create: {
-        name,
-        hex,
-      },
-    });
+  if (process.argv?.[2] === "sql") {
+    log(`ALTER SEQUENCE "PaletteColor_id_seq" RESTART WITH 1;`);
+    for (const { name, hex } of palette) {
+      log(
+        `INSERT INTO "PaletteColor" (name, hex) VALUES ('${name}', '${hex}');`
+      );
+    }
+  } else {
+    for (const { name, hex } of palette) {
+      log("Ensuring color", { name, hex });
+      await prisma.paletteColor.upsert({
+        where: { hex },
+        update: {},
+        create: {
+          name,
+          hex,
+        },
+      });
+    }
   }
 }
 
