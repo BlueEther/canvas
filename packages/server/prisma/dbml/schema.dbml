@@ -35,7 +35,6 @@ Table PaletteColor {
   id Int [pk, increment]
   name String [not null]
   hex String [unique, not null]
-  pixels Pixel [not null]
 }
 
 Table Pixel {
@@ -49,7 +48,6 @@ Table Pixel {
   createdAt DateTime [default: `now()`, not null]
   deletedAt DateTime
   user User [not null]
-  pallete PaletteColor [not null]
 }
 
 Table Faction {
@@ -116,8 +114,6 @@ Table Ban {
 }
 
 Ref: Pixel.userId > User.sub
-
-Ref: Pixel.color > PaletteColor.hex
 
 Ref: FactionMember.sub > User.sub
 

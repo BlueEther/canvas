@@ -50,8 +50,6 @@ model PaletteColor {
   id   Int    @id @default(autoincrement())
   name String
   hex  String @unique
-
-  pixels Pixel[]
 }
 
 model Pixel {
@@ -66,8 +64,9 @@ model Pixel {
   createdAt DateTime  @default(now())
   deletedAt DateTime?
 
-  user    User         @relation(fields: [userId], references: [sub])
-  pallete PaletteColor @relation(fields: [color], references: [hex])
+  user User @relation(fields: [userId], references: [sub])
+  // do not add a relation to PaletteColor, in the case the palette gets changed
+  // https://github.com/prisma/prisma/issues/18058
 }
 
 model Faction {
