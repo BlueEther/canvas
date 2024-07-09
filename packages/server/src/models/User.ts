@@ -9,6 +9,7 @@ import {
 } from "@sc07-canvas/lib/src/net";
 import { Ban, User as UserDB } from "@prisma/client";
 import { Instance } from "./Instance";
+import { ConditionalPromise } from "../lib/utils";
 
 const Logger = getLogger();
 
@@ -40,7 +41,7 @@ export class User {
   pixelStack: number;
   authSession?: AuthSession;
   undoExpires?: Date;
-  ban?: IUserBan;
+  private _ban?: IUserBan;
 
   isAdmin: boolean;
   isModerator: boolean;
@@ -90,7 +91,7 @@ export class User {
 
   private async updateBanFromUserData(userData: UserDB & { Ban: Ban | null }) {
     if (userData.Ban) {
-      this.ban = {
+      this._ban = {
         id: userData.Ban.id,
         expires: userData.Ban.expiresAt,
         publicNote: userData.Ban.publicNote,
@@ -173,12 +174,14 @@ export class User {
    * Sends packet to all user's sockets with current standing information
    */
   updateStanding() {
-    if (this.ban) {
+    const ban = this.getBan();
+
+    if (ban) {
       for (const socket of this.sockets) {
         socket.emit("standing", {
           banned: true,
-          until: this.ban.expires.toISOString(),
-          reason: this.ban.publicNote || undefined,
+          until: ban.expires.toISOString(),
+          reason: ban.publicNote || undefined,
         });
       }
     } else {
@@ -186,6 +189,83 @@ export class User {
         socket.emit("standing", { banned: false });
       }
     }
+  }
+
+  getBan<DoUpdate extends boolean = false>(
+    update: DoUpdate = false as DoUpdate
+  ): ConditionalPromise<typeof this._ban, DoUpdate> {
+    if (update) {
+      return new Promise(async (res) => {
+        const user = await prisma.user.findFirst({
+          where: {
+            sub: this.sub,
+          },
+          include: {
+            Ban: true,
+          },
+        });
+
+        if (!user?.Ban) {
+          return res(undefined);
+        }
+
+        this._ban = {
+          type: "user",
+          id: user.Ban.id,
+          expires: user.Ban.expiresAt,
+          publicNote: user.Ban.publicNote,
+        };
+
+        res(this._ban);
+      }) as any;
+    } else {
+      return this._ban as any;
+    }
+  }
+
+  async ban(
+    expires: Date,
+    publicNote: string | null | undefined,
+    privateNote: string | null | undefined
+  ) {
+    const ban = await prisma.ban.upsert({
+      where: {
+        userId: this.sub,
+      },
+      create: {
+        userId: this.sub,
+        expiresAt: expires,
+        publicNote,
+        privateNote,
+      },
+      update: {
+        userId: this.sub,
+        expiresAt: expires,
+        publicNote,
+        privateNote,
+      },
+    });
+
+    this._ban = {
+      id: ban.id,
+      type: "user",
+      expires,
+      publicNote: publicNote || null,
+    };
+
+    return ban;
+  }
+
+  async unban() {
+    const existing = await this.getBan(true);
+
+    if (!existing) throw new UserNotBanned();
+
+    const ban = await prisma.ban.delete({
+      where: { id: existing.id },
+    });
+
+    return ban;
   }
 
   /**
@@ -247,5 +327,12 @@ export class UserNotFound extends Error {
   constructor() {
     super();
     this.name = "UserNotFound";
+  }
+}
+
+export class UserNotBanned extends Error {
+  constructor() {
+    super();
+    this.name = "UserNotBanned";
   }
 }

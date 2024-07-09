@@ -9,6 +9,7 @@ import {
   faCog,
   faHashtag,
   faHome,
+  faList,
   faServer,
   faShieldHalved,
   faSquare,
@@ -53,6 +54,12 @@ export const SidebarWrapper = () => {
               icon={<FontAwesomeIcon icon={faHome} />}
               isActive={pathname === "/"}
               href="/"
+            />
+            <SidebarItem
+              title="Audit Log"
+              icon={<FontAwesomeIcon icon={faList} />}
+              isActive={pathname === "/audit"}
+              href="/audit"
             />
             <CollapseItems
               icon={<FontAwesomeIcon icon={faChartBar} />}

@@ -14,3 +14,8 @@ export const createEnum = <T extends string>(values: T[]): { [k in T]: k } => {
 
   return ret;
 };
+
+export type ConditionalPromise<
+  T,
+  UsePromise extends boolean = false,
+> = UsePromise extends true ? Promise<T> : UsePromise extends false ? T : never;

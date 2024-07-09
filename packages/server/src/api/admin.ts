@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { User, UserNotFound } from "../models/User";
+import { User, UserNotBanned, UserNotFound } from "../models/User";
 import Canvas from "../lib/Canvas";
 import { getLogger } from "../lib/Logger";
 import { RateLimiter } from "../lib/RateLimiter";
@@ -10,6 +10,7 @@ import {
   InstanceNotBanned,
   InstanceNotFound,
 } from "../models/Instance";
+import { AuditLog } from "../models/AuditLog";
 
 const app = Router();
 const Logger = getLogger("HTTP/ADMIN");
@@ -206,6 +207,15 @@ app.put("/canvas/fill", async (req, res) => {
   res.json({ success: true });
 });
 
+/**
+ * Create or ban a user
+ *
+ * @header X-Audit
+ * @param :sub User sub claim
+ * @body expiresAt string! ISO date time string
+ * @body publicNote string?
+ * @body privateNote string?
+ */
 app.put("/user/:sub/ban", async (req, res) => {
   let user: User;
   let expires: Date;
@@ -270,23 +280,8 @@ app.put("/user/:sub/ban", async (req, res) => {
     privateNote = req.body.privateNote;
   }
 
-  const existingBan = user.ban;
-
-  const ban = await prisma.ban.upsert({
-    where: { userId: user.sub },
-    create: {
-      userId: user.sub,
-      expiresAt: expires,
-      publicNote,
-      privateNote,
-    },
-    update: {
-      expiresAt: expires,
-      publicNote,
-      privateNote,
-    },
-  });
-  await user.update(true);
+  const existingBan = user.getBan();
+  const ban = await user.ban(expires, publicNote, privateNote);
 
   let shouldNotifyUser = false;
 
@@ -312,11 +307,27 @@ app.put("/user/:sub/ban", async (req, res) => {
 
   user.updateStanding();
 
-  // todo: audit log
+  const adminUser = (await User.fromAuthSession(req.session.user!))!;
+  const audit = await AuditLog.Factory(adminUser.sub)
+    .doing(existingBan ? "BAN_UPDATE" : "BAN_CREATE")
+    .reason(req.header("X-Audit") || null)
+    .withComment(
+      existingBan
+        ? `Updated ban on ${user.sub}`
+        : `Created a ban for ${user.sub}`
+    )
+    .withBan(ban)
+    .create();
 
-  res.json({ success: true });
+  res.json({ success: true, audit });
 });
 
+/**
+ * Delete a user ban
+ *
+ * @header X-Audit
+ * @param :sub User sub
+ */
 app.delete("/user/:sub/ban", async (req, res) => {
   // delete ban ("unban")
 
@@ -334,17 +345,19 @@ app.delete("/user/:sub/ban", async (req, res) => {
     return;
   }
 
-  if (!user.ban?.id) {
-    res.status(400).json({
-      success: false,
-      error: "User is not banned",
-    });
+  try {
+    await user.unban();
+  } catch (e) {
+    if (e instanceof UserNotBanned) {
+      res.status(404).json({ success: false, error: "User is not banned" });
+    } else {
+      Logger.error(
+        `/instance/${req.params.sub}/ban Error ` + (e as any)?.message
+      );
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
     return;
   }
-
-  await prisma.ban.delete({
-    where: { id: user.ban.id },
-  });
 
   user.notify({
     is: "modal",
@@ -357,9 +370,14 @@ app.delete("/user/:sub/ban", async (req, res) => {
   await user.update(true);
   user.updateStanding();
 
-  // todo: audit log
+  const adminUser = (await User.fromAuthSession(req.session.user!))!;
+  const audit = await AuditLog.Factory(adminUser.sub)
+    .doing("BAN_DELETE")
+    .reason(req.header("X-Audit") || null)
+    .withComment(`Deleted ban for ${user.sub}`)
+    .create();
 
-  res.json({ success: true });
+  res.json({ success: true, audit });
 });
 
 app.get("/instance/:domain/ban", async (req, res) => {
@@ -392,6 +410,15 @@ app.get("/instance/:domain/ban", async (req, res) => {
   res.json({ success: true, ban });
 });
 
+/**
+ * Create or update a ban for an instance (and subdomains)
+ *
+ * @header X-Audit
+ * @param :domain Domain for the instance
+ * @body expiresAt string! ISO date time string
+ * @body publicNote string?
+ * @body privateNote string?
+ */
 app.put("/instance/:domain/ban", async (req, res) => {
   // ban domain & subdomains
 
@@ -460,15 +487,34 @@ app.put("/instance/:domain/ban", async (req, res) => {
     privateNote = req.body.privateNote;
   }
 
-  await instance.ban(expires, publicNote, privateNote);
+  const hasExistingBan = await instance.getBan();
 
-  // todo: audit log
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const ban = await instance.ban(expires, publicNote, privateNote);
+  const audit = await AuditLog.Factory(user.sub)
+    .doing(hasExistingBan ? "BAN_UPDATE" : "BAN_CREATE")
+    .reason(req.header("X-Audit") || null)
+    .withComment(
+      hasExistingBan
+        ? `Updated ban for ${instance.hostname}`
+        : `Created a ban for ${instance.hostname}`
+    )
+    .withBan(ban)
+    .create();
 
   res.json({
     success: true,
+    ban,
+    audit,
   });
 });
 
+/**
+ * Delete an instance ban
+ *
+ * @header X-Audit
+ * @param :domain The instance domain
+ */
 app.delete("/instance/:domain/ban", async (req, res) => {
   // unban domain & subdomains
 
@@ -488,8 +534,9 @@ app.delete("/instance/:domain/ban", async (req, res) => {
     return;
   }
 
+  let ban;
   try {
-    await instance.unban();
+    ban = await instance.unban();
   } catch (e) {
     if (e instanceof InstanceNotBanned) {
       res.status(404).json({ success: false, error: "instance not banned" });
@@ -502,9 +549,104 @@ app.delete("/instance/:domain/ban", async (req, res) => {
     return;
   }
 
-  // todo: audit log
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const audit = await AuditLog.Factory(user.sub)
+    .doing("BAN_DELETE")
+    .reason(req.header("X-Audit") || null)
+    .withComment(`Deleted ban for ${instance.hostname}`)
+    .create();
 
-  res.json({ success: true });
+  res.json({ success: true, audit });
+});
+
+/**
+ * Get all audit logs
+ *
+ * TODO: pagination
+ */
+app.get("/audit", async (req, res) => {
+  const auditLogs = await prisma.auditLog.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  res.json({ success: true, auditLogs });
+});
+
+/**
+ * Get audit log entry by ID
+ *
+ * @param :id Audit log ID
+ */
+app.get("/audit/:id", async (req, res) => {
+  let id = parseInt(req.params.id);
+
+  if (isNaN(id)) {
+    return res
+      .status(400)
+      .json({ success: false, error: "id is not a number" });
+  }
+
+  const auditLog = await prisma.auditLog.findFirst({ where: { id } });
+
+  if (!auditLog) {
+    return res
+      .status(404)
+      .json({ success: false, error: "Audit log not found" });
+  }
+
+  res.json({ success: true, auditLog });
+});
+
+/**
+ * Update audit log reason
+ *
+ * @param :id Audit log id
+ * @body reason string|null
+ */
+app.put("/audit/:id/reason", async (req, res) => {
+  let id = parseInt(req.params.id);
+  let reason: string;
+
+  if (isNaN(id)) {
+    return res
+      .status(400)
+      .json({ success: false, error: "id is not a number" });
+  }
+
+  if (typeof req.body.reason !== "string" && req.body.reason !== null) {
+    return res
+      .status(400)
+      .json({ success: false, error: "reason is not a string or null" });
+  }
+
+  reason = req.body.reason;
+
+  const auditLog = await prisma.auditLog.findFirst({
+    where: {
+      id,
+    },
+  });
+
+  if (!auditLog) {
+    return res
+      .status(404)
+      .json({ success: false, error: "audit log is not found" });
+  }
+
+  const newAudit = await prisma.auditLog.update({
+    where: { id },
+    data: {
+      reason,
+      updatedAt: new Date(),
+    },
+  });
+
+  res.json({
+    success: true,
+    auditLog: newAudit,
+  });
 });
 
 export default app;

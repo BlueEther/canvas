@@ -173,22 +173,23 @@ export class SocketServer {
     if (socket.request.session.user) {
       // inform the client of their session if it exists
       socket.emit("user", socket.request.session.user);
-
-      socket.emit(
-        "standing",
-        user?.ban
-          ? {
-              banned: true,
-              until: user.ban.expires.toISOString(),
-              reason: user.ban.publicNote || undefined,
-            }
-          : { banned: false }
-      );
     }
 
     if (user) {
       socket.emit("availablePixels", user.pixelStack);
       socket.emit("pixelLastPlaced", user.lastPixelTime.getTime());
+
+      const ban = user.getBan();
+      socket.emit(
+        "standing",
+        ban
+          ? {
+              banned: true,
+              until: ban.expires.toISOString(),
+              reason: ban.publicNote || undefined,
+            }
+          : { banned: false }
+      );
     }
 
     socket.emit("config", getClientConfig());
@@ -261,7 +262,7 @@ export class SocketServer {
         return;
       }
 
-      if (user.ban && user.ban.expires > new Date()) {
+      if ((user.getBan()?.expires || 0) > new Date()) {
         ack({ success: false, error: "banned" });
         return;
       }
