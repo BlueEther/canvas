@@ -14,6 +14,10 @@ export class Instance {
     this.instance = data;
   }
 
+  get hostname() {
+    return this.instance.hostname;
+  }
+
   /**
    * Update Instance instance
    *
@@ -91,10 +95,10 @@ export class Instance {
     publicNote: string | null | undefined,
     privateNote: string | null | undefined
   ) {
-    const subdomains = await Instance.getRegisteredSubdomains(
+    /*const subdomains = await Instance.getRegisteredSubdomains(
       this.instance.hostname
     );
-    const existing = await this.getBan();
+    const existing = await this.getBan();*/
     const ban = await prisma.ban.upsert({
       where: {
         instanceId: this.instance.id,
@@ -112,6 +116,8 @@ export class Instance {
         privateNote,
       },
     });
+
+    return ban;
   }
 
   /**
@@ -126,11 +132,11 @@ export class Instance {
 
     if (!existing) throw new InstanceNotBanned();
 
-    await prisma.ban.delete({
-      where: {
-        id: existing.id,
-      },
+    const ban = await prisma.ban.delete({
+      where: { id: existing.id },
     });
+
+    return ban;
   }
 
   static async fromDomain(hostname: string): Promise<Instance> {
