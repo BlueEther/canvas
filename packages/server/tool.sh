@@ -20,8 +20,9 @@ fi
 
 DEV_TOOLS_ROOT=$MY_DIR/src/tools
 PROD_TOOLS_ROOT=$MY_DIR/dist/tools
+TOOL_NAME="$1"
 
-if [ "$1" = "" ]; then
+if [ "$TOOL_NAME" = "" ]; then
   echo "Tool argument is empty, specify a filename (without extension) from tools directory";
   if $USE_PROD; then
     echo " > Tools Directory: $PROD_TOOLS_ROOT"
@@ -31,13 +32,15 @@ if [ "$1" = "" ]; then
   exit 1
 fi
 
-if [[ "$1" == *"."* ]]; then
+if [[ "$TOOL_NAME" == *"."* ]]; then
   echo "Tool argument contains a period, do not include extensions while executing tools"
   exit 1
 fi
 
+shift; # remove first argument to tool.sh, so we can pass the rest to the tool
+
 if $USE_PROD; then
-  node $PROD_TOOLS_ROOT/$1.js
+  node $PROD_TOOLS_ROOT/$TOOL_NAME.js "$@"
 else
-  npx ts-node --transpile-only $DEV_TOOLS_ROOT/$1.ts
+  npx ts-node --transpile-only $DEV_TOOLS_ROOT/$TOOL_NAME.ts "$@"
 fi
