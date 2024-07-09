@@ -20,6 +20,7 @@ Table User {
   pixels Pixel [not null]
   FactionMember FactionMember [not null]
   Ban Ban
+  AuditLog AuditLog [not null]
 }
 
 Table Instance {
@@ -109,8 +110,30 @@ Table Ban {
   privateNote String
   publicNote String
   expiresAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
   user User
   instance Instance
+  AuditLog AuditLog [not null]
+}
+
+Table AuditLog {
+  id Int [pk, increment]
+  userId String
+  action AuditLogAction [not null]
+  reason String
+  comment String
+  banId Int
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+  user User
+  ban Ban
+}
+
+Enum AuditLogAction {
+  BAN_CREATE
+  BAN_UPDATE
+  BAN_DELETE
 }
 
 Ref: Pixel.userId > User.sub
@@ -130,3 +153,7 @@ Ref: FactionSetting.factionId > Faction.id
 Ref: Ban.userId - User.sub
 
 Ref: Ban.instanceId - Instance.id
+
+Ref: AuditLog.userId > User.sub
+
+Ref: AuditLog.banId > Ban.id
