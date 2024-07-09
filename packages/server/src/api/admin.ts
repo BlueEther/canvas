@@ -62,6 +62,13 @@ app.get("/canvas/size", async (req, res) => {
   });
 });
 
+/**
+ * Update canvas size
+ *
+ * @header X-Audit
+ * @body width number
+ * @body height number
+ */
 app.post("/canvas/size", async (req, res) => {
   const width = parseInt(req.body.width || "-1");
   const height = parseInt(req.body.height || "-1");
@@ -79,8 +86,14 @@ app.post("/canvas/size", async (req, res) => {
   }
 
   await Canvas.setSize(width, height);
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = AuditLog.Factory(user.sub)
+    .doing("CANVAS_SIZE")
+    .reason(req.header("X-Audit") || null)
+    .withComment(`Changed canvas size to ${width}x${height}`)
+    .create();
 
-  res.send({ success: true });
+  res.send({ success: true, auditLog });
 });
 
 app.put("/canvas/heatmap", async (req, res) => {
