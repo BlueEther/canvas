@@ -559,4 +559,94 @@ app.delete("/instance/:domain/ban", async (req, res) => {
   res.json({ success: true, audit });
 });
 
+/**
+ * Get all audit logs
+ *
+ * TODO: pagination
+ */
+app.get("/audit", async (req, res) => {
+  const auditLogs = await prisma.auditLog.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  res.json({ success: true, auditLogs });
+});
+
+/**
+ * Get audit log entry by ID
+ *
+ * @param :id Audit log ID
+ */
+app.get("/audit/:id", async (req, res) => {
+  let id = parseInt(req.params.id);
+
+  if (isNaN(id)) {
+    return res
+      .status(400)
+      .json({ success: false, error: "id is not a number" });
+  }
+
+  const auditLog = await prisma.auditLog.findFirst({ where: { id } });
+
+  if (!auditLog) {
+    return res
+      .status(404)
+      .json({ success: false, error: "Audit log not found" });
+  }
+
+  res.json({ success: true, auditLog });
+});
+
+/**
+ * Update audit log reason
+ *
+ * @param :id Audit log id
+ * @body reason string|null
+ */
+app.put("/audit/:id/reason", async (req, res) => {
+  let id = parseInt(req.params.id);
+  let reason: string;
+
+  if (isNaN(id)) {
+    return res
+      .status(400)
+      .json({ success: false, error: "id is not a number" });
+  }
+
+  if (typeof req.body.reason !== "string" && req.body.reason !== null) {
+    return res
+      .status(400)
+      .json({ success: false, error: "reason is not a string or null" });
+  }
+
+  reason = req.body.reason;
+
+  const auditLog = await prisma.auditLog.findFirst({
+    where: {
+      id,
+    },
+  });
+
+  if (!auditLog) {
+    return res
+      .status(404)
+      .json({ success: false, error: "audit log is not found" });
+  }
+
+  const newAudit = await prisma.auditLog.update({
+    where: { id },
+    data: {
+      reason,
+      updatedAt: new Date(),
+    },
+  });
+
+  res.json({
+    success: true,
+    auditLog: newAudit,
+  });
+});
+
 export default app;
