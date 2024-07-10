@@ -62,6 +62,13 @@ app.get("/canvas/size", async (req, res) => {
   });
 });
 
+/**
+ * Update canvas size
+ *
+ * @header X-Audit
+ * @body width number
+ * @body height number
+ */
 app.post("/canvas/size", async (req, res) => {
   const width = parseInt(req.body.width || "-1");
   const height = parseInt(req.body.height || "-1");
@@ -79,8 +86,14 @@ app.post("/canvas/size", async (req, res) => {
   }
 
   await Canvas.setSize(width, height);
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = AuditLog.Factory(user.sub)
+    .doing("CANVAS_SIZE")
+    .reason(req.header("X-Audit") || null)
+    .withComment(`Changed canvas size to ${width}x${height}`)
+    .create();
 
-  res.send({ success: true });
+  res.send({ success: true, auditLog });
 });
 
 app.put("/canvas/heatmap", async (req, res) => {
@@ -138,6 +151,13 @@ app.post("/canvas/stress", async (req, res) => {
 
 /**
  * Fill an area
+ *
+ * @header X-Audit
+ * @body start.x number
+ * @body start.y number
+ * @body end.x number
+ * @body end.y number
+ * @body color number Palette color index
  */
 app.put("/canvas/fill", async (req, res) => {
   if (
@@ -204,7 +224,16 @@ app.put("/canvas/fill", async (req, res) => {
     palette.id
   );
 
-  res.json({ success: true });
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = await AuditLog.Factory(user.sub)
+    .doing("CANVAS_FILL")
+    .reason(req.header("X-Audit") || null)
+    .withComment(
+      `Filled (${start_position.join(",")}) -> (${end_position.join(",")}) with ${palette.hex}`
+    )
+    .create();
+
+  res.json({ success: true, auditLog });
 });
 
 /**
@@ -308,7 +337,7 @@ app.put("/user/:sub/ban", async (req, res) => {
   user.updateStanding();
 
   const adminUser = (await User.fromAuthSession(req.session.user!))!;
-  const audit = await AuditLog.Factory(adminUser.sub)
+  const auditLog = await AuditLog.Factory(adminUser.sub)
     .doing(existingBan ? "BAN_UPDATE" : "BAN_CREATE")
     .reason(req.header("X-Audit") || null)
     .withComment(
@@ -319,7 +348,7 @@ app.put("/user/:sub/ban", async (req, res) => {
     .withBan(ban)
     .create();
 
-  res.json({ success: true, audit });
+  res.json({ success: true, auditLog });
 });
 
 /**
@@ -371,13 +400,13 @@ app.delete("/user/:sub/ban", async (req, res) => {
   user.updateStanding();
 
   const adminUser = (await User.fromAuthSession(req.session.user!))!;
-  const audit = await AuditLog.Factory(adminUser.sub)
+  const auditLog = await AuditLog.Factory(adminUser.sub)
     .doing("BAN_DELETE")
     .reason(req.header("X-Audit") || null)
     .withComment(`Deleted ban for ${user.sub}`)
     .create();
 
-  res.json({ success: true, audit });
+  res.json({ success: true, auditLog });
 });
 
 app.get("/instance/:domain/ban", async (req, res) => {
@@ -491,7 +520,7 @@ app.put("/instance/:domain/ban", async (req, res) => {
 
   const user = (await User.fromAuthSession(req.session.user!))!;
   const ban = await instance.ban(expires, publicNote, privateNote);
-  const audit = await AuditLog.Factory(user.sub)
+  const auditLog = await AuditLog.Factory(user.sub)
     .doing(hasExistingBan ? "BAN_UPDATE" : "BAN_CREATE")
     .reason(req.header("X-Audit") || null)
     .withComment(
@@ -505,7 +534,7 @@ app.put("/instance/:domain/ban", async (req, res) => {
   res.json({
     success: true,
     ban,
-    audit,
+    auditLog,
   });
 });
 
@@ -550,13 +579,13 @@ app.delete("/instance/:domain/ban", async (req, res) => {
   }
 
   const user = (await User.fromAuthSession(req.session.user!))!;
-  const audit = await AuditLog.Factory(user.sub)
+  const auditLog = await AuditLog.Factory(user.sub)
     .doing("BAN_DELETE")
     .reason(req.header("X-Audit") || null)
     .withComment(`Deleted ban for ${instance.hostname}`)
     .create();
 
-  res.json({ success: true, audit });
+  res.json({ success: true, auditLog });
 });
 
 /**
