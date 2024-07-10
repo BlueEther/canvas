@@ -134,6 +134,8 @@ Enum AuditLogAction {
   BAN_CREATE
   BAN_UPDATE
   BAN_DELETE
+  CANVAS_SIZE
+  CANVAS_FILL
 }
 
 Ref: Pixel.userId > User.sub
