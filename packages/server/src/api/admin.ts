@@ -337,7 +337,7 @@ app.put("/user/:sub/ban", async (req, res) => {
   user.updateStanding();
 
   const adminUser = (await User.fromAuthSession(req.session.user!))!;
-  const audit = await AuditLog.Factory(adminUser.sub)
+  const auditLog = await AuditLog.Factory(adminUser.sub)
     .doing(existingBan ? "BAN_UPDATE" : "BAN_CREATE")
     .reason(req.header("X-Audit") || null)
     .withComment(
@@ -348,7 +348,7 @@ app.put("/user/:sub/ban", async (req, res) => {
     .withBan(ban)
     .create();
 
-  res.json({ success: true, audit });
+  res.json({ success: true, auditLog });
 });
 
 /**
@@ -400,13 +400,13 @@ app.delete("/user/:sub/ban", async (req, res) => {
   user.updateStanding();
 
   const adminUser = (await User.fromAuthSession(req.session.user!))!;
-  const audit = await AuditLog.Factory(adminUser.sub)
+  const auditLog = await AuditLog.Factory(adminUser.sub)
     .doing("BAN_DELETE")
     .reason(req.header("X-Audit") || null)
     .withComment(`Deleted ban for ${user.sub}`)
     .create();
 
-  res.json({ success: true, audit });
+  res.json({ success: true, auditLog });
 });
 
 app.get("/instance/:domain/ban", async (req, res) => {
@@ -520,7 +520,7 @@ app.put("/instance/:domain/ban", async (req, res) => {
 
   const user = (await User.fromAuthSession(req.session.user!))!;
   const ban = await instance.ban(expires, publicNote, privateNote);
-  const audit = await AuditLog.Factory(user.sub)
+  const auditLog = await AuditLog.Factory(user.sub)
     .doing(hasExistingBan ? "BAN_UPDATE" : "BAN_CREATE")
     .reason(req.header("X-Audit") || null)
     .withComment(
@@ -534,7 +534,7 @@ app.put("/instance/:domain/ban", async (req, res) => {
   res.json({
     success: true,
     ban,
-    audit,
+    auditLog,
   });
 });
 
@@ -579,13 +579,13 @@ app.delete("/instance/:domain/ban", async (req, res) => {
   }
 
   const user = (await User.fromAuthSession(req.session.user!))!;
-  const audit = await AuditLog.Factory(user.sub)
+  const auditLog = await AuditLog.Factory(user.sub)
     .doing("BAN_DELETE")
     .reason(req.header("X-Audit") || null)
     .withComment(`Deleted ban for ${instance.hostname}`)
     .create();
 
-  res.json({ success: true, audit });
+  res.json({ success: true, auditLog });
 });
 
 /**
