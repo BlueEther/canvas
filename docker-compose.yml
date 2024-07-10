@@ -9,9 +9,11 @@ services:
     build: .
     ports:
       - "3000:3000"
+      # - "9229:9229"
     environment:
       - REDIS_HOST=redis://redis
       - DATABASE_URL=postgres://postgres@postgres/canvas
+      # - SCRIPT_TO_RUN=profiler
     env_file:
       - .env.local
     depends_on:

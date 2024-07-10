@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "DOTENV_CONFIG_PATH=.env.local tsx watch -r dotenv/config src/index.ts",
     "start": "node --enable-source-maps dist/index.js",
+    "profiler": "node --inspect=0.0.0.0:9229 --enable-source-maps dist/index.js",
     "build": "tsc",
     "lint": "eslint .",
     "prisma:studio": "BROWSER=none prisma studio",

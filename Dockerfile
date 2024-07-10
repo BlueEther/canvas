@@ -109,5 +109,7 @@ ENV SERVE_CLIENT /home/node/app/packages/client
 ENV SERVE_ADMIN /home/node/app/packages/admin
 
 EXPOSE 3000
+# profiler port, only used if profiler is explicity running
+EXPOSE 9229
 ENTRYPOINT [ "/bin/sh" ]
 CMD [ "./docker-start.sh" ]
