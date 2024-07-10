@@ -151,6 +151,13 @@ app.post("/canvas/stress", async (req, res) => {
 
 /**
  * Fill an area
+ *
+ * @header X-Audit
+ * @body start.x number
+ * @body start.y number
+ * @body end.x number
+ * @body end.y number
+ * @body color number Palette color index
  */
 app.put("/canvas/fill", async (req, res) => {
   if (
@@ -217,7 +224,16 @@ app.put("/canvas/fill", async (req, res) => {
     palette.id
   );
 
-  res.json({ success: true });
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = await AuditLog.Factory(user.sub)
+    .doing("CANVAS_FILL")
+    .reason(req.header("X-Audit") || null)
+    .withComment(
+      `Filled (${start_position.join(",")}) -> (${end_position.join(",")}) with ${palette.hex}`
+    )
+    .create();
+
+  res.json({ success: true, auditLog });
 });
 
 /**

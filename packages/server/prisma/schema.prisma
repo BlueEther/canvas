@@ -153,6 +153,7 @@ enum AuditLogAction {
   BAN_UPDATE
   BAN_DELETE
   CANVAS_SIZE
+  CANVAS_FILL
 }
 
 model AuditLog {
