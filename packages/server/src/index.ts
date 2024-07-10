@@ -6,6 +6,7 @@ import { ExpressServer } from "./lib/Express";
 import { SocketServer } from "./lib/SocketServer";
 import { OpenID } from "./lib/oidc";
 import { loadSettings } from "./lib/Settings";
+import "./workers/worker";
 
 const Logger = getLogger("MAIN");
 

@@ -4,6 +4,7 @@ import { Redis } from "./redis";
 import { SocketServer } from "./SocketServer";
 import { getLogger } from "./Logger";
 import { Pixel } from "@prisma/client";
+import { CanvasWorker } from "../workers/worker";
 
 const Logger = getLogger("CANVAS");
 
@@ -162,50 +163,29 @@ class Canvas {
   }
 
   /**
-   * Database pixels -> single Redis comma separated list of hex
-   * @returns 1D array of pixel values
+   * Converts database pixels to Redis string
+   *
+   * @worker
+   * @returns
    */
-  async canvasToRedis() {
-    const now = Date.now();
-    Logger.info("Starting canvasToRedis...");
-    const redis = await Redis.getClient();
+  canvasToRedis(): Promise<string[]> {
+    return new Promise((res) => {
+      Logger.info("Triggering canvasToRedis()");
+      const [width, height] = this.getCanvasConfig().size;
 
-    const dbpixels = await prisma.pixel.findMany({
-      where: {
-        x: {
-          gte: 0,
-          lt: this.getCanvasConfig().size[0],
-        },
-        y: {
-          gte: 0,
-          lt: this.getCanvasConfig().size[1],
-        },
-        isTop: true,
-      },
+      CanvasWorker.once("message", (msg) => {
+        if (msg.type === "canvasToRedis") {
+          Logger.info("Finished canvasToRedis()");
+          res(msg.data);
+        }
+      });
+
+      CanvasWorker.postMessage({
+        type: "canvasToRedis",
+        width,
+        height,
+      });
     });
-
-    const pixels: string[] = [];
-
-    // (y -> x) because of how the conversion needs to be done later
-    // if this is inverted, the map will flip when rebuilding the cache (5 minute expiry)
-    // fixes #24
-    for (let y = 0; y < this.canvasSize[1]; y++) {
-      for (let x = 0; x < this.canvasSize[0]; x++) {
-        pixels.push(
-          dbpixels.find((px) => px.x === x && px.y === y)?.color ||
-            "transparent"
-        );
-      }
-    }
-
-    await redis.set(Redis.key("canvas"), pixels.join(","), { EX: 60 * 5 });
-
-    Logger.info(
-      "Finished canvasToRedis in " +
-        ((Date.now() - now) / 1000).toFixed(2) +
-        "s"
-    );
-    return pixels;
   }
 
   /**
@@ -450,7 +430,7 @@ class Canvas {
     await redis_set.setEx(Redis.key("heatmap"), 60 * 5, heatmapStr);
 
     // notify anyone interested about the new heatmap
-    await redis_sub.publish(Redis.key("channel_heatmap"), heatmapStr);
+    await redis_set.publish(Redis.key("channel_heatmap"), heatmapStr);
     // SocketServer.instance.io.to("sub:heatmap").emit("heatmap", heatmapStr);
 
     return heatmapStr;

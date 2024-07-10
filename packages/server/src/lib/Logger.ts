@@ -36,6 +36,8 @@ export const LoggerType = createEnum([
   "REDIS",
   "SOCKET",
   "JOB_WORKER",
+  "CANVAS_WORK",
+  "WORKER_ROOT",
 ]);
 
 export const getLogger = (module?: keyof typeof LoggerType) =>
