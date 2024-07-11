@@ -233,6 +233,11 @@ export class SocketServer {
     });
 
     socket.on("place", async (pixel, bypassCooldown, ack) => {
+      if (getClientConfig().canvas.frozen) {
+        ack({ success: false, error: "canvas_frozen" });
+        return;
+      }
+
       if (!user) {
         ack({ success: false, error: "no_user" });
         return;
@@ -317,6 +322,11 @@ export class SocketServer {
     });
 
     socket.on("undo", async (ack) => {
+      if (getClientConfig().canvas.frozen) {
+        ack({ success: false, error: "canvas_frozen" });
+        return;
+      }
+
       if (!user) {
         ack({ success: false, error: "no_user" });
         return;

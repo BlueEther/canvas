@@ -136,6 +136,8 @@ Enum AuditLogAction {
   BAN_DELETE
   CANVAS_SIZE
   CANVAS_FILL
+  CANVAS_FREEZE
+  CANVAS_UNFREEZE
 }
 
 Ref: Pixel.userId > User.sub

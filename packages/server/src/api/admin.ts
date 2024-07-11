@@ -96,6 +96,49 @@ app.post("/canvas/size", async (req, res) => {
   res.send({ success: true, auditLog });
 });
 
+/**
+ * Get canvas frozen status
+ */
+app.get("/canvas/freeze", async (req, res) => {
+  res.send({ success: true, frozen: Canvas.frozen });
+});
+
+/**
+ * Freeze the canvas
+ *
+ * @header X-Audit
+ */
+app.post("/canvas/freeze", async (req, res) => {
+  await Canvas.setFrozen(true);
+
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = AuditLog.Factory(user.sub)
+    .doing("CANVAS_FREEZE")
+    .reason(req.header("X-Audit") || null)
+    .withComment(`Freezed the canvas`)
+    .create();
+
+  res.send({ success: true, auditLog });
+});
+
+/**
+ * Unfreeze the canvas
+ *
+ * @header X-Audit
+ */
+app.delete("/canvas/freeze", async (req, res) => {
+  await Canvas.setFrozen(false);
+
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = AuditLog.Factory(user.sub)
+    .doing("CANVAS_UNFREEZE")
+    .reason(req.header("X-Audit") || null)
+    .withComment(`Un-Freezed the canvas`)
+    .create();
+
+  res.send({ success: true, auditLog });
+});
+
 app.put("/canvas/heatmap", async (req, res) => {
   try {
     await Canvas.generateHeatmap();

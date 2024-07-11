@@ -14,6 +14,10 @@ async function main() {
         height: 100,
       },
     },
+    {
+      key: "canvas.frozen",
+      defaultValue: false,
+    },
   ];
 
   for (const setting of SETTINGS) {

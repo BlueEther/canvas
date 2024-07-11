@@ -2,6 +2,7 @@ import { Button } from "@nextui-org/react";
 import { useAppContext } from "../../contexts/AppContext";
 import network from "../../lib/network";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export const UndoButton = () => {
   const { undo, config } = useAppContext<true>();
@@ -34,7 +35,21 @@ export const UndoButton = () => {
   // ref-ify this?
   function execUndo() {
     network.socket.emitWithAck("undo").then((data) => {
-      console.log("undo", data);
+      if (data.success) {
+        console.log("Undo pixel successful");
+      } else {
+        console.log("Undo pixel error", data);
+        switch (data.error) {
+          case "pixel_covered":
+            toast.error("You cannot undo a covered pixel");
+            break;
+          case "unavailable":
+            toast.error("You have no undo available");
+            break;
+          default:
+            toast.error("Undo error: " + data.error);
+        }
+      }
     });
   }
 
