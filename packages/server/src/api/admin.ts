@@ -280,16 +280,16 @@ app.put("/canvas/undo", async (req, res) => {
     }
   }
 
-  // const user = (await User.fromAuthSession(req.session.user!))!;
-  // const auditLog = await AuditLog.Factory(user.sub)
-  //   .doing("CANVAS_FILL")
-  //   .reason(req.header("X-Audit") || null)
-  //   .withComment(
-  //     `Filled (${start_position.join(",")}) -> (${end_position.join(",")}) with ${palette.hex}`
-  //   )
-  //   .create();
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = await AuditLog.Factory(user.sub)
+    .doing("CANVAS_AREA_UNDO")
+    .reason(req.header("X-Audit") || null)
+    .withComment(
+      `Area undo (${start_position.join(",")}) -> (${end_position.join(",")})`
+    )
+    .create();
 
-  res.json({ success: true });
+  res.json({ success: true, auditLog });
 });
 
 /**
