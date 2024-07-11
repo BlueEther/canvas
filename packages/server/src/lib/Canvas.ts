@@ -5,6 +5,7 @@ import { SocketServer } from "./SocketServer";
 import { getLogger } from "./Logger";
 import { Pixel } from "@prisma/client";
 import { CanvasWorker } from "../workers/worker";
+import { LogMan } from "./LogMan";
 
 const Logger = getLogger("CANVAS");
 
@@ -144,9 +145,14 @@ class Canvas {
       },
     });
 
-    const coveringPixel = (
+    const coveringPixel: Pixel | undefined = (
       await prisma.pixel.findMany({
-        where: { x: pixel.x, y: pixel.y, createdAt: { lt: pixel.createdAt } },
+        where: {
+          x: pixel.x,
+          y: pixel.y,
+          createdAt: { lt: pixel.createdAt },
+          deletedAt: null, // undone pixels will have this set
+        },
         orderBy: { createdAt: "desc" },
         take: 1,
       })
@@ -160,6 +166,12 @@ class Canvas {
         },
       });
     }
+
+    LogMan.log("pixel_undo", pixel.userId, {
+      x: pixel.x,
+      y: pixel.y,
+      hex: coveringPixel?.color,
+    });
   }
 
   /**
@@ -312,6 +324,8 @@ class Canvas {
         hex,
       }))
     );
+
+    LogMan.log("mod_fill", user.sub, { from: start, to: end, hex });
   }
 
   async setPixel(
@@ -350,6 +364,7 @@ class Canvas {
     await this.updateCanvasRedisAtPos(x, y);
 
     Logger.info(`${user.sub} placed pixel at (${x}, ${y})`);
+    LogMan.log("pixel_place", user.sub, { x, y, hex });
   }
 
   /**

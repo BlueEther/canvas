@@ -60,6 +60,8 @@ declare global {
       MATRIX_HOMESERVER: string;
       ELEMENT_HOST: string;
       MATRIX_GENERAL_ALIAS: string;
+
+      PIXEL_LOG_PATH?: string;
     }
   }
 }
