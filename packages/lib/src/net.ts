@@ -40,6 +40,7 @@ export interface ClientToServerEvents {
     ack: (
       _: PacketAck<
         Pixel,
+        | "canvas_frozen"
         | "no_user"
         | "invalid_pixel"
         | "pixel_cooldown"
@@ -50,7 +51,12 @@ export interface ClientToServerEvents {
     ) => void
   ) => void;
   undo: (
-    ack: (_: PacketAck<{}, "no_user" | "unavailable" | "pixel_covered">) => void
+    ack: (
+      _: PacketAck<
+        {},
+        "canvas_frozen" | "no_user" | "unavailable" | "pixel_covered"
+      >
+    ) => void
   ) => void;
 
   subscribe: (topic: Subscription) => void;
@@ -141,6 +147,7 @@ export type PalleteColor = {
 
 export type CanvasConfig = {
   size: [number, number];
+  frozen: boolean;
   zoom: number;
   pixel: {
     maxStack: number;
