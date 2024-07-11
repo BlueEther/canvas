@@ -136,6 +136,9 @@ app.get("/canvas/freeze", async (req, res) => {
 app.post("/canvas/freeze", async (req, res) => {
   await Canvas.setFrozen(true);
 
+  // same reason as canvas size changes, we log this here because #setFrozen is ran at startup
+  LogMan.log("canvas_freeze", {});
+
   const user = (await User.fromAuthSession(req.session.user!))!;
   const auditLog = AuditLog.Factory(user.sub)
     .doing("CANVAS_FREEZE")
@@ -153,6 +156,9 @@ app.post("/canvas/freeze", async (req, res) => {
  */
 app.delete("/canvas/freeze", async (req, res) => {
   await Canvas.setFrozen(false);
+
+  // same reason as canvas size changes, we log this here because #setFrozen is ran at startup
+  LogMan.log("canvas_unfreeze", {});
 
   const user = (await User.fromAuthSession(req.session.user!))!;
   const auditLog = AuditLog.Factory(user.sub)
