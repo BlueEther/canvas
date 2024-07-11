@@ -395,7 +395,11 @@ class Canvas {
     await this.updateCanvasRedisAtPos(x, y);
 
     Logger.info(`${user.sub} placed pixel at (${x}, ${y})`);
-    LogMan.log("pixel_place", user.sub, { x, y, hex });
+    LogMan.log(isModAction ? "mod_override" : "pixel_place", user.sub, {
+      x,
+      y,
+      hex,
+    });
   }
 
   /**
