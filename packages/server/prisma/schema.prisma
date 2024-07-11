@@ -154,6 +154,8 @@ enum AuditLogAction {
   BAN_DELETE
   CANVAS_SIZE
   CANVAS_FILL
+  CANVAS_FREEZE
+  CANVAS_UNFREEZE
 }
 
 model AuditLog {

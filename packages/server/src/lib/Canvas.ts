@@ -14,14 +14,17 @@ class Canvas {
    * Size of the canvas
    */
   private canvasSize: [width: number, height: number];
+  private isFrozen: boolean;
 
   constructor() {
     this.canvasSize = [100, 100];
+    this.isFrozen = false;
   }
 
   getCanvasConfig(): CanvasConfig {
     return {
       size: this.canvasSize,
+      frozen: this.isFrozen,
       zoom: 7,
       pixel: {
         cooldown: 10,
@@ -32,6 +35,34 @@ class Canvas {
         grace_period: 5000,
       },
     };
+  }
+
+  get frozen() {
+    return this.isFrozen;
+  }
+
+  async setFrozen(frozen: boolean) {
+    this.isFrozen = frozen;
+
+    await prisma.setting.upsert({
+      where: { key: "canvas.frozen" },
+      create: {
+        key: "canvas.frozen",
+        value: JSON.stringify(frozen),
+      },
+      update: {
+        key: "canvas.frozen",
+        value: JSON.stringify(frozen),
+      },
+    });
+
+    if (SocketServer.instance) {
+      SocketServer.instance.broadcastConfig();
+    } else {
+      Logger.warn(
+        "[Canvas#setFrozen] SocketServer is not instantiated, cannot broadcast config"
+      );
+    }
   }
 
   /**
