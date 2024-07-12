@@ -303,6 +303,13 @@ app.put("/canvas/undo", async (req, res) => {
             ? paletteColors.find((p) => p.hex === coveredPixel.color)?.id || -1
             : -1,
         });
+
+        // TODO: this spams the log, it would be nicer if it combined
+        LogMan.log("mod_rollback", user_sub, {
+          x: pixel.pixel.x,
+          y: pixel.pixel.y,
+          hex: coveredPixel?.color,
+        });
         break;
       }
       case "rejected":
