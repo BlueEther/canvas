@@ -11,7 +11,7 @@ import { Ban, User as UserDB } from "@prisma/client";
 import { Instance } from "./Instance";
 import { ConditionalPromise } from "../lib/utils";
 import { CanvasLib } from "@sc07-canvas/lib/src/canvas";
-import { getClientConfig } from "../lib/SocketServer.ts";
+import { getClientConfig } from "../lib/SocketServer";
 const Logger = getLogger();
 
 /**
@@ -38,7 +38,7 @@ export class User {
   static instances: Map<string, User> = new Map();
 
   sub: string;
-  lastPlastTimeGainStartedixelTime: Date;
+  lastTimeGainStarted: Date;
   pixelStack: number;
   authSession?: AuthSession;
   undoExpires?: Date;
@@ -131,7 +131,9 @@ export class User {
         );
       }
 
-      new_date = new Date(this.lastTimeGainStarted.valueOf() + cooldown_to_add * 1000);
+      new_date = new Date(
+        this.lastTimeGainStarted.valueOf() + cooldown_to_add * 1000
+      );
     } else if (modifyBy < 0) {
       const cooldown_before_change_s = CanvasLib.getPixelCooldown(
         this.pixelStack + 1,
@@ -141,12 +143,16 @@ export class User {
         this.pixelStack + 1 + modifyBy,
         getClientConfig()
       );
-      const would_gain_next_at_timestamp_ms = this.lastTimeGainStarted.valueOf() + cooldown_before_change_s * 1000;
-      const time_before_next = would_gain_next_at_timestamp_ms - Date.now().valueOf();
+      const would_gain_next_at_timestamp_ms =
+        this.lastTimeGainStarted.valueOf() + cooldown_before_change_s * 1000;
+      const time_before_next =
+        would_gain_next_at_timestamp_ms - Date.now().valueOf();
       // To avoid issue if a negative value is present for some reason
       if (time_before_next > 0) {
         if (time_before_next < cooldown_after_change_s * 1000) {
-          new_date = new Date(Date.now() - cooldown_after_change_s * 1000 + time_before_next);
+          new_date = new Date(
+            Date.now() - cooldown_after_change_s * 1000 + time_before_next
+          );
         }
       }
     }
@@ -155,7 +161,7 @@ export class User {
       where: { sub: this.sub },
       data: {
         pixelStack: { increment: modifyBy },
-        lastTimeGainStarted: new_date
+        lastTimeGainStarted: new_date,
       },
     });
 
