@@ -1,5 +1,10 @@
 import winston, { format } from "winston";
+import path from "node:path";
 import { createEnum } from "./utils";
+
+// if PIXEL_LOG_PATH is defined, use that, otherwise default to packages/server root
+const PIXEL_LOG_PATH =
+  process.env.PIXEL_LOG_PATH || path.join(__dirname, "..", "..", "pixels.log");
 
 const formatter = format.printf((options) => {
   let maxModuleWidth = 0;
@@ -26,6 +31,18 @@ const Winston = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
+// Used by LogMan for writing to pixels.log
+export const PixelLogger = winston.createLogger({
+  format: format.printf((options) => {
+    return [new Date().toISOString(), options.message].join("\t");
+  }),
+  transports: [
+    new winston.transports.File({
+      filename: PIXEL_LOG_PATH,
+    }),
+  ],
+});
+
 export const LoggerType = createEnum([
   "MAIN",
   "SETTINGS",
@@ -38,6 +55,7 @@ export const LoggerType = createEnum([
   "JOB_WORKER",
   "CANVAS_WORK",
   "WORKER_ROOT",
+  "RECAPTCHA",
 ]);
 
 export const getLogger = (module?: keyof typeof LoggerType) =>

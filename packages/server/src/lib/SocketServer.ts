@@ -15,6 +15,7 @@ import { prisma } from "./prisma";
 import { getLogger } from "./Logger";
 import { Redis } from "./redis";
 import { User } from "../models/User";
+import { Recaptcha } from "./Recaptcha";
 
 const Logger = getLogger("SOCKET");
 
@@ -194,6 +195,9 @@ export class SocketServer {
       );
     }
 
+    if (process.env.RECAPTCHA_SITE_KEY)
+      socket.emit("recaptcha", process.env.RECAPTCHA_SITE_KEY);
+
     socket.emit("config", getClientConfig());
     {
       let _clientNotifiedAboutCache = false;
@@ -297,6 +301,8 @@ export class SocketServer {
         ack({ success: false, error: "you_already_placed_that" });
         return;
       }
+
+      Recaptcha.maybeChallenge(socket);
 
       await user.modifyStack(-1);
       await Canvas.setPixel(
