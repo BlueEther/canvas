@@ -138,6 +138,7 @@ Enum AuditLogAction {
   CANVAS_FILL
   CANVAS_FREEZE
   CANVAS_UNFREEZE
+  CANVAS_AREA_UNDO
 }
 
 Ref: Pixel.userId > User.sub
