@@ -133,7 +133,7 @@ export class SocketServer {
           getClientConfig()
         );
 
-        await user.update();
+        await user.update(true);
 
         // this impl has the side affect of giving previously offline users all the stack upon reconnecting
         if (
