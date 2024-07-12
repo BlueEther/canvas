@@ -152,72 +152,82 @@ app.get("/callback", RateLimiter.HIGH, async (req, res) => {
     });
   }
 
-  const whoami = await OpenID.client.userinfo<{
-    instance: {
-      software: {
-        name: string;
-        version: string;
-        logo_uri?: string;
-        repository?: string;
-        homepage?: string;
-      };
+  try {
+    const whoami = await OpenID.client.userinfo<{
       instance: {
-        logo_uri?: string;
-        banner_uri?: string;
-        name?: string;
+        software: {
+          name: string;
+          version: string;
+          logo_uri?: string;
+          repository?: string;
+          homepage?: string;
+        };
+        instance: {
+          logo_uri?: string;
+          banner_uri?: string;
+          name?: string;
+        };
       };
-    };
-  }>(exchange.access_token);
+    }>(exchange.access_token);
 
-  const [username, hostname] = whoami.sub.split("@");
+    const [username, hostname] = whoami.sub.split("@");
 
-  const instance = await Instance.fromAuth(hostname, whoami.instance.instance);
-  const instanceBan = await instance.getEffectiveBan();
-  if (instanceBan) {
-    res.redirect(
-      "/" +
-        buildQuery({
-          TYPE: "banned",
-          ERROR_DESC: instanceBan.publicNote || undefined,
-        })
+    const instance = await Instance.fromAuth(
+      hostname,
+      whoami.instance.instance
     );
-    return;
-  }
+    const instanceBan = await instance.getEffectiveBan();
+    if (instanceBan) {
+      res.redirect(
+        "/" +
+          buildQuery({
+            TYPE: "banned",
+            ERROR_DESC: instanceBan.publicNote || undefined,
+          })
+      );
+      return;
+    }
 
-  const sub = [username, hostname].join("@");
-  await prisma.user.upsert({
-    where: {
-      sub,
-    },
-    update: {
-      sub,
-      display_name: whoami.name,
-      picture_url: whoami.picture,
-      profile_url: whoami.profile,
-    },
-    create: {
-      sub,
-      display_name: whoami.name,
-      picture_url: whoami.picture,
-      profile_url: whoami.profile,
-    },
-  });
-
-  req.session.user = {
-    service: {
-      ...whoami.instance,
-      instance: {
-        ...whoami.instance.instance,
-        hostname,
+    const sub = [username, hostname].join("@");
+    await prisma.user.upsert({
+      where: {
+        sub,
       },
-    },
-    user: {
-      picture_url: whoami.picture,
-      username,
-    },
-  };
-  req.session.save();
-  res.redirect("/");
+      update: {
+        sub,
+        display_name: whoami.name,
+        picture_url: whoami.picture,
+        profile_url: whoami.profile,
+      },
+      create: {
+        sub,
+        display_name: whoami.name,
+        picture_url: whoami.picture,
+        profile_url: whoami.profile,
+      },
+    });
+
+    req.session.user = {
+      service: {
+        ...whoami.instance,
+        instance: {
+          ...whoami.instance.instance,
+          hostname,
+        },
+      },
+      user: {
+        picture_url: whoami.picture,
+        username,
+      },
+    };
+    req.session.save();
+    res.redirect("/");
+  } catch (e) {
+    console.error("callback error", e);
+    res
+      .status(500)
+      .json({ success: false, error: "internal error, try again" });
+  }
 });
 
 app.get("/canvas/pixel/:x/:y", RateLimiter.HIGH, async (req, res) => {
