@@ -1,0 +1,1 @@
+ALTER TABLE "User" RENAME COLUMN "lastPixelTime" TO "lastTimeGainStarted";

@@ -430,11 +430,6 @@ class Canvas {
       },
     });
 
-    await prisma.user.update({
-      where: { sub: user.sub },
-      data: { lastPixelTime: new Date() },
-    });
-
     // maybe only update specific element?
     // i don't think it needs to be awaited
     await this.updateCanvasRedisAtPos(x, y);

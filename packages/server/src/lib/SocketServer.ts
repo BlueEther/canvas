@@ -63,7 +63,7 @@ prisma.paletteColor
     Logger.error("Failed to get pallete colors", e);
   });
 
-const getClientConfig = (): ClientConfig => {
+export const getClientConfig = (): ClientConfig => {
   return {
     version: commitHash,
     pallete: {
@@ -122,12 +122,9 @@ export class SocketServer {
           continue;
         }
 
-        // time in seconds since last pixel placement
-        // TODO: this causes a mismatch between placement times
-        //       - going from 0 stack to 6 stack has a steady increase between each
-        //       - going from 3 stack to 6 stack takes longer
+        // time in seconds since last stack gain (including a potential bonus depending on previously remaining time)
         const timeSinceLastPlace =
-          (Date.now() - user.lastPixelTime.getTime()) / 1000;
+          (Date.now() - user.lastTimeGainStarted.getTime()) / 1000;
         const cooldown = CanvasLib.getPixelCooldown(
           user.pixelStack + 1,
           getClientConfig()
@@ -180,7 +177,7 @@ export class SocketServer {
 
     if (user) {
       socket.emit("availablePixels", user.pixelStack);
-      socket.emit("pixelLastPlaced", user.lastPixelTime.getTime());
+      socket.emit("pixelLastPlaced", user.lastTimeGainStarted.getTime());
 
       const ban = user.getBan();
       socket.emit(

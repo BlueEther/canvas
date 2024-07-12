@@ -10,7 +10,8 @@ import {
 import { Ban, User as UserDB } from "@prisma/client";
 import { Instance } from "./Instance";
 import { ConditionalPromise } from "../lib/utils";
-
+import { CanvasLib } from "@sc07-canvas/lib/src/canvas";
+import { getClientConfig } from "../lib/SocketServer.ts";
 const Logger = getLogger();
 
 /**
@@ -37,7 +38,7 @@ export class User {
   static instances: Map<string, User> = new Map();
 
   sub: string;
-  lastPixelTime: Date;
+  lastPlastTimeGainStartedixelTime: Date;
   pixelStack: number;
   authSession?: AuthSession;
   undoExpires?: Date;
@@ -54,7 +55,7 @@ export class User {
     Logger.debug("User class instansiated for " + data.sub);
 
     this.sub = data.sub;
-    this.lastPixelTime = data.lastPixelTime;
+    this.lastTimeGainStarted = data.lastTimeGainStarted;
     this.pixelStack = data.pixelStack;
     this.undoExpires = data.undoExpires || undefined;
 
@@ -80,7 +81,7 @@ export class User {
 
     if (!userData) throw new UserNotFound();
 
-    this.lastPixelTime = userData.lastPixelTime;
+    this.lastTimeGainStarted = userData.lastTimeGainStarted;
     this.pixelStack = userData.pixelStack;
     this.undoExpires = userData.undoExpires || undefined;
     this.isAdmin = userData.isAdmin;
@@ -120,15 +121,47 @@ export class User {
   }
 
   async modifyStack(modifyBy: number): Promise<any> {
+    let new_date = new Date();
+    if (modifyBy > 0) {
+      let cooldown_to_add = 0.0;
+      for (let i = 0; i < modifyBy; i++) {
+        cooldown_to_add += CanvasLib.getPixelCooldown(
+          this.pixelStack + i + 1,
+          getClientConfig()
+        );
+      }
+
+      new_date = new Date(this.lastTimeGainStarted.valueOf() + cooldown_to_add * 1000);
+    } else if (modifyBy < 0) {
+      const cooldown_before_change_s = CanvasLib.getPixelCooldown(
+        this.pixelStack + 1,
+        getClientConfig()
+      );
+      const cooldown_after_change_s = CanvasLib.getPixelCooldown(
+        this.pixelStack + 1 + modifyBy,
+        getClientConfig()
+      );
+      const would_gain_next_at_timestamp_ms = this.lastTimeGainStarted.valueOf() + cooldown_before_change_s * 1000;
+      const time_before_next = would_gain_next_at_timestamp_ms - Date.now().valueOf();
+      // To avoid issue if a negative value is present for some reason
+      if (time_before_next > 0) {
+        if (time_before_next < cooldown_after_change_s * 1000) {
+          new_date = new Date(Date.now() - cooldown_after_change_s * 1000 + time_before_next);
+        }
+      }
+    }
+
     const updatedUser = await prisma.user.update({
       where: { sub: this.sub },
       data: {
         pixelStack: { increment: modifyBy },
+        lastTimeGainStarted: new_date
       },
     });
 
     for (const socket of this.sockets) {
       socket.emit("availablePixels", updatedUser.pixelStack);
+      socket.emit("pixelLastPlaced", updatedUser.lastTimeGainStarted.getTime());
     }
 
     // we just modified the user data, so we should force an update
