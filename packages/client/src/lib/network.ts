@@ -11,6 +11,7 @@ import {
 } from "@sc07-canvas/lib/src/net";
 import { toast } from "react-toastify";
 import { handleAlert, handleDismiss } from "./alerts";
+import { Recaptcha } from "./recaptcha";
 
 export interface INetworkEvents {
   connected: () => void;
@@ -89,6 +90,14 @@ class Network extends EventEmitter<INetworkEvents> {
 
     this.socket.io.on("reconnect_failed", () => {
       console.log("Reconnect failed");
+    });
+
+    this.socket.on("recaptcha", (site_key) => {
+      Recaptcha.load(site_key);
+    });
+
+    this.socket.on("recaptcha_challenge", (ack) => {
+      Recaptcha.executeChallenge(ack);
     });
 
     this.socket.on("user", (user) => {

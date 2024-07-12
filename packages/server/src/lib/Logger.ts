@@ -38,6 +38,7 @@ export const LoggerType = createEnum([
   "JOB_WORKER",
   "CANVAS_WORK",
   "WORKER_ROOT",
+  "RECAPTCHA",
 ]);
 
 export const getLogger = (module?: keyof typeof LoggerType) =>

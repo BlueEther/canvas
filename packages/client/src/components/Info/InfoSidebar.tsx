@@ -62,6 +62,7 @@ export const InfoSidebar = () => {
           </div>
         </Button>
         <b>Build {__COMMIT_HASH__}</b>
+        <div id="grecaptcha-badge"></div>
       </section>
     </div>
   );
