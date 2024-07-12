@@ -132,6 +132,8 @@ export class SocketServer {
           getClientConfig()
         );
 
+        await user.update();
+
         // this impl has the side affect of giving previously offline users all the stack upon reconnecting
         if (
           timeSinceLastPlace >= cooldown &&
