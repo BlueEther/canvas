@@ -81,6 +81,10 @@ if (!process.env.INHIBIT_LOGIN) {
   }
 }
 
+if (!process.env.PIXEL_LOG_PATH) {
+  Logger.warn("PIXEL_LOG_PATH is not defined, defaulting to packages/server");
+}
+
 // run startup tasks, all of these need to be completed to serve
 Promise.all([
   Redis.getClient(),

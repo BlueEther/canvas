@@ -5,6 +5,7 @@ import { SocketServer } from "./SocketServer";
 import { getLogger } from "./Logger";
 import { Pixel } from "@prisma/client";
 import { CanvasWorker } from "../workers/worker";
+import { LogMan } from "./LogMan";
 
 const Logger = getLogger("CANVAS");
 
@@ -182,7 +183,7 @@ class Canvas {
           x: pixel.x,
           y: pixel.y,
           createdAt: { lt: pixel.createdAt },
-          deletedAt: null,
+          deletedAt: null, // undone pixels will have this set
         },
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -198,6 +199,11 @@ class Canvas {
       });
     }
 
+    LogMan.log("pixel_undo", pixel.userId, {
+      x: pixel.x,
+      y: pixel.y,
+      hex: coveringPixel?.color,
+    });
     return coveringPixel;
   }
 
@@ -392,6 +398,8 @@ class Canvas {
         hex,
       }))
     );
+
+    LogMan.log("mod_fill", user.sub, { from: start, to: end, hex });
   }
 
   async setPixel(
@@ -430,6 +438,11 @@ class Canvas {
     await this.updateCanvasRedisAtPos(x, y);
 
     Logger.info(`${user.sub} placed pixel at (${x}, ${y})`);
+    LogMan.log(isModAction ? "mod_override" : "pixel_place", user.sub, {
+      x,
+      y,
+      hex,
+    });
   }
 
   /**
