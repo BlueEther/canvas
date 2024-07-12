@@ -52,6 +52,7 @@ RUN sed -i -e 's/"main": ".*"/"main": ".\/dist\/index.js"/' packages/lib/package
 # --- build main client ---
 
 ARG VITE_INCLUDE_EVENT_INFO
+ARG VITE_BUGSNAG_KEY
 RUN npm -w packages/client run build
 
 # --- build admin ---
