@@ -132,7 +132,7 @@ class Canvas {
       for (let y = 0; y < this.canvasSize[1]; y++) {
         const pixel = (
           await prisma.pixel.findMany({
-            where: { x, y },
+            where: { x, y, deletedAt: null },
             orderBy: {
               createdAt: "desc",
             },
@@ -164,8 +164,9 @@ class Canvas {
    * Undo a pixel
    * @throws Error "Pixel is not on top"
    * @param pixel
+   * @returns the pixel that now exists at that location
    */
-  async undoPixel(pixel: Pixel) {
+  async undoPixel(pixel: Pixel): Promise<Pixel | undefined> {
     if (!pixel.isTop) throw new Error("Pixel is not on top");
 
     await prisma.pixel.update({
@@ -203,6 +204,7 @@ class Canvas {
       y: pixel.y,
       hex: coveringPixel?.color,
     });
+    return coveringPixel;
   }
 
   /**
@@ -299,6 +301,47 @@ class Canvas {
         y,
         isTop: true,
       },
+    });
+  }
+
+  /**
+   * Undo an area of pixels
+   * @param start
+   * @param end
+   * @returns
+   */
+  async undoArea(start: [x: number, y: number], end: [x: number, y: number]) {
+    const now = Date.now();
+    Logger.info("Starting undo area...");
+
+    const pixels = await prisma.pixel.findMany({
+      where: {
+        x: {
+          gte: start[0],
+          lt: end[0],
+        },
+        y: {
+          gte: start[1],
+          lt: end[1],
+        },
+        isTop: true,
+      },
+    });
+
+    const returns = await Promise.allSettled(
+      pixels.map((pixel) => this.undoPixel(pixel))
+    );
+
+    Logger.info(
+      "Finished undo area in " + ((Date.now() - now) / 1000).toFixed(2) + "s"
+    );
+    return returns.map((val, i) => {
+      const pixel = pixels[i];
+
+      return {
+        pixel: { x: pixel.x, y: pixel.y },
+        ...val,
+      };
     });
   }
 

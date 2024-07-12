@@ -50,33 +50,29 @@ export const OnlineUsers = new client.Gauge({
 });
 
 /**
- * Rough estimate of empty pixels
+ * Rough estimate of filled pixels
  */
-export const EmptyPixels = new client.Gauge({
-  name: "empty_pixels",
-  help: "total number of empty pixels",
+export const FilledPixels = new client.Gauge({
+  name: "filled_pixels",
+  help: "total number of filled pixels",
 
   async collect() {
-    let queries: Promise<boolean>[] = [];
+    const [width, height] = Canvas.getCanvasConfig().size;
+    const filledPixels = await prisma.pixel.findMany({
+      where: {
+        x: {
+          gte: 0,
+          lt: width,
+        },
+        y: {
+          gte: 0,
+          lt: height,
+        },
+        isTop: true,
+      },
+    });
 
-    for (let x = 0; x < Canvas.getCanvasConfig().size[0]; x++) {
-      for (let y = 0; y < Canvas.getCanvasConfig().size[1]; y++) {
-        queries.push(Canvas.isPixelEmpty(x, y));
-      }
-    }
-
-    let count = 0;
-
-    const allSettled = await Promise.allSettled(queries);
-    for (const settle of allSettled) {
-      if (settle.status === "fulfilled") {
-        count += Number(settle.value);
-      } else {
-        count++;
-      }
-    }
-
-    this.set(count);
+    this.set(filledPixels.length);
   },
 });
 
