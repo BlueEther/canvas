@@ -308,9 +308,9 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     getRenderer().usePixel({ x, y, hex: palette?.hex || "null" });
   };
 
-  handlePixelLastPlaced = (time) => {
+  handlePixelLastPlaced = (time: number) => {
     this.lastPlace = time;
-  }
+  };
 
   Pallete = {
     getColor: (colorId: number) => {
