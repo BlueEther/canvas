@@ -379,6 +379,9 @@ export class SocketServer {
       // mark the undo as used
       await user.setUndo();
 
+      // give user pixel back
+      await user.modifyStack(1);
+
       // trigger re-cache on redis
       await Canvas.refreshPixel(pixel.x, pixel.y);
 
