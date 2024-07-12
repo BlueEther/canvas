@@ -17,6 +17,9 @@
     "extends": "react-app"
   },
   "dependencies": {
+    "@bugsnag/browser-performance": "^2.7.0",
+    "@bugsnag/js": "^7.25.0",
+    "@bugsnag/plugin-react": "^7.25.0",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-brands-svg-icons": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",

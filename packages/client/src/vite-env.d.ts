@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_INCLUDE_EVENT_INFO: boolean;
+  readonly VITE_BUGSNAG_KEY?: string;
 }
 
 interface ImportMeta {
