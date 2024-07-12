@@ -26,7 +26,7 @@ class Canvas {
       frozen: this.isFrozen,
       zoom: 7,
       pixel: {
-        cooldown: 10,
+        cooldown: 30,
         multiplier: 3,
         maxStack: 6,
       },
@@ -325,6 +325,8 @@ class Canvas {
     const returns = await Promise.allSettled(
       pixels.map((pixel) => this.undoPixel(pixel))
     );
+
+    await this.canvasToRedis();
 
     Logger.info(
       "Finished undo area in " + ((Date.now() - now) / 1000).toFixed(2) + "s"
