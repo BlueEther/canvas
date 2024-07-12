@@ -23,6 +23,9 @@ export interface ServerToClientEvents {
   alert: (alert: IAlert) => void;
   alert_dismiss: (id: string) => void;
 
+  recaptcha: (site_key: string) => void;
+  recaptcha_challenge: (ack: (token: string) => void) => void;
+
   /* --- subscribe events --- */
 
   /**
