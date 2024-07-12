@@ -61,6 +61,8 @@ declare global {
       ELEMENT_HOST: string;
       MATRIX_GENERAL_ALIAS: string;
 
+      PIXEL_LOG_PATH?: string;
+      
       RECAPTCHA_SITE_KEY?: string;
       RECAPTCHA_SECRET_KEY?: string;
       RECAPTCHA_PIXEL_CHANCE?: string;
