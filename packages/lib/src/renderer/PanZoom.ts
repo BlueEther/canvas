@@ -529,6 +529,10 @@ export class PanZoom extends EventEmitter<PanZoomEvents> {
   registerMouseEvents() {
     console.debug("[PanZoom] Registering mouse events to $wrapper & document");
 
+    this.$wrapper.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+    });
+
     // zoom
     this.$wrapper.addEventListener("wheel", this._mouse_wheel, {
       passive: true,

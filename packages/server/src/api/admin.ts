@@ -175,21 +175,121 @@ app.post("/canvas/stress", async (req, res) => {
     return;
   }
 
+  const style: "random" | "xygradient" = req.body.style || "random";
+
   const width: number = req.body.width;
   const height: number = req.body.height;
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const paletteColors = await prisma.paletteColor.findMany({});
+
+  let promises: Promise<any>[] = [];
 
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
-      let color = Math.floor(Math.random() * 30) + 1;
-      SocketServer.instance.io.emit("pixel", {
-        x,
-        y,
-        color,
-      });
+      promises.push(
+        new Promise(async (res) => {
+          let colorIndex: number;
+          if (style === "xygradient") {
+            colorIndex =
+              Math.floor((x / width) * (paletteColors.length / 2)) +
+              Math.floor((y / height) * (paletteColors.length / 2));
+          } else {
+            colorIndex = Math.floor(Math.random() * paletteColors.length);
+          }
+
+          let color = paletteColors[colorIndex];
+
+          await Canvas.setPixel(user, x, y, color.hex, false);
+
+          SocketServer.instance.io.emit("pixel", {
+            x,
+            y,
+            color: color.id,
+          });
+          res(undefined);
+        })
+      );
     }
   }
 
+  await Promise.allSettled(promises);
   res.send("ok");
+});
+
+/**
+ * Undo a square
+ *
+ * @header X-Audit
+ * @body start.x number
+ * @body start.y number
+ * @body end.x number
+ * @body end.y number
+ */
+app.put("/canvas/undo", async (req, res) => {
+  if (
+    typeof req.body?.start?.x !== "number" ||
+    typeof req.body?.start?.y !== "number"
+  ) {
+    res
+      .status(400)
+      .json({ success: false, error: "start position is invalid" });
+    return;
+  }
+
+  if (
+    typeof req.body?.end?.x !== "number" ||
+    typeof req.body?.end?.y !== "number"
+  ) {
+    res.status(400).json({ success: false, error: "end position is invalid" });
+    return;
+  }
+
+  const user_sub =
+    req.session.user!.user.username +
+    "@" +
+    req.session.user!.service.instance.hostname;
+  const start_position: [x: number, y: number] = [
+    req.body.start.x,
+    req.body.start.y,
+  ];
+  const end_position: [x: number, y: number] = [req.body.end.x, req.body.end.y];
+
+  const width = end_position[0] - start_position[0];
+  const height = end_position[1] - start_position[1];
+
+  const pixels = await Canvas.undoArea(start_position, end_position);
+  const paletteColors = await prisma.paletteColor.findMany({});
+
+  for (const pixel of pixels) {
+    switch (pixel.status) {
+      case "fulfilled": {
+        const coveredPixel = pixel.value;
+
+        SocketServer.instance.io.emit("pixel", {
+          x: pixel.pixel.x,
+          y: pixel.pixel.y,
+          color: coveredPixel
+            ? paletteColors.find((p) => p.hex === coveredPixel.color)?.id || -1
+            : -1,
+        });
+        break;
+      }
+      case "rejected":
+        console.log("Failed to undo pixel", pixel);
+        break;
+    }
+  }
+
+  const user = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = await AuditLog.Factory(user.sub)
+    .doing("CANVAS_AREA_UNDO")
+    .reason(req.header("X-Audit") || null)
+    .withComment(
+      `Area undo (${start_position.join(",")}) -> (${end_position.join(",")})`
+    )
+    .create();
+
+  res.json({ success: true, auditLog });
 });
 
 /**

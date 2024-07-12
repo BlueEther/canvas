@@ -34,7 +34,7 @@ export const rgbToHex = (r: number, g: number, b: number) => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const api = async <T = unknown, Error = string>(
   endpoint: string,
-  method: "GET" | "POST" = "GET",
+  method: "GET" | "POST" | "PUT" = "GET",
   body?: unknown
 ): Promise<{
   status: number;
