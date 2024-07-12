@@ -4,6 +4,7 @@ import { Canvas } from "../../lib/canvas";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { KeybindManager } from "../../lib/keybinds";
+import { Button, Link } from "@nextui-org/react";
 
 export const Palette = () => {
   const { config, user, cursor, setCursor } = useAppContext<true>();
@@ -72,9 +73,9 @@ export const Palette = () => {
           ) : (
             <>
               You are not logged in
-              <a href="/api/login" className="user-login">
+              <Button as={Link} href="/api/login" className="user-login">
                 Login
-              </a>
+              </Button>
             </>
           )}
         </div>
