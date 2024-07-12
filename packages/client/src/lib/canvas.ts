@@ -194,6 +194,8 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     );
   };
 
+  previousCanvasClicks: { x: number; y: number }[] = [];
+
   handleMouseDown(e: ClickEvent) {
     if (!e.alt && !e.ctrl && !e.meta && !e.shift && e.button === "LCLICK") {
       const [x, y] = this.screenToPos(e.clientX, e.clientY);
@@ -206,6 +208,16 @@ export class Canvas extends EventEmitter<CanvasEvents> {
       //   meta: e.meta,
       //   shift: e.meta
       // }, )
+    }
+
+    if (e.button === "RCLICK" && !e.alt && !e.ctrl && !e.meta && !e.shift) {
+      const [x, y] = this.screenToPos(e.clientX, e.clientY);
+
+      // keep track of the last X pixels right clicked
+      // used by the ModModal to determine areas selected
+
+      this.previousCanvasClicks.push({ x, y });
+      this.previousCanvasClicks = this.previousCanvasClicks.slice(-2);
     }
   }
 
