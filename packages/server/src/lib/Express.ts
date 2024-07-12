@@ -50,7 +50,11 @@ export class ExpressServer {
         "Serving client UI at / using root " +
           path.join(__dirname, process.env.SERVE_CLIENT)
       );
+      const indexFile = path.join(process.env.SERVE_CLIENT, "index.html");
       this.app.use(express.static(process.env.SERVE_CLIENT));
+      this.app.use("/chat_callback", (req, res) => {
+        res.sendFile(indexFile);
+      });
     } else {
       this.app.get("/", (req, res) => {
         res.status(404).contentType("html").send(`
