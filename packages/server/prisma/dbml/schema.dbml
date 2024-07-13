@@ -12,7 +12,7 @@ Table User {
   display_name String
   picture_url String
   profile_url String
-  lastPixelTime DateTime [default: `now()`, not null]
+  lastTimeGainStarted DateTime [default: `now()`, not null]
   pixelStack Int [not null, default: 0]
   undoExpires DateTime
   isAdmin Boolean [not null, default: false]

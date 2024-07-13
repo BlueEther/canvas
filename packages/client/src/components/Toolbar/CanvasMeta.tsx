@@ -18,6 +18,7 @@ const getTimeLeft = (pixels: { available: number }, config: ClientConfig) => {
   const cooldown = CanvasLib.getPixelCooldown(pixels.available + 1, config);
   const pixelExpiresAt =
     Canvas.instance?.lastPlace && Canvas.instance.lastPlace + cooldown * 1000;
+  
   const pixelCooldown = pixelExpiresAt && (Date.now() - pixelExpiresAt) / 1000;
 
   if (!pixelCooldown) return undefined;
@@ -43,7 +44,7 @@ const PlaceCountdown = () => {
   return (
     <>
       {timeLeft
-        ? pixels.available + 1 < config.canvas.pixel.maxStack && timeLeft + "s"
+        ? pixels.available < config.canvas.pixel.maxStack && timeLeft + "s"
         : ""}
     </>
   );

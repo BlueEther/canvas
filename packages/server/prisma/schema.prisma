@@ -25,7 +25,7 @@ model User {
   picture_url  String?
   profile_url  String?
 
-  lastPixelTime DateTime  @default(now()) // the time the last pixel was placed at
+  lastTimeGainStarted DateTime  @default(now()) // the time base used to determine the amount of stack the user should gain
   pixelStack    Int       @default(0) // amount of pixels stacked for this user
   undoExpires   DateTime? // when the undo for the most recent pixel expires at
 
