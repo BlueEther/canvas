@@ -88,8 +88,8 @@ export class CanvasRenderer extends EventEmitter<RendererEvents> {
 
   usePixels(pixels: CanvasPixel[], replace = false) {
     if (replace) {
-      this.pixels = pixels;
-      this.allPixels = pixels;
+      this.pixels.push(...pixels);
+      this.allPixels.push(...pixels);
     } else {
       for (const pixel of pixels) {
         this.usePixel(pixel);
