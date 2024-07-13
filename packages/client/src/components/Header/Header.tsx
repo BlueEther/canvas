@@ -42,7 +42,9 @@ const HeaderLeft = () => {
     <div className="box">
       <AccountStanding />
       <Button onPress={() => setInfoSidebar(true)}>Info</Button>
-      <Button onPress={() => Debug.openDebugTools()}>Debug Tools</Button>
+      {import.meta.env.DEV && (
+        <Button onPress={() => Debug.openDebugTools()}>Debug Tools</Button>
+      )}
     </div>
   );
 };
