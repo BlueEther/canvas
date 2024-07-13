@@ -1,10 +1,9 @@
-import { Button, Link } from "@nextui-org/react";
+import { Divider } from "@nextui-org/react";
 import { useAppContext } from "../../contexts/AppContext";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
-import { faDiscord } from "@fortawesome/free-brands-svg-icons";
-import { Rules } from "./Rules";
-import { Privacy } from "./Privacy";
+import { InfoHeader } from "./InfoHeader";
+import { InfoText } from "./InfoText";
+import { InfoButtons } from "./InfoButtons";
+import { motion } from "framer-motion"
 
 /**
  * Information sidebar
@@ -17,58 +16,39 @@ export const InfoSidebar = () => {
   const { infoSidebar, setInfoSidebar } = useAppContext();
 
   return (
-    <div
-      className="sidebar sidebar-left md:max-w-[30vw]"
-      style={{ ...(infoSidebar ? {} : { display: "none" }) }}
-    >
-      <header>
-        <h1>Information</h1>
-        <div className="flex-grow" />
-        <Button size="sm" isIconOnly onClick={() => setInfoSidebar(false)}>
-          <FontAwesomeIcon icon={faXmark} />
-        </Button>
-      </header>
-      <section>
-        <div className="flex gap-1 *:flex-grow">
-          <Button
-            as={Link}
-            href="https://matrix.to/#/#canvas-meta:aftermath.gg?via=matrix.org"
-            target="_blank"
-          >
-            Matrix Space
-          </Button>
-          <Button
-            as={Link}
-            href="https://discord.gg/mEUqXZw8kR"
-            target="_blank"
-          >
-            {/* i do not know why faDiscord doesn't match the types, but it does render */}
-            <FontAwesomeIcon icon={faDiscord as any} />
-            Discord
-          </Button>
-        </div>
-        <Button as={Link} href="https://toast.ooo/c/canvas" target="_blank">
-          <div className="flex flex-col text-center">
-            <span>Lemmy</span>
-            <span className="text-xs">!canvas@toast.ooo</span>
-          </div>
-        </Button>
-        <Button
-          as={Link}
-          href="https://social.fediverse.events/@canvas"
-          target="_blank"
-        >
-          <div className="flex flex-col text-center">
-            <span>Mastodon</span>
-            <span className="text-xs">@canvas@fediverse.events</span>
-          </div>
-        </Button>
-        <b>Build {__COMMIT_HASH__}</b>
-        <div id="grecaptcha-badge"></div>
-      </section>
+    <div>
+      <motion.div
+        className="absolute w-screen h-screen z-50 left-0 top-0 bg-black"
+        initial={{ opacity: 0, visibility: 'hidden' }} 
+        animate={{ opacity: infoSidebar ? 0.25 : 0, visibility: infoSidebar ? 'visible' : 'hidden' }} 
+        transition={{ type: 'spring', stiffness: 50 }} 
+      />
+      <motion.div
+        className="min-w-[20rem] max-w-[75vw] md:max-w-[30vw] bg-white text-black flex flex-col justify-between fixed left-0 h-full shadow-xl overflow-y-auto z-50 top-0"
+        initial={{ x: '-150%' }} 
+        animate={{ x: infoSidebar ? '-50%' : '-150%' }} 
+        transition={{ type: 'spring', stiffness: 50 }} 
+      />
+      <motion.div
+        className="min-w-[20rem] max-w-[75vw] md:max-w-[30vw] bg-white text-black flex flex-col justify-between fixed left-0 h-full shadow-xl overflow-y-auto z-50 top-0"
+        initial={{ x: '-100%' }} 
+        animate={{ x: infoSidebar ? 0 : '-100%' }} 
+        transition={{ type: 'spring', stiffness: 50 }} 
+      >
+        <div>
+          <InfoHeader setInfoSidebar={setInfoSidebar} />
 
-      <Rules />
-      <Privacy />
+          <Divider />
+
+          <InfoButtons />
+          <InfoText />
+        </div>
+
+        <div className="p-2">
+          <p className="text-xs text-default-600">Build {__COMMIT_HASH__}</p>
+          <div id="grecaptcha-badge"></div>
+        </div>
+      </motion.div>
     </div>
   );
 };
