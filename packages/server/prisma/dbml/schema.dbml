@@ -139,6 +139,10 @@ Enum AuditLogAction {
   CANVAS_FREEZE
   CANVAS_UNFREEZE
   CANVAS_AREA_UNDO
+  USER_MOD
+  USER_UNMOD
+  USER_ADMIN
+  USER_UNADMIN
 }
 
 Ref: Pixel.userId > User.sub

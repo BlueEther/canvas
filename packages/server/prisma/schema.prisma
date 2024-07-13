@@ -26,8 +26,8 @@ model User {
   profile_url  String?
 
   lastTimeGainStarted DateTime  @default(now()) // the time base used to determine the amount of stack the user should gain
-  pixelStack    Int       @default(0) // amount of pixels stacked for this user
-  undoExpires   DateTime? // when the undo for the most recent pixel expires at
+  pixelStack          Int       @default(0) // amount of pixels stacked for this user
+  undoExpires         DateTime? // when the undo for the most recent pixel expires at
 
   isAdmin     Boolean @default(false)
   isModerator Boolean @default(false)
@@ -157,6 +157,10 @@ enum AuditLogAction {
   CANVAS_FREEZE
   CANVAS_UNFREEZE
   CANVAS_AREA_UNDO
+  USER_MOD
+  USER_UNMOD
+  USER_ADMIN
+  USER_UNADMIN
 }
 
 model AuditLog {

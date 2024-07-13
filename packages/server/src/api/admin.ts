@@ -679,6 +679,158 @@ app.post("/user/:sub/notice", async (req, res) => {
   res.json({ success: true });
 });
 
+/**
+ * Mark a user as a moderator
+ *
+ * @param :sub User ID
+ */
+app.put("/user/:sub/moderator", async (req, res) => {
+  let user: User;
+
+  try {
+    user = await User.fromSub(req.params.sub);
+  } catch (e) {
+    if (e instanceof UserNotFound) {
+      res.status(404).json({ success: false, error: "User not found" });
+    } else {
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  await prisma.user.update({
+    where: { sub: user.sub },
+    data: {
+      isModerator: true,
+    },
+  });
+
+  await user.update(true);
+
+  const adminUser = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = await AuditLog.Factory(adminUser.sub)
+    .doing("USER_MOD")
+    .reason(req.header("X-Audit") || null)
+    .withComment(`Made ${user.sub} a moderator`)
+    .create();
+
+  res.json({ success: true, auditLog });
+});
+
+/**
+ * Unmark a user as a moderator
+ *
+ * @param :sub User ID
+ */
+app.delete("/user/:sub/moderator", async (req, res) => {
+  let user: User;
+
+  try {
+    user = await User.fromSub(req.params.sub);
+  } catch (e) {
+    if (e instanceof UserNotFound) {
+      res.status(404).json({ success: false, error: "User not found" });
+    } else {
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  await prisma.user.update({
+    where: { sub: user.sub },
+    data: {
+      isModerator: false,
+    },
+  });
+
+  await user.update(true);
+
+  const adminUser = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = await AuditLog.Factory(adminUser.sub)
+    .doing("USER_UNMOD")
+    .reason(req.header("X-Audit") || null)
+    .withComment(`Removed ${user.sub} as moderator`)
+    .create();
+
+  res.json({ success: true, auditLog });
+});
+
+/**
+ * Mark a user as an admin
+ *
+ * @param :sub User ID
+ */
+app.put("/user/:sub/admin", async (req, res) => {
+  let user: User;
+
+  try {
+    user = await User.fromSub(req.params.sub);
+  } catch (e) {
+    if (e instanceof UserNotFound) {
+      res.status(404).json({ success: false, error: "User not found" });
+    } else {
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  await prisma.user.update({
+    where: { sub: user.sub },
+    data: {
+      isAdmin: true,
+    },
+  });
+
+  await user.update(true);
+
+  const adminUser = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = await AuditLog.Factory(adminUser.sub)
+    .doing("USER_ADMIN")
+    .reason(req.header("X-Audit") || null)
+    .withComment(`Added ${user.sub} as admin`)
+    .create();
+
+  res.json({ success: true, auditLog });
+});
+
+/**
+ * Unmark a user as an admin
+ *
+ * @param :sub User ID
+ */
+app.delete("/user/:sub/admin", async (req, res) => {
+  let user: User;
+
+  try {
+    user = await User.fromSub(req.params.sub);
+  } catch (e) {
+    if (e instanceof UserNotFound) {
+      res.status(404).json({ success: false, error: "User not found" });
+    } else {
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  await prisma.user.update({
+    where: { sub: user.sub },
+    data: {
+      isAdmin: false,
+    },
+  });
+
+  await user.update(true);
+
+  const adminUser = (await User.fromAuthSession(req.session.user!))!;
+  const auditLog = await AuditLog.Factory(adminUser.sub)
+    .doing("USER_UNADMIN")
+    .reason(req.header("X-Audit") || null)
+    .withComment(`Removed ${user.sub} as admin`)
+    .create();
+
+  res.json({ success: true, auditLog });
+});
+
 app.get("/instance/:domain/ban", async (req, res) => {
   // get ban information
 
