@@ -590,6 +590,95 @@ app.delete("/user/:sub/ban", async (req, res) => {
   res.json({ success: true, auditLog });
 });
 
+/**
+ * Send notice to every connected socket
+ *
+ * @body title string
+ * @body body string?
+ */
+app.post("/user/all/notice", async (req, res) => {
+  let title: string = req.body.title;
+
+  if (typeof req.body.title !== "string") {
+    return res
+      .status(400)
+      .json({ success: false, error: "Title is not a string" });
+  }
+
+  if (
+    typeof req.body.body !== "undefined" &&
+    typeof req.body.body !== "string"
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Body is set but is not a string" });
+  }
+
+  const sockets = await SocketServer.instance.io.fetchSockets();
+
+  for (const socket of sockets) {
+    socket.emit("alert", {
+      is: "modal",
+      action: "moderation",
+      dismissable: true,
+      title,
+      body: req.body.body,
+    });
+  }
+
+  res.json({ success: true });
+});
+
+/**
+ * Send notice to user
+ *
+ * @param :sub User id
+ * @body title string
+ * @body body string?
+ */
+app.post("/user/:sub/notice", async (req, res) => {
+  let user: User;
+
+  try {
+    user = await User.fromSub(req.params.sub);
+  } catch (e) {
+    if (e instanceof UserNotFound) {
+      res.status(404).json({ success: false, error: "User not found" });
+    } else {
+      Logger.error(`/user/${req.params.sub}/ban Error ` + (e as any)?.message);
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  let title: string = req.body.title;
+
+  if (typeof req.body.title !== "string") {
+    return res
+      .status(400)
+      .json({ success: false, error: "Title is not a string" });
+  }
+
+  if (
+    typeof req.body.body !== "undefined" &&
+    typeof req.body.body !== "string"
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Body is set but is not a string" });
+  }
+
+  user.notify({
+    is: "modal",
+    action: "moderation",
+    dismissable: true,
+    title,
+    body: req.body.body,
+  });
+
+  res.json({ success: true });
+});
+
 app.get("/instance/:domain/ban", async (req, res) => {
   // get ban information
 
