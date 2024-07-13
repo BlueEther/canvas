@@ -10,7 +10,7 @@ import {
 import { Ban, User as UserDB } from "@prisma/client";
 import { Instance } from "./Instance";
 import { ConditionalPromise } from "../lib/utils";
-import { CanvasLib } from "@sc07-canvas/lib/src/canvas";
+import { CanvasLib } from "@sc07-canvas/lib";
 import { getClientConfig } from "../lib/SocketServer";
 const Logger = getLogger();
 
