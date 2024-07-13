@@ -7,7 +7,9 @@ import Bugsnag from "@bugsnag/js";
 import BugsnagPluginReact from "@bugsnag/plugin-react";
 import BugsnagPerformance from "@bugsnag/browser-performance";
 
-let ErrorBoundary: any = <></>;
+let ErrorBoundary: any = ({ children }: React.PropsWithChildren) => (
+  <>{children}</>
+);
 
 if (import.meta.env.VITE_BUGSNAG_KEY) {
   Bugsnag.start({

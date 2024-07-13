@@ -102,10 +102,25 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     if (Object.keys(this.pixels).length > 0)
       Network.clearPreviousState("canvas");
 
-    Network.waitForState("canvas").then(([pixels]) => {
-      console.log("loadConfig just received new canvas data");
-      this.handleBatch(pixels);
+    // Network.waitForState("canvas").then(([pixels]) => {
+    //   console.log("loadConfig just received new canvas data");
+    //   this.handleBatch(pixels);
+    // });
+
+    Network.on("canvas", (start, end, pixels) => {
+      console.log("[Canvas] received canvas section");
+      this.handleBatch(start, end, pixels);
     });
+
+    const chunks = Network.getCanvasChunks();
+    console.log(`[Canvas] Received ${chunks.length} chunks to load`);
+    let loaded = 0;
+    for (const chunk of chunks) {
+      console.log(`[Canvas] Loading canvas chunk ${loaded}...`);
+      this.handleBatch(chunk.start, chunk.end, chunk.pixels);
+
+      loaded++;
+    }
   }
 
   hasConfig() {
@@ -267,27 +282,36 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     getRenderer().usePixels(serializeBuild);
   };
 
-  handleBatch = (pixels: string[]) => {
+  handleBatch = (
+    start: [x: number, y: number],
+    end: [x: number, y: number],
+    pixels: string[]
+  ) => {
     if (!this.config.canvas) {
       throw new Error("handleBatch called with no config");
     }
 
     let serializeBuild: CanvasPixel[] = [];
+    const width = end[0] - start[0];
+    const height = end[1] - start[1];
 
-    for (let x = 0; x < this.config.canvas.size[0]; x++) {
-      for (let y = 0; y < this.config.canvas.size[1]; y++) {
-        const hex = pixels[this.config.canvas.size[0] * y + x];
+    for (let x = 0; x < width; x++) {
+      for (let y = 0; y < height; y++) {
+        const hex = pixels[width * y + x];
         const palette = this.Pallete.getColorFromHex(hex);
 
+        const canvasX = x + start[0];
+        const canvasY = y + start[1];
+
         // we still store a copy of the pixels in this instance for non-rendering functions
-        this.pixels[x + "_" + y] = {
+        this.pixels[canvasX + "_" + canvasY] = {
           type: "full",
           color: palette?.id || -1,
         };
 
         serializeBuild.push({
-          x,
-          y,
+          x: canvasX,
+          y: canvasY,
           hex: hex === "transparent" ? "null" : hex,
         });
       }

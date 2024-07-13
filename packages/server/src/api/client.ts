@@ -6,6 +6,8 @@ import { getLogger } from "../lib/Logger";
 import Canvas from "../lib/Canvas";
 import { RateLimiter } from "../lib/RateLimiter";
 import { Instance } from "../models/Instance";
+import { callCacheWorker } from "../workers/worker";
+import { Redis } from "../lib/redis";
 
 const Logger = getLogger("HTTP/CLIENT");
 

@@ -20,7 +20,11 @@ export interface INetworkEvents {
   user: (user: AuthSession) => void;
   standing: (standing: IAccountStanding) => void;
   config: (user: ClientConfig) => void;
-  canvas: (pixels: string[]) => void;
+  canvas: (
+    start: [x: number, y: number],
+    end: [x: number, y: number],
+    pixels: string[]
+  ) => void;
   pixels: (data: { available: number }) => void;
   pixelLastPlaced: (time: number) => void;
   online: (count: number) => void;
@@ -54,6 +58,12 @@ class Network extends EventEmitter<INetworkEvents> {
   private stateEvents: {
     [key in keyof INetworkEvents]?: SentEventValue<key>;
   } = {};
+
+  private canvasChunks: {
+    start: [number, number];
+    end: [number, number];
+    pixels: string[];
+  }[] = [];
 
   constructor() {
     super();
@@ -123,8 +133,14 @@ class Network extends EventEmitter<INetworkEvents> {
       this.emit("config", config);
     });
 
-    this.socket.on("canvas", (pixels) => {
-      this.acceptState("canvas", pixels);
+    this.socket.on("canvas", (start, end, pixels) => {
+      // this.acceptState("canvas", start, end, pixels);
+      this.emit("canvas", start, end, pixels);
+      this.canvasChunks.push({ start, end, pixels });
+    });
+
+    this.socket.on("clearCanvasChunks", () => {
+      this.canvasChunks = [];
     });
 
     this.socket.on("availablePixels", (count) => {
@@ -189,6 +205,10 @@ class Network extends EventEmitter<INetworkEvents> {
     ev: Ev
   ) {
     delete this.stateEvents[ev];
+  }
+
+  getCanvasChunks() {
+    return this.canvasChunks;
   }
 
   /**
