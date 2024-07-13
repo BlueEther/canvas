@@ -1,13 +1,25 @@
-import { CanvasConfig } from "@sc07-canvas/lib/src/net";
+import {
+  CanvasConfig,
+  ClientToServerEvents,
+  ServerToClientEvents,
+} from "@sc07-canvas/lib/src/net";
 import { prisma } from "./prisma";
 import { Redis } from "./redis";
 import { SocketServer } from "./SocketServer";
 import { getLogger } from "./Logger";
 import { Pixel } from "@prisma/client";
-import { CanvasWorker, callWorkerMethod } from "../workers/worker";
+import {
+  callCacheWorker,
+  callWorkerMethod,
+  getCacheWorkerIdForCoords,
+  getCanvasCacheWorker,
+} from "../workers/worker";
 import { LogMan } from "./LogMan";
+import { Socket } from "socket.io";
 
 const Logger = getLogger("CANVAS");
+
+const canvasSectionSize = [100, 100]; // TODO: config maybe?
 
 class Canvas {
   /**
@@ -68,14 +80,10 @@ class Canvas {
   /**
    * Change size of the canvas
    *
-   * Expensive task, will take a bit
-   *
    * @param width
    * @param height
    */
   async setSize(width: number, height: number, useStatic = false) {
-    CanvasWorker.postMessage({ type: "canvasSize", width, height });
-
     if (useStatic) {
       this.canvasSize = [width, height];
       return;
@@ -100,7 +108,7 @@ class Canvas {
       },
     });
 
-    // the redis key is 1D, since the dimentions changed we need to update it
+    // update cached canvas chunks
     await this.canvasToRedis();
 
     // this gets called on startup, before the SocketServer is initialized
@@ -109,10 +117,9 @@ class Canvas {
       // announce the new config, which contains the canvas size
       SocketServer.instance.broadcastConfig();
 
-      // announce new pixel array that was generated previously
-      await this.getPixelsArray().then((pixels) => {
-        SocketServer.instance?.io.emit("canvas", pixels);
-      });
+      // announce all canvas chunks
+      SocketServer.instance.io.emit("clearCanvasChunks");
+      await this.broadcastCanvasChunks();
     } else {
       Logger.warn(
         "[Canvas#setSize] No SocketServer instance, cannot broadcast config change"
@@ -124,6 +131,54 @@ class Canvas {
         ((Date.now() - now) / 1000).toFixed(1) +
         " seconds"
     );
+  }
+
+  async sendCanvasChunksToSocket(
+    socket: Socket<ClientToServerEvents, ServerToClientEvents>
+  ) {
+    await this.getAllChunks((start, end, data) => {
+      socket.emit("canvas", start, end, data.split(","));
+    });
+  }
+
+  async broadcastCanvasChunks() {
+    await this.getAllChunks((start, end, data) => {
+      SocketServer.instance.io.emit("canvas", start, end, data.split(","));
+    });
+  }
+
+  async getAllChunks(
+    chunkCallback: (
+      start: [x: number, y: number],
+      end: [x: number, y: number],
+      data: string
+    ) => any
+  ) {
+    const redis = await Redis.getClient();
+    let pending: Promise<void>[] = [];
+
+    for (let x = 0; x < this.canvasSize[0]; x += canvasSectionSize[0]) {
+      for (let y = 0; y < this.canvasSize[1]; y += canvasSectionSize[1]) {
+        const start: [number, number] = [x, y];
+        const end: [number, number] = [
+          x + canvasSectionSize[0],
+          y + canvasSectionSize[1],
+        ];
+
+        pending.push(
+          new Promise((res) => {
+            redis
+              .get(Redis.key("canvas_section", start, end))
+              .then((value): any => {
+                chunkCallback(start, end, value || "");
+                res();
+              });
+          })
+        );
+      }
+    }
+
+    await Promise.allSettled(pending);
   }
 
   async forceUpdatePixelIsTop() {
@@ -210,67 +265,65 @@ class Canvas {
   }
 
   /**
-   * Converts database pixels to Redis string
+   * Chunks canvas pixels and caches chunks in redis
    *
    * @worker
    * @returns
    */
-  canvasToRedis(): Promise<string[]> {
-    return new Promise((res) => {
-      Logger.info("Triggering canvasToRedis()");
-      const [width, height] = this.getCanvasConfig().size;
+  async canvasToRedis(): Promise<void> {
+    const start = Date.now();
 
-      CanvasWorker.once("message", (msg) => {
-        if (msg.type === "canvasToRedis") {
-          Logger.info("Finished canvasToRedis()");
-          res(msg.data);
-        }
-      });
+    let pending: Promise<any>[] = [];
 
-      CanvasWorker.postMessage({
-        type: "canvasToRedis",
-        width,
-        height,
-      });
-    });
+    for (let x = 0; x < this.canvasSize[0]; x += canvasSectionSize[0]) {
+      for (let y = 0; y < this.canvasSize[1]; y += canvasSectionSize[1]) {
+        pending.push(
+          callCacheWorker("cache", {
+            start: [x, y],
+            end: [x + canvasSectionSize[0], y + canvasSectionSize[1]],
+          })
+        );
+      }
+    }
+
+    await Promise.allSettled(pending);
+    Logger.info(
+      `Finished canvasToRedis() in ${((Date.now() - start) / 1000).toFixed(2)}s`
+    );
   }
 
   /**
    * force an update at a specific position
    */
   async updateCanvasRedisAtPos(x: number, y: number) {
+    const redis = await Redis.getClient();
     const dbpixel = await this.getPixel(x, y);
 
-    await callWorkerMethod(CanvasWorker, "updateCanvasRedisAtPos", {
-      x,
-      y,
-      hex: dbpixel?.color || "transparent",
-    });
+    // ensure pixels in the same location are always in the same queue
+    const workerId = getCacheWorkerIdForCoords(x, y);
+
+    // queue canvas writes in redis to avoid memory issues in badly written queue code
+    redis.lPush(
+      Redis.key("canvas_cache_write_queue", workerId),
+      x + "," + y + "," + (dbpixel?.color || "transparent")
+    );
   }
 
   async updateCanvasRedisWithBatch(
     pixelBatch: { x: number; y: number; hex: string }[]
   ) {
-    await callWorkerMethod(CanvasWorker, "updateCanvasRedisWithBatch", {
-      batch: pixelBatch,
-    });
-  }
-
-  async isPixelArrayCached() {
     const redis = await Redis.getClient();
 
-    return await redis.exists(Redis.key("canvas"));
-  }
+    for (const pixel of pixelBatch) {
+      // ensure pixels in the same location are always in the same queue
+      const workerId = getCacheWorkerIdForCoords(pixel.x, pixel.y);
 
-  async getPixelsArray() {
-    const redis = await Redis.getClient();
-
-    if (await redis.exists(Redis.key("canvas"))) {
-      const cached = await redis.get(Redis.key("canvas"));
-      return cached!.split(",");
+      // queue canvas writes in redis
+      redis.lPush(
+        Redis.key("canvas_cache_write_queue", workerId),
+        [pixel.x, pixel.y, pixel.hex].join(",")
+      );
     }
-
-    return await this.canvasToRedis();
   }
 
   /**
@@ -468,7 +521,6 @@ class Canvas {
    */
   async generateHeatmap() {
     const redis_set = await Redis.getClient("MAIN");
-    const redis_sub = await Redis.getClient("SUB");
 
     const now = Date.now();
     const minimumDate = new Date();
