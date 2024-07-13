@@ -4,7 +4,7 @@ import { Redis } from "./redis";
 import { SocketServer } from "./SocketServer";
 import { getLogger } from "./Logger";
 import { Pixel } from "@prisma/client";
-import { CanvasWorker } from "../workers/worker";
+import { CanvasWorker, callWorkerMethod } from "../workers/worker";
 import { LogMan } from "./LogMan";
 
 const Logger = getLogger("CANVAS");
@@ -74,6 +74,8 @@ class Canvas {
    * @param height
    */
   async setSize(width: number, height: number, useStatic = false) {
+    CanvasWorker.postMessage({ type: "canvasSize", width, height });
+
     if (useStatic) {
       this.canvasSize = [width, height];
       return;
@@ -237,33 +239,21 @@ class Canvas {
    * force an update at a specific position
    */
   async updateCanvasRedisAtPos(x: number, y: number) {
-    const redis = await Redis.getClient();
-
-    const pixels: string[] = (
-      (await redis.get(Redis.key("canvas"))) || ""
-    ).split(",");
-
     const dbpixel = await this.getPixel(x, y);
 
-    pixels[this.canvasSize[0] * y + x] = dbpixel?.color || "transparent";
-
-    await redis.set(Redis.key("canvas"), pixels.join(","), { EX: 60 * 5 });
+    await callWorkerMethod(CanvasWorker, "updateCanvasRedisAtPos", {
+      x,
+      y,
+      hex: dbpixel?.color || "transparent",
+    });
   }
 
   async updateCanvasRedisWithBatch(
     pixelBatch: { x: number; y: number; hex: string }[]
   ) {
-    const redis = await Redis.getClient();
-
-    const pixels: string[] = (
-      (await redis.get(Redis.key("canvas"))) || ""
-    ).split(",");
-
-    for (const pixel of pixelBatch) {
-      pixels[this.canvasSize[0] * pixel.y + pixel.x] = pixel.hex;
-    }
-
-    await redis.set(Redis.key("canvas"), pixels.join(","), { EX: 60 * 5 });
+    await callWorkerMethod(CanvasWorker, "updateCanvasRedisWithBatch", {
+      batch: pixelBatch,
+    });
   }
 
   async isPixelArrayCached() {

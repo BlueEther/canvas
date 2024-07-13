@@ -40,6 +40,34 @@ const AllWorkers = {
 
 export const CanvasWorker = AllWorkers.canvas;
 
+export const callWorkerMethod = (worker: Worker, type: string, data: any) => {
+  return new Promise<void>((res) => {
+    const callbackId = Math.floor(Math.random() * 99999);
+    Logger.info(`Calling worker method ${type} ${callbackId}`);
+
+    const handleMessage = (message: {
+      type: "callback";
+      callbackId: number;
+    }) => {
+      if (message.type !== "callback") return;
+      if (message.callbackId !== callbackId) return;
+
+      Logger.info(`Finished worker call ${type} ${callbackId}`);
+      res();
+
+      worker.off("message", handleMessage);
+    };
+
+    worker.on("message", handleMessage);
+
+    worker.postMessage({
+      ...data,
+      type,
+      callbackId,
+    });
+  });
+};
+
 for (const [name, worker] of Object.entries(AllWorkers)) {
   worker.on("online", () => {
     Logger.info(`${name} worker is now online`);
