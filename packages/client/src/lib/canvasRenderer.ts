@@ -8,8 +8,6 @@ export type CanvasPixel = {
   hex: string;
 };
 
-const bezier = (n: number) => n * n * (3 - 2 * n);
-
 const isWorker = () => {
   return (
     // @ts-ignore
@@ -41,8 +39,18 @@ export class CanvasRenderer extends EventEmitter<RendererEvents> {
   private blank?: RCanvas;
   private blank_ctx?: RContext;
 
-  private pixels: CanvasPixel[] = [];
-  private allPixels: CanvasPixel[] = [];
+  /**
+   * Pixels that need to be drawn next draw call
+   *
+   * Key = x,y (eg 0,0)
+   */
+  private pixels: Map<string, string> = new Map();
+  /**
+   * Every pixel
+   *
+   * Key = x,y (eg 0,0)
+   */
+  private allPixels: Map<string, string> = new Map();
   private isWorker = isWorker();
 
   private _stopRender = false;
@@ -87,37 +95,15 @@ export class CanvasRenderer extends EventEmitter<RendererEvents> {
   }
 
   usePixels(pixels: CanvasPixel[], replace = false) {
-    if (replace) {
-      this.pixels.push(...pixels);
-      this.allPixels.push(...pixels);
-    } else {
-      for (const pixel of pixels) {
-        this.usePixel(pixel);
-      }
+    for (const pixel of pixels) {
+      this.usePixel(pixel);
     }
   }
 
   usePixel(pixel: CanvasPixel) {
-    {
-      let existing = this.pixels.find(
-        (p) => p.x === pixel.x && p.y === pixel.y
-      );
-      if (existing) {
-        this.pixels.splice(this.pixels.indexOf(existing), 1);
-      }
-    }
-
-    {
-      let existing = this.allPixels.find(
-        (p) => p.x === pixel.x && p.y === pixel.y
-      );
-      if (existing) {
-        this.allPixels.splice(this.allPixels.indexOf(existing), 1);
-      }
-    }
-
-    this.pixels.push(pixel);
-    this.allPixels.push(pixel);
+    let key = pixel.x + "," + pixel.y;
+    this.pixels.set(key, pixel.hex);
+    this.allPixels.set(key, pixel.hex);
   }
 
   startRender() {
@@ -179,16 +165,19 @@ export class CanvasRenderer extends EventEmitter<RendererEvents> {
   draw() {
     const start = performance.now();
 
-    const pixels = [...this.pixels];
-    this.pixels = [];
+    const pixels = new Map(this.pixels);
+    this.pixels.clear();
 
-    if (pixels.length) {
-      console.log("[CanvasRenderer#draw] drawing " + pixels.length + " pixels");
+    if (pixels.size) {
+      console.log("[CanvasRenderer#draw] drawing " + pixels.size + " pixels");
     }
 
-    for (const pixel of pixels) {
-      this.ctx.fillStyle = pixel.hex === "null" ? "#fff" : "#" + pixel.hex;
-      this.ctx.fillRect(pixel.x, pixel.y, 1, 1);
+    for (const [x_y, hex] of pixels) {
+      const x = parseInt(x_y.split(",")[0]);
+      const y = parseInt(x_y.split(",")[1]);
+
+      this.ctx.fillStyle = hex === "null" ? "#fff" : "#" + hex;
+      this.ctx.fillRect(x, y, 1, 1);
     }
 
     const diff = performance.now() - start;
@@ -219,9 +208,12 @@ export class CanvasRenderer extends EventEmitter<RendererEvents> {
     this.ctx.fillStyle = "#fff";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    for (const pixel of this.allPixels) {
-      this.ctx.fillStyle = pixel.hex === "null" ? "#fff" : "#" + pixel.hex;
-      this.ctx.fillRect(pixel.x, pixel.y, 1, 1);
+    for (const [x_y, hex] of this.allPixels) {
+      const x = parseInt(x_y.split(",")[0]);
+      const y = parseInt(x_y.split(",")[1]);
+
+      this.ctx.fillStyle = hex === "null" ? "#fff" : "#" + hex;
+      this.ctx.fillRect(x, y, 1, 1);
     }
   }
 
@@ -234,11 +226,13 @@ export class CanvasRenderer extends EventEmitter<RendererEvents> {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      for (const pixel of this.allPixels) {
-        if (pixel.hex !== "null") continue;
+      for (const [x_y, hex] of this.allPixels) {
+        if (hex !== "null") continue;
+        const x = parseInt(x_y.split(",")[0]);
+        const y = parseInt(x_y.split(",")[1]);
 
         ctx.fillStyle = "rgba(0,140,0,0.5)";
-        ctx.fillRect(pixel.x, pixel.y, 1, 1);
+        ctx.fillRect(x, y, 1, 1);
       }
     }
   }
