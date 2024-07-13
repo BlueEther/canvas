@@ -3,6 +3,8 @@ import { useAppContext } from "../../contexts/AppContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
+import { Rules } from "./Rules";
+import { Privacy } from "./Privacy";
 
 /**
  * Information sidebar
@@ -16,7 +18,7 @@ export const InfoSidebar = () => {
 
   return (
     <div
-      className="sidebar sidebar-left"
+      className="sidebar sidebar-left md:max-w-[30vw]"
       style={{ ...(infoSidebar ? {} : { display: "none" }) }}
     >
       <header>
@@ -64,6 +66,9 @@ export const InfoSidebar = () => {
         <b>Build {__COMMIT_HASH__}</b>
         <div id="grecaptcha-badge"></div>
       </section>
+
+      <Rules />
+      <Privacy />
     </div>
   );
 };

@@ -157,6 +157,9 @@ main {
   min-width: 20rem;
   max-width: 75vw;
 
+  box-shadow: 0 0 5rem rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+
   &-right {
     right: 0;
   }
