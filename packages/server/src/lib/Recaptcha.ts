@@ -74,7 +74,9 @@ class Recaptcha_ {
   }
 
   async notifyStaff(user: User, score: number) {
-    return await fetch(process.env.DISCORD_WEBHOOK!, {
+    if (!process.env.DISCORD_WEBHOOK) return;
+
+    return await fetch(process.env.DISCORD_WEBHOOK, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -86,7 +88,9 @@ class Recaptcha_ {
   }
 
   async notifyStaffOfError(obj: any) {
-    return await fetch(process.env.DISCORD_WEBHOOK!, {
+    if (!process.env.DISCORD_WEBHOOK) return;
+
+    return await fetch(process.env.DISCORD_WEBHOOK, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
