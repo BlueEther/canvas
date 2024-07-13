@@ -53,11 +53,9 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     this.PanZoom.addListener("click", this.handleMouseDown.bind(this));
     this.PanZoom.addListener("longPress", this.handleLongPress);
 
-    Network.waitForState("pixelLastPlaced").then(
-      ([time]) => (this.lastPlace = time)
-    );
     Network.on("pixel", this.handlePixel);
     Network.on("square", this.handleSquare);
+    Network.on("pixelLastPlaced", this.handlePixelLastPlaced);
   }
 
   destroy() {
@@ -70,6 +68,7 @@ export class Canvas extends EventEmitter<CanvasEvents> {
 
     Network.off("pixel", this.handlePixel);
     Network.off("square", this.handleSquare);
+    Network.off("pixelLastPlaced", this.handlePixelLastPlaced);
   }
 
   /**
@@ -309,6 +308,10 @@ export class Canvas extends EventEmitter<CanvasEvents> {
     getRenderer().usePixel({ x, y, hex: palette?.hex || "null" });
   };
 
+  handlePixelLastPlaced = (time: number) => {
+    this.lastPlace = time;
+  };
+
   Pallete = {
     getColor: (colorId: number) => {
       return this.config.pallete.colors.find((c) => c.id === colorId);
@@ -358,7 +361,6 @@ export class Canvas extends EventEmitter<CanvasEvents> {
       )
       .then((ack) => {
         if (ack.success) {
-          this.lastPlace = Date.now();
           this.handlePixel(ack.data);
         } else {
           console.warn(
