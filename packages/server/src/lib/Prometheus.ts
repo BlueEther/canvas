@@ -4,6 +4,7 @@ import e from "express";
 import { SocketServer } from "./SocketServer";
 import Canvas from "./Canvas";
 import { Redis } from "./redis";
+import { CACHE_WORKERS, getCacheWorkerQueueLength } from "../workers/worker";
 
 client.collectDefaultMetrics({
   labels: process.env.NODE_APP_INSTANCE
@@ -84,6 +85,34 @@ export const TotalPixels = new client.Gauge({
     const [width, height] = Canvas.getCanvasConfig().size;
 
     this.set(width * height);
+  },
+});
+
+const CacheWorkerQueueMain = new client.Gauge({
+  name: "cache_worker_callback_queue_main",
+  help: "cache worker callback queue length for main process",
+
+  collect() {
+    this.set(getCacheWorkerQueueLength());
+  },
+});
+
+const CacheWorkerQueueWorkers = new client.Gauge({
+  name: "cache_worker_queue_workers",
+  help: "cache worker write queue length per worker process",
+  labelNames: ["worker_id"],
+
+  async collect() {
+    const redis = await Redis.getClient();
+
+    for (let i = 0; i < CACHE_WORKERS; i++) {
+      this.set(
+        {
+          worker_id: i,
+        },
+        await redis.lLen(Redis.key("canvas_cache_write_queue", i))
+      );
+    }
   },
 });
 

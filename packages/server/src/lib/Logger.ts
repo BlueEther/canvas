@@ -12,12 +12,17 @@ const formatter = format.printf((options) => {
     maxModuleWidth = Math.max(maxModuleWidth, `[${module}]`.length);
   }
 
+  let moduleName = options.moduleName;
+  if (typeof options.workerId !== "undefined") {
+    moduleName += " #" + options.workerId;
+  }
+
   let modulePadding = " ".repeat(
-    Math.max(0, maxModuleWidth - `[${options.moduleName}]`.length)
+    Math.max(0, maxModuleWidth - `[${moduleName}]`.length)
   );
 
   let parts: string[] = [
-    options.timestamp + `  [${options.moduleName || "---"}]` + modulePadding,
+    options.timestamp + `  [${moduleName || "---"}]` + modulePadding,
     options.level + ":",
     options.message,
   ];
@@ -58,5 +63,7 @@ export const LoggerType = createEnum([
   "RECAPTCHA",
 ]);
 
-export const getLogger = (module?: keyof typeof LoggerType) =>
-  Winston.child({ moduleName: module });
+export const getLogger = (
+  module?: keyof typeof LoggerType,
+  workerId?: number
+) => Winston.child({ moduleName: module, workerId });

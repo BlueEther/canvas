@@ -9,8 +9,13 @@ const Logger = getLogger("REDIS");
  */
 interface IRedisKeys {
   // canvas
-  canvas(): string;
+  // canvas(): string;
   heatmap(): string;
+  canvas_section(
+    start: [x: number, y: number],
+    end: [x: number, y: number]
+  ): string;
+  canvas_cache_write_queue(workerId: number): string;
 
   // users
   socketToSub(socketId: string): string;
@@ -23,8 +28,11 @@ interface IRedisKeys {
  * Defined as a variable due to boottime augmentation
  */
 const RedisKeys: IRedisKeys = {
-  canvas: () => `CANVAS:PIXELS`,
+  // canvas: () => `CANVAS:PIXELS`,
   heatmap: () => `CANVAS:HEATMAP`,
+  canvas_section: (start, end) =>
+    `CANVAS:PIXELS:${start.join(",")}:${end.join(",")}`,
+  canvas_cache_write_queue: (workerId) => `CANVAS:CACHE_QUEUE:${workerId}`,
   socketToSub: (socketId: string) => `CANVAS:SOCKET:${socketId}`,
   channel_heatmap: () => `CANVAS:HEATMAP`,
 };

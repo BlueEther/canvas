@@ -7,6 +7,7 @@ import { SocketServer } from "./lib/SocketServer";
 import { OpenID } from "./lib/oidc";
 import { loadSettings } from "./lib/Settings";
 import "./workers/worker";
+import { spawnCacheWorkers } from "./workers/worker";
 
 const Logger = getLogger("MAIN");
 
@@ -85,12 +86,17 @@ if (!process.env.PIXEL_LOG_PATH) {
   Logger.warn("PIXEL_LOG_PATH is not defined, defaulting to packages/server");
 }
 
+if (!process.env.CACHE_WORKERS) {
+  Logger.warn("CACHE_WORKERS is not defined, defaulting to 1 worker");
+}
+
 // run startup tasks, all of these need to be completed to serve
 Promise.all([
   Redis.getClient(),
   OpenID.setup().then(() => {
     Logger.info("Setup OpenID");
   }),
+  spawnCacheWorkers(),
   loadSettings(),
 ]).then(() => {
   Logger.info("Startup tasks have completed, starting server");
