@@ -510,7 +510,11 @@ export class Template extends EventEmitter<TemplateEvents> {
           vec2 styleCoord = (indexCoord + subTexCoord) * styleSize;
           
           vec4 styleMask = vec4(1.0, 1.0, 1.0, texture2D(u_Style, styleCoord).a);
-          gl_FragColor = vec4(templateSample.rgb, templateSample.a == PALETTE_TRANSPARENT ? 0.0 : 1.0) * styleMask;
+          if (texture2D(u_Style, styleCoord).a == 1.0) {
+            gl_FragColor = vec4(templateSample.rgb, templateSample.a == PALETTE_TRANSPARENT ? 0.0 : 1.0) * styleMask;
+          } else {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+          }
         }
       `
     );
