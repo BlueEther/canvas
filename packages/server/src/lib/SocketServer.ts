@@ -165,6 +165,7 @@ export class SocketServer {
 
     user?.sockets.add(socket);
     Logger.debug("handleConnection " + user?.sockets.size);
+    socket.emit("clearCanvasChunks");
 
     Redis.getClient().then((redis) => {
       if (user) redis.set(Redis.key("socketToSub", socket.id), user.sub);
@@ -197,29 +198,12 @@ export class SocketServer {
 
     socket.emit("config", getClientConfig());
     {
-      let _clientNotifiedAboutCache = false;
-      Canvas.isPixelArrayCached().then((cached) => {
-        if (!cached) {
-          _clientNotifiedAboutCache = true;
-          socket.emit("alert", {
-            id: "canvas_cache_pending",
-            is: "toast",
-            action: "system",
-            severity: "info",
-            title: "Canvas loading",
-            body: "Canvas not cached, this may take a couple seconds",
-            autoDismiss: true,
-          });
-        }
-      });
-      Canvas.getPixelsArray().then((pixels) => {
-        socket.emit("canvas", pixels);
-        socket.emit("alert_dismiss", "canvas_cache_pending");
+      Canvas.sendCanvasChunksToSocket(socket).then(() => {
         socket.emit("alert", {
           is: "toast",
           action: "system",
           severity: "success",
-          title: "Canvas loaded!",
+          title: "Canvas loaded",
           autoDismiss: true,
         });
       });

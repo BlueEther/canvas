@@ -3,7 +3,12 @@
 export type Subscription = "heatmap";
 
 export interface ServerToClientEvents {
-  canvas: (pixels: string[]) => void;
+  canvas: (
+    start: [x: number, y: number],
+    end: [x: number, y: number],
+    pixels: string[]
+  ) => void;
+  clearCanvasChunks: () => void;
   user: (user: AuthSession) => void;
   standing: (standing: IAccountStanding) => void;
   config: (config: ClientConfig) => void;
