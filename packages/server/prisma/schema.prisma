@@ -36,6 +36,7 @@ model User {
   FactionMember FactionMember[]
   Ban           Ban?
   AuditLog      AuditLog[]
+  IPAddress     IPAddress[]
 }
 
 model Instance {
@@ -45,6 +46,18 @@ model Instance {
   logo_url   String?
   banner_url String?
   Ban        Ban?
+}
+
+model IPAddress {
+  ip      String
+  userSub String
+
+  lastUsedAt DateTime
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userSub], references: [sub])
+
+  @@id([ip, userSub])
 }
 
 model PaletteColor {

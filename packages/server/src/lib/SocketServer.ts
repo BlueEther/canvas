@@ -164,6 +164,17 @@ export class SocketServer {
     );
 
     user?.sockets.add(socket);
+
+    let ip = socket.handshake.address;
+    if (process.env.NODE_ENV === "production") {
+      if (typeof socket.handshake.headers["x-forwarded-for"] === "string") {
+        ip = socket.handshake.headers["x-forwarded-for"];
+      } else {
+        ip = socket.handshake.headers["x-forwarded-for"]?.[0] || ip;
+      }
+    }
+    user?.trackIP(ip);
+
     Logger.debug("handleConnection " + user?.sockets.size);
     socket.emit("clearCanvasChunks");
 
