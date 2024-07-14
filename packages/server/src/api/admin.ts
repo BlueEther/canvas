@@ -418,6 +418,61 @@ app.put("/canvas/fill", async (req, res) => {
 });
 
 /**
+ * Get ip address info
+ *
+ * @query address IP address
+ */
+app.get("/ip", async (req, res) => {
+  if (typeof req.query.address !== "string") {
+    return res.status(400).json({ success: false, error: "missing ?address=" });
+  }
+
+  const ip: string = req.query.address;
+
+  const results = await prisma.iPAddress.findMany({
+    select: {
+      userSub: true,
+      createdAt: true,
+      lastUsedAt: true,
+    },
+    where: {
+      ip,
+    },
+  });
+
+  res.json({ success: true, results });
+});
+
+/**
+ * Get all of a user's IP addresses
+ *
+ * @param :sub User ID
+ */
+app.get("/user/:sub/ips", async (req, res) => {
+  let user: User;
+
+  try {
+    user = await User.fromSub(req.params.sub);
+  } catch (e) {
+    if (e instanceof UserNotFound) {
+      res.status(404).json({ success: false, error: "User not found" });
+    } else {
+      Logger.error(`/user/${req.params.sub}/ips Error ` + (e as any)?.message);
+      res.status(500).json({ success: false, error: "Internal error" });
+    }
+    return;
+  }
+
+  const ips = await prisma.iPAddress.findMany({
+    where: {
+      userSub: user.sub,
+    },
+  });
+
+  res.json({ success: true, ips });
+});
+
+/**
  * Create or ban a user
  *
  * @header X-Audit
