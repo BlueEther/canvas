@@ -71,7 +71,7 @@ export const TemplateSettings = () => {
           step={1}
           minValue={0}
           maxValue={100}
-          value={opacity || 100}
+          value={opacity ?? 100}
           onChange={(v) => setOpacity(v as number)}
           getValue={(v) => v + "%"}
         />
