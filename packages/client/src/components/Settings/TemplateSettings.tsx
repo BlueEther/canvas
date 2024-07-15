@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTemplateContext } from "../../contexts/TemplateContext";
 import { Input, Select, SelectItem, Slider, Switch } from "@nextui-org/react";
 
@@ -22,16 +23,19 @@ export const TemplateSettings = () => {
   } = useTemplateContext();
 
   return (
-    <>
-      <header>
-        <Switch
-          size="sm"
-          isSelected={enable || false}
-          onValueChange={setEnable}
-        />
-        <h2>Template</h2>
+    <div className="flex flex-col p-2">
+      <header className="flex flex-col gap-2">
+        <div className="flex items-center">
+          <Switch
+            size="sm"
+            isSelected={enable || false}
+            onValueChange={setEnable}
+          />
+          <h2 className="text-xl">Template</h2>
+        </div>
+        <p className="text-default-600 text-xs">Displaying an image over the canvas to help guide placing</p>
       </header>
-      <section>
+      {enable && <section className="flex flex-col gap-2 mt-4">
         <Input
           label="Template URL"
           size="sm"
@@ -102,7 +106,7 @@ export const TemplateSettings = () => {
         >
           Show Mobile Tools
         </Switch>
-      </section>
-    </>
+      </section>}
+    </div>
   );
 };
