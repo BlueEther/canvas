@@ -34,9 +34,14 @@ export const PixelPulses = () => {
       height: "50px"
     };
 
+    // used in the case of two pixels coming through for the same position
+    // rare, but causes issues with react
+    // even if the pixels are close to eachother, the ms will be different
+    const timestamp = Date.now();
+
     const pulseElement = (
       <motion.div 
-        key={`${x}-${y}`} 
+        key={`${x}-${y}-${timestamp}`} 
         style={pulseStyle}
         animate={{
           width: "10px",
@@ -49,16 +54,12 @@ export const PixelPulses = () => {
       />
     );
 
-    setPulses(prevPulses => [...prevPulses, pulseElement]);
+    setPulses((prevPulses) => [...prevPulses, pulseElement]);
 
     setTimeout(_ => {
       setPulses(prevPulses => prevPulses.slice(1))
     }, 3700)
   }
 
-  return (
-    <div>
-      {pulses}
-    </div>
-  );
+  return <div>{pulses}</div>;
 };
