@@ -2,7 +2,7 @@ import { faMessage, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Avatar, Button, Link, Spinner, User } from "@nextui-org/react";
 import { ClientConfig } from "@sc07-canvas/lib/src/net";
-import { MouseEvent, useEffect, useState } from "react";
+import { MouseEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { useAppContext } from "../../contexts/AppContext";
 
@@ -72,11 +72,26 @@ export const UserCard = ({ user }: { user: IUser }) => {
     setProfile(user.sub);
   };
 
+  const name = useMemo(() => {
+    if (!user || !user.sub) {
+      return 'Unknown'
+    }
+
+    const regex = /^(.*)@/;
+    const match = user.sub.match(regex);
+
+    if (match) {
+      return match[1];
+    }
+
+    return 'Unknown'
+  }, [user])
+
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-row space-between p-2">
         <User 
-          name={user?.display_name || 'Unknown'}
+          name={user?.display_name || name}
           description={user?.sub || 'Unknown'}
           avatarProps={{
             showFallback: true,

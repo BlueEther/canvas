@@ -2,7 +2,7 @@ import rateLimit from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
 import { Redis } from "./redis";
 
-const REDIS_PREFIX = process.env.REDIS_RATELIMIT_PREFIX || "canavs_ratelimit:";
+const REDIS_PREFIX = process.env.REDIS_RATELIMIT_PREFIX || "canvas_ratelimit:";
 
 // TODO: Move these static settings to dynamic (related #101)
 

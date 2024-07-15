@@ -2,7 +2,7 @@ import { Slider, Spinner, Switch } from "@nextui-org/react";
 import { useAppContext } from "../../contexts/AppContext";
 
 export const OverlaySettings = () => {
-  const { blankOverlay, setBlankOverlay, heatmapOverlay, setHeatmapOverlay } =
+  const { blankOverlay, setBlankOverlay, heatmapOverlay, setHeatmapOverlay, pixelPulses, setPixelPulses } =
     useAppContext();
 
   return (
@@ -56,6 +56,15 @@ export const OverlaySettings = () => {
             getValue={(v) => (v as number) * 100 + "%"}
           />
         )}
+
+        <Switch
+          isSelected={pixelPulses}
+          onValueChange={(v) =>
+            setPixelPulses(v)
+          }
+        >
+          New Pixel Pulses
+        </Switch>
       </section>
     </div>
   );

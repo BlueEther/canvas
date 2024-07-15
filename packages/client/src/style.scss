@@ -201,6 +201,19 @@ main {
   }
 }
 
+@keyframes pixel-pulse {
+  from {
+    width: 50px;
+    height: 50px;
+    transform: translate(-24.5px, -24.5px);
+  }
+  to {
+    width: 10px;
+    height: 10px;
+    transform: translate(-4.5px, -4.5px);
+  }
+}
+
 @import "./components/Toolbar/Palette.scss";
 @import "./components/Templating/Template.scss";
 @import "./board.scss";

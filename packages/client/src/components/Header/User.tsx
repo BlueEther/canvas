@@ -7,7 +7,7 @@ export const User = () => {
   return user ? (
     <Card>
       <UserElement
-        name={user.user.username}
+        name={user.user.display_name || user.user.username}
         description={user.service.instance.hostname}
         avatarProps={{
           showFallback: true,
