@@ -51,25 +51,6 @@ app.get("/check", (req, res) => {
   res.send({ success: true });
 });
 
-// TODO: Delete before merge
-app.get("/log", (req, res) => {
-  const user = "grant@grants.cafe";
-
-  for (let i = 0; i < 100; i++) {
-    LogMan.log("pixel_place", user, { x: 0, y: 0, hex: "ABC123" });
-    LogMan.log("pixel_undo", user, { x: 0, y: 0, hex: "FFFFFF" });
-    LogMan.log("mod_fill", user, { from: [0, 0], to: [1, 1], hex: "000000" });
-    LogMan.log("mod_override", user, { x: 0, y: 0, hex: "111111" });
-    LogMan.log("mod_rollback", user, { x: 0, y: 0, hex: "222222" });
-    LogMan.log("mod_rollback_undo", user, { x: 0, y: 0, hex: "333333" });
-    LogMan.log("canvas_size", { width: 100, height: 100 });
-    LogMan.log("canvas_freeze", {});
-    LogMan.log("canvas_unfreeze", {});
-  }
-
-  res.send("ok");
-});
-
 app.get("/canvas/size", async (req, res) => {
   const config = Canvas.getCanvasConfig();
 
@@ -198,6 +179,16 @@ app.get("/canvas/:x/:y", async (req, res) => {
 });
 
 app.post("/canvas/stress", async (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: "this is terrible idea to execute this in production",
+      });
+    return;
+  }
+
   if (
     typeof req.body?.width !== "number" ||
     typeof req.body?.height !== "number"
