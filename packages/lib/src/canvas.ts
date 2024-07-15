@@ -20,6 +20,12 @@ export const CanvasLib = new (class {
 
     // oh god last minute change to match activity cooldown
     // 100 = user count
+
+    // band aid over negative nums
+    if (pixelNumber < 1) {
+      pixelNumber = 1
+    }
+
     return (2.5 * Math.sqrt(100 + 11.96) + 6.5) * 1 * pixelNumber;
   }
 })();
