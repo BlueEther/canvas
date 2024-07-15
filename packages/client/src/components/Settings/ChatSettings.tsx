@@ -8,18 +8,25 @@ export const ChatSettings = () => {
   const { loadChat, setLoadChat } = useAppContext();
 
   return (
-    <>
-      <header>
-        <Switch
-          size="sm"
-          isSelected={loadChat || false}
-          onValueChange={setLoadChat}
-        />
-        <h2>Chat</h2>
+    <div className="flex flex-col p-2">
+      <header className="flex flex-col gap-2">
+        <div className="flex items-center">
+          <Switch
+            size="sm"
+            isSelected={loadChat || false}
+            onValueChange={setLoadChat}
+          />
+          <h2 className="text-xl">Chat</h2>
+        </div>
+        <p className="text-default-600 text-xs">Chatting with other canvas users</p>
       </header>
       <section>
-        <React.Suspense>{loadChat && <InnerChatSettings />}</React.Suspense>
+        <React.Suspense>{loadChat && 
+          <div className="mt-4">
+            <InnerChatSettings />
+          </div>  
+        }</React.Suspense>
       </section>
-    </>
+    </div>
   );
 };
