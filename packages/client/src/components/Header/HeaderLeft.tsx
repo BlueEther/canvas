@@ -13,7 +13,7 @@ export const HeaderLeft = () => {
       <AccountStanding />
       <Button 
         onPress={() => setInfoSidebar(true)}
-        variant="ghost"
+        variant="faded"
       >
         <FontAwesomeIcon icon={faInfoCircle} />
         <p>Info</p>
@@ -21,7 +21,7 @@ export const HeaderLeft = () => {
       {import.meta.env.DEV && (
         <Button 
           onPress={() => Debug.openDebugTools()}
-          variant="ghost"
+          variant="faded"
         >
           <FontAwesomeIcon icon={faTools} />
           <p>Debug Tools</p>
