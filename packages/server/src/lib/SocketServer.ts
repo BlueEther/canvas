@@ -85,7 +85,13 @@ type Socket = RawSocket<ClientToServerEvents, ServerToClientEvents>;
 export class SocketServer {
   static instance: SocketServer;
   io: Server<ClientToServerEvents, ServerToClientEvents>;
-  placingUsers: Set<string> = new Set<string>();
+  /**
+   * Prevent users from time attacking pixel placements to place more pixels than stacked
+   *
+   * @key user sub (grant@grants.cafe)
+   * @value timestamp
+   */
+  userPlaceLock = new Map<string, number>();
 
   constructor(server: http.Server) {
     SocketServer.instance = this;
@@ -96,6 +102,29 @@ export class SocketServer {
 
     this.io.engine.use(session);
     this.io.on("connection", this.handleConnection.bind(this));
+
+    // clear pixel locks if they have existed for more than a minute
+    setInterval(() => {
+      const oneMinuteAgo = new Date();
+      oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
+
+      const expired = [...this.userPlaceLock.entries()].filter(
+        ([user, time]) => time < oneMinuteAgo.getTime()
+      );
+
+      if (expired.length > 0) {
+        Logger.warn(
+          "A pixel lock has existed for too long for " +
+            expired.length +
+            " users : " +
+            expired.map((a) => a[0]).join(",")
+        );
+      }
+
+      for (const expire of expired) {
+        this.userPlaceLock.delete(expire[0]);
+      }
+    }, 1000 * 30);
 
     // pixel stacking
     // - needs to be exponential (takes longer to aquire more pixels stacked)
@@ -255,29 +284,29 @@ export class SocketServer {
       // force a user data update
       await user.update(true);
 
-      if (this.placingUsers.has(user.sub)) {
-        ack({success: false, error: "pixel_already_pending"});
-        return
+      if (this.userPlaceLock.has(user.sub)) {
+        ack({ success: false, error: "pixel_already_pending" });
+        return;
       }
 
-      this.placingUsers.add(user.sub)
+      this.userPlaceLock.set(user.sub, Date.now());
 
       if (bypassCooldown && !user.isModerator) {
         // only moderators can do this
         ack({ success: false, error: "invalid_pixel" });
-        this.placingUsers.delete(user.sub);
+        this.userPlaceLock.delete(user.sub);
         return;
       }
 
       if (!bypassCooldown && user.pixelStack < 1) {
         ack({ success: false, error: "pixel_cooldown" });
-        this.placingUsers.delete(user.sub);
+        this.userPlaceLock.delete(user.sub);
         return;
       }
 
       if ((user.getBan()?.expires || 0) > new Date()) {
         ack({ success: false, error: "banned" });
-        this.placingUsers.delete(user.sub);
+        this.userPlaceLock.delete(user.sub);
         return;
       }
 
@@ -291,7 +320,7 @@ export class SocketServer {
           success: false,
           error: "palette_color_invalid",
         });
-        this.placingUsers.delete(user.sub);
+        this.userPlaceLock.delete(user.sub);
         return;
       }
 
@@ -303,7 +332,7 @@ export class SocketServer {
         pixelAtTheSameLocation.color === paletteColor.hex
       ) {
         ack({ success: false, error: "you_already_placed_that" });
-        this.placingUsers.delete(user.sub);
+        this.userPlaceLock.delete(user.sub);
         return;
       }
 
@@ -332,7 +361,7 @@ export class SocketServer {
         data: newPixel,
       });
       socket.broadcast.emit("pixel", newPixel);
-      this.placingUsers.delete(user.sub);
+      this.userPlaceLock.delete(user.sub);
     });
 
     socket.on("undo", async (ack) => {
