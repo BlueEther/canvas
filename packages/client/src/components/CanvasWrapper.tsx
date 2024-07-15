@@ -13,6 +13,7 @@ import { KeybindManager } from "../lib/keybinds";
 import { BlankOverlay } from "./Overlay/BlankOverlay";
 import { HeatmapOverlay } from "./Overlay/HeatmapOverlay";
 import { useTemplateContext } from "../contexts/TemplateContext";
+import { PixelPulses } from "./Overlay/PixelPulses";
 
 export const CanvasWrapper = () => {
   const { config } = useAppContext();
@@ -23,6 +24,7 @@ export const CanvasWrapper = () => {
       <PanZoomWrapper>
         <BlankOverlay />
         <HeatmapOverlay />
+        <PixelPulses />
         {config && <Template />}
         <CanvasInner />
         <Cursor />

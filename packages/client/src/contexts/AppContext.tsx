@@ -38,6 +38,8 @@ interface IAppContext {
   setBlankOverlay: React.Dispatch<React.SetStateAction<IMapOverlay>>;
   heatmapOverlay: IMapOverlay;
   setHeatmapOverlay: React.Dispatch<React.SetStateAction<IMapOverlay>>;
+  pixelPulses: boolean;
+  setPixelPulses: (state: boolean) => void
 
   profile?: string; // sub
   setProfile: (v?: string) => void;
@@ -123,6 +125,7 @@ export const AppContext = ({ children }: PropsWithChildren) => {
     opacity: 1,
     loading: false,
   });
+  const [pixelPulses, setPixelPulses] = useState<boolean>(false)
 
   const [profile, setProfile] = useState<string>();
 
@@ -229,6 +232,8 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         setBlankOverlay,
         heatmapOverlay,
         setHeatmapOverlay,
+        pixelPulses,
+        setPixelPulses,
         profile,
         setProfile,
         infoSidebar,
