@@ -23,14 +23,14 @@ export const HeaderRight = () => {
       <div className="flex gap-2">
         <Button 
           onClick={() => setSettingsSidebar(true)}
-          variant="ghost"
+          variant="faded"
         >
           <FontAwesomeIcon icon={faGear} />
           <p>Settings</p>
         </Button>
         <ThemeSwitcher />
         {hasAdmin && (
-          <Button href="/admin" target="_blank" as={Link}  variant="ghost" >
+          <Button href="/admin" target="_blank" as={Link}  variant="faded" >
             <FontAwesomeIcon icon={faHammer} />
             <p>Admin</p>
           </Button>
