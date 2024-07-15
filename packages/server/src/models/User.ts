@@ -317,6 +317,27 @@ export class User {
     }
   }
 
+  async trackIP(ip: string) {
+    await prisma.iPAddress.upsert({
+      where: {
+        ip_userSub: {
+          ip,
+          userSub: this.sub,
+        },
+      },
+      create: {
+        ip,
+        userSub: this.sub,
+        lastUsedAt: new Date(),
+      },
+      update: {
+        ip,
+        userSub: this.sub,
+        lastUsedAt: new Date(),
+      },
+    });
+  }
+
   /**
    * Determine if this user data is stale and should be updated
    * @see User#update

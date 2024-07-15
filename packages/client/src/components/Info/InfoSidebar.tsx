@@ -24,13 +24,13 @@ export const InfoSidebar = () => {
         transition={{ type: 'spring', stiffness: 50 }} 
       />
       <motion.div
-        className="min-w-[20rem] max-w-[75vw] md:max-w-[30vw] bg-white text-black flex flex-col justify-between fixed left-0 h-full shadow-xl overflow-y-auto z-50 top-0"
+        className="min-w-[20rem] max-w-[75vw] md:max-w-[30vw] bg-white dark:bg-black flex flex-col justify-between fixed left-0 h-full shadow-xl overflow-y-auto z-50 top-0"
         initial={{ x: '-150%' }} 
         animate={{ x: infoSidebar ? '-50%' : '-150%' }} 
         transition={{ type: 'spring', stiffness: 50 }} 
       />
       <motion.div
-        className="min-w-[20rem] max-w-[75vw] md:max-w-[30vw] bg-white text-black flex flex-col justify-between fixed left-0 h-full shadow-xl overflow-y-auto z-50 top-0"
+        className="min-w-[20rem] max-w-[75vw] md:max-w-[30vw] bg-white dark:bg-black text-black dark:text-white flex flex-col justify-between fixed left-0 h-full shadow-xl overflow-y-auto z-50 top-0"
         initial={{ x: '-100%' }} 
         animate={{ x: infoSidebar ? 0 : '-100%' }} 
         transition={{ type: 'spring', stiffness: 50 }} 
