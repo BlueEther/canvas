@@ -403,6 +403,9 @@ export class Canvas extends EventEmitter<CanvasEvents> {
             case "no_user":
               toast.error("You are not logged in.");
               break;
+            case "pixel_already_pending":
+              toast.error("You are already placing a pixel");
+              break;
             case "palette_color_invalid":
               toast.error("This isn't a color that you can use...?");
               break;
