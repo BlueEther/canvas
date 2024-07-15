@@ -10,6 +10,7 @@ import { AccountsPage } from "./pages/Accounts/Accounts/page.tsx";
 import { ServiceSettingsPage } from "./pages/Service/settings.tsx";
 import { ToastContainer } from "react-toastify";
 import { AuditLog } from "./pages/AuditLog/auditlog.tsx";
+import { ToastWrapper } from "./components/ToastWrapper.tsx";
 
 const router = createBrowserRouter(
   [
@@ -47,7 +48,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <ThemeProvider defaultTheme="system">
         <RouterProvider router={router} />
 
-        <ToastContainer position="bottom-right" />
+        <ToastWrapper />
       </ThemeProvider>
     </NextUIProvider>
   </React.StrictMode>
