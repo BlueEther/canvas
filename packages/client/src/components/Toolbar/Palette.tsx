@@ -29,7 +29,7 @@ export const Palette = () => {
   }, []);
 
   return (
-    <div id="pallete">
+    <div id="pallete" className="bg-[#fff] dark:bg-[#000]">
       <div className="pallete-colors">
         <button
           aria-label="Deselect Color"
@@ -71,12 +71,12 @@ export const Palette = () => {
           {import.meta.env.VITE_INCLUDE_EVENT_INFO ? (
             <>The event hasn't started yet</>
           ) : (
-            <>
+            <div className="flex gap-3 items-center">
               You are not logged in
-              <Button as={Link} href="/api/login" className="user-login">
+              <Button as={Link} href="/api/login" className="user-login" variant="faded">
                 Login
               </Button>
-            </>
+            </div>
           )}
         </div>
       )}
