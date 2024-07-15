@@ -1,6 +1,6 @@
 import { faMessage, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, Link, Spinner } from "@nextui-org/react";
+import { Avatar, Button, Link, Spinner } from "@nextui-org/react";
 import { ClientConfig } from "@sc07-canvas/lib/src/net";
 import { MouseEvent, useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -75,10 +75,9 @@ export const UserCard = ({ user }: { user: IUser }) => {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-row gap-2">
-        <img
+        <Avatar
+          showFallback
           src={user?.picture_url}
-          alt={`${user?.sub}'s profile`}
-          className="w-12 h-12"
         />
         <div className="flex flex-col gap-0.25 grow">
           <span>{user?.display_name}</span>
