@@ -3,6 +3,7 @@ import { useAppContext } from "../../contexts/AppContext";
 import network from "../../lib/network";
 import { Pixel } from "@sc07-canvas/lib/src/net";
 import { Canvas } from "../../lib/canvas";
+import { motion } from "framer-motion";
 
 export const PixelPulses = () => {
   const { pixelPulses } = useAppContext();
@@ -23,27 +24,36 @@ export const PixelPulses = () => {
 
     const pulseStyle: CSSProperties = {
       position: "absolute",
-      zIndex: "100",
       left: x + "px",
       top: y + "px",
-      width: "50px",
-      height: "50px",
-      border: `1px solid ${Canvas.instance?.Pallete.getColor(color)?.hex}`,
+      border: `1px solid #${Canvas.instance?.Pallete.getColor(color)?.hex}`,
       borderRadius: "100px",
       transform: "translate(-24.5px, -24.5px)",
-      animationName: "pixel-pulse",
-      animationDuration: "4s"
+      animationDuration: "4s",
+      width: "50px",
+      height: "50px"
     };
 
     const pulseElement = (
-      <div key={`${x}-${y}`} style={pulseStyle}></div>
+      <motion.div 
+        key={`${x}-${y}`} 
+        style={pulseStyle}
+        animate={{
+          width: "10px",
+          height: "10px",
+          transform: "translate(-4.5px, -4.5px)",
+          transition: {
+            duration: 4,
+          },
+        }}
+      />
     );
 
     setPulses(prevPulses => [...prevPulses, pulseElement]);
 
-    setTimeout(() => {
-      setPulses(prevPulses => prevPulses.slice(1)); // Remove the oldest pulse after 3700ms
-    }, 3700);
+    setTimeout(_ => {
+      setPulses(prevPulses => prevPulses.slice(1))
+    }, 3700)
   }
 
   return (
