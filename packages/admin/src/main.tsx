@@ -8,7 +8,6 @@ import { Root } from "./Root.tsx";
 import { HomePage } from "./pages/Home/page.tsx";
 import { AccountsPage } from "./pages/Accounts/Accounts/page.tsx";
 import { ServiceSettingsPage } from "./pages/Service/settings.tsx";
-import { ToastContainer } from "react-toastify";
 import { AuditLog } from "./pages/AuditLog/auditlog.tsx";
 import { ToastWrapper } from "./components/ToastWrapper.tsx";
 
