@@ -10,8 +10,6 @@ html,
 body {
   overscroll-behavior: contain;
   touch-action: none;
-
-  background-color: #ddd !important;
 }
 
 header#main-header {
@@ -150,8 +148,6 @@ main {
   position: fixed;
   top: 0;
   z-index: 9998;
-  background-color: #fff;
-  color: #000;
   height: 100%;
 
   min-width: 20rem;
