@@ -4,6 +4,8 @@ import { Redis } from "./redis";
 
 const REDIS_PREFIX = process.env.REDIS_RATELIMIT_PREFIX || "canavs_ratelimit:";
 
+// TODO: Move these static settings to dynamic (related #101)
+
 export const RateLimiter = {
   ADMIN: rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -24,7 +26,7 @@ export const RateLimiter = {
   }),
   HIGH: rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 50,
+    max: 150,
     standardHeaders: true,
     legacyHeaders: false,
 
