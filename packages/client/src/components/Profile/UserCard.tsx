@@ -1,6 +1,6 @@
 import { faMessage, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, Link, Spinner } from "@nextui-org/react";
+import { Avatar, Button, Link, Spinner, User } from "@nextui-org/react";
 import { ClientConfig } from "@sc07-canvas/lib/src/net";
 import { MouseEvent, useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -74,17 +74,17 @@ export const UserCard = ({ user }: { user: IUser }) => {
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex flex-row gap-2">
-        <img
-          src={user?.picture_url}
-          alt={`${user?.sub}'s profile`}
-          className="w-12 h-12"
+      <div className="flex flex-row space-between p-2">
+        <User 
+          name={user?.display_name || 'Unknown'}
+          description={user?.sub || 'Unknown'}
+          avatarProps={{
+            showFallback: true,
+            name: undefined,
+            src: user?.picture_url
+          }}
         />
-        <div className="flex flex-col gap-0.25 grow">
-          <span>{user?.display_name}</span>
-          <span className="text-sm">{user?.sub}</span>
-        </div>
-        <div>
+        <div className="ml-auto">
           {config && (
             <Button
               isIconOnly
