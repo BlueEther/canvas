@@ -55,6 +55,7 @@ export interface ClientToServerEvents {
         | "palette_color_invalid"
         | "you_already_placed_that"
         | "banned"
+        | "pixel_already_pending"
       >
     ) => void
   ) => void;
