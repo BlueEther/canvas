@@ -19,6 +19,7 @@ import { WelcomeModal } from "./Welcome/WelcomeModal";
 import { InfoSidebar } from "./Info/InfoSidebar";
 import { ModModal } from "./Moderation/ModModal";
 import { DynamicModals } from "./DynamicModals";
+import { ToastWrapper } from "./ToastWrapper";
 
 const Chat = lazy(() => import("./Chat/Chat"));
 
@@ -152,7 +153,7 @@ const AppInner = () => {
       <WelcomeModal />
       <ModModal />
 
-      <ToastContainer position="top-left" />
+      <ToastWrapper />
       <DynamicModals />
     </>
   );

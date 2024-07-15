@@ -12,7 +12,7 @@ export const SettingsSidebar = () => {
 
   return (
     <div
-      className="sidebar sidebar-right"
+      className="sidebar sidebar-right bg-white text-black dark:bg-black dark:text-white"
       style={{ ...(settingsSidebar ? {} : { display: "none" }) }}
     >
       <header>

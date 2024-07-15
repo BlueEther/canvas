@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { NextUIProvider } from "@nextui-org/react";
+import { ThemeProvider } from 'next-themes'
 import App from "./components/App";
 
 import Bugsnag from "@bugsnag/js";
@@ -26,7 +27,11 @@ root.render(
   <React.StrictMode>
     <ErrorBoundary>
       <NextUIProvider>
-        <App />
+        <ThemeProvider attribute="class" defaultTheme="system">
+          <div className="w-screen h-screen bg-[#ddd] dark:bg-[#060606]">
+            <App />
+          </div>
+        </ThemeProvider>
       </NextUIProvider>
     </ErrorBoundary>
   </React.StrictMode>
