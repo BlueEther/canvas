@@ -15,7 +15,7 @@ export const SidebarBase = ({children, shown, icon, setSidebarShown, title, desc
   return (
     <div>
       <motion.div
-        className={`absolute w-screen h-screen z-50 left-0 top-0 bg-black`}
+        className={`absolute w-screen h-screen z-50 left-0 top-0 bg-black pointer-events-none`}
         initial={{ opacity: 0, visibility: 'hidden' }} 
         animate={{ opacity: shown ? 0.25 : 0, visibility: shown ? 'visible' : 'hidden' }} 
         transition={{ type: 'spring', stiffness: 50 }} 
