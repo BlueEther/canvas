@@ -21,6 +21,7 @@ Table User {
   FactionMember FactionMember [not null]
   Ban Ban
   AuditLog AuditLog [not null]
+  IPAddress IPAddress [not null]
 }
 
 Table Instance {
@@ -30,6 +31,18 @@ Table Instance {
   logo_url String
   banner_url String
   Ban Ban
+}
+
+Table IPAddress {
+  ip String [not null]
+  userSub String [not null]
+  lastUsedAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  user User [not null]
+
+  indexes {
+    (ip, userSub) [pk]
+  }
 }
 
 Table PaletteColor {
@@ -144,6 +157,8 @@ Enum AuditLogAction {
   USER_ADMIN
   USER_UNADMIN
 }
+
+Ref: IPAddress.userSub > User.sub
 
 Ref: Pixel.userId > User.sub
 
