@@ -82,7 +82,7 @@ export const ChatContext = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     checkForAccessToken();
-    checkNotifs.current = setInterval(checkForNotifs, 1000);
+    checkNotifs.current = setInterval(checkForNotifs, 1000 * 60);
 
     return () => {
       window.removeEventListener("focus", handleWindowFocus);
