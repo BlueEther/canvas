@@ -32,23 +32,24 @@ export const PixelPulses = () => {
       borderRadius: "100px",
       transform: "translate(-24.5px, -24.5px)",
       animationName: "pixel-pulse",
-      animationDuration: "4s"
+      animationDuration: "4s",
     };
 
+    // used in the case of two pixels coming through for the same position
+    // rare, but causes issues with react
+    // even if the pixels are close to eachother, the ms will be different
+    const timestamp = Date.now();
+
     const pulseElement = (
-      <div key={`${x}-${y}`} style={pulseStyle}></div>
+      <div key={`${x}-${y}-${timestamp}`} style={pulseStyle}></div>
     );
 
-    setPulses(prevPulses => [...prevPulses, pulseElement]);
+    setPulses((prevPulses) => [...prevPulses, pulseElement]);
 
     setTimeout(() => {
-      setPulses(prevPulses => prevPulses.slice(1)); // Remove the oldest pulse after 3700ms
+      setPulses((prevPulses) => prevPulses.slice(1)); // Remove the oldest pulse after 3700ms
     }, 3700);
   }
 
-  return (
-    <div>
-      {pulses}
-    </div>
-  );
+  return <div>{pulses}</div>;
 };
