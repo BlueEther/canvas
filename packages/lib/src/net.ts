@@ -227,6 +227,7 @@ export type AuthSession = {
   };
   user: {
     username: string;
+    display_name?: string;
     picture_url?: string;
   };
 };
