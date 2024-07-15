@@ -19,7 +19,7 @@ const OpenChatButton = () => {
         config?.chat?.element_host && 
         <Button 
           onPress={doLogin}
-          variant="ghost"
+          variant="faded"
         >
           <FontAwesomeIcon icon={faComments} />
           <p>Chat</p>
