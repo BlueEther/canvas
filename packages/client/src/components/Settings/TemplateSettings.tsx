@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTemplateContext } from "../../contexts/TemplateContext";
 import { Input, Select, SelectItem, Slider, Switch } from "@nextui-org/react";
 
