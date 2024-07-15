@@ -1,41 +1,34 @@
-import { Button } from "@nextui-org/react";
+import { faGear } from "@fortawesome/free-solid-svg-icons";
 import { useAppContext } from "../../contexts/AppContext";
+import { SidebarBase } from "../SidebarBase";
+import { Button, Divider } from "@nextui-org/react";
 import { TemplateSettings } from "./TemplateSettings";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faXmark } from "@fortawesome/free-solid-svg-icons/faXmark";
 import { ChatSettings } from "./ChatSettings";
 import { OverlaySettings } from "../Overlay/OverlaySettings";
 
 export const SettingsSidebar = () => {
-  const { settingsSidebar, setSettingsSidebar, setShowKeybinds } =
-    useAppContext();
+  const { settingsSidebar, setSettingsSidebar, setShowKeybinds } = useAppContext();
 
   return (
-    <div
-      className="sidebar sidebar-right bg-white text-black dark:bg-black dark:text-white"
-      style={{ ...(settingsSidebar ? {} : { display: "none" }) }}
-    >
-      <header>
-        <h1>Settings</h1>
-        <div className="flex-grow" />
-        <Button size="sm" isIconOnly onClick={() => setSettingsSidebar(false)}>
-          <FontAwesomeIcon icon={faXmark} />
-        </Button>
-      </header>
-      <section>
-        abc
-        <Button
-          onPress={() => {
-            setShowKeybinds(true);
-            setSettingsSidebar(false);
-          }}
-        >
-          Keybinds
-        </Button>
-      </section>
-      <TemplateSettings />
-      <ChatSettings />
-      <OverlaySettings />
-    </div>
-  );
+    <SidebarBase shown={settingsSidebar} setSidebarShown={setSettingsSidebar} icon={faGear}  title="Settings" description="Configuration options for customizing your experience" side="Right">
+      <div className="p-4 flex flex-col gap-4">
+        <TemplateSettings />
+        <Divider />
+        <ChatSettings />
+        <Divider />
+        <OverlaySettings />
+        <Divider />
+        <section>
+          <Button
+            onPress={() => {
+              setShowKeybinds(true);
+              setSettingsSidebar(false);
+            }}
+          >
+            Keybinds
+          </Button>
+        </section>
+      </div>
+    </SidebarBase>
+  )
 };

@@ -77,7 +77,7 @@ export const PixelWhoisSidebar = () => {
 
   return (
     <div
-      className="sidebar sidebar-right"
+      className="sidebar sidebar-right bg-white dark:bg-black text-black dark:text-white"
       style={{ ...(pixelWhois ? {} : { display: "none" }) }}
     >
       {loading && (
@@ -95,7 +95,7 @@ export const PixelWhoisSidebar = () => {
           <FontAwesomeIcon icon={faXmark} />
         </Button>
       </header>
-      <div className="w-full h-52 bg-gray-200 flex justify-center items-center">
+      <div className="w-full h-52 bg-gray-200 dark:bg-gray-800 flex justify-center items-center">
         <div className="w-[128px] h-[128px] bg-white">
           <SmallCanvas
             surrounding={pixelWhois?.surrounding}

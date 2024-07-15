@@ -6,11 +6,12 @@ export const OverlaySettings = () => {
     useAppContext();
 
   return (
-    <>
-      <header>
-        <h2>Overlays</h2>
+    <div className="flex flex-col gap-4 p-2">
+      <header className="flex flex-col gap-2">
+        <h2 className="text-xl">Overlays</h2>
+        <p className="text-xs text-default-600">Overlays to display additional info over the canvas</p>
       </header>
-      <section>
+      <section className="flex flex-col gap-2">
         <Switch
           isSelected={blankOverlay.enabled}
           onValueChange={(v) =>
@@ -56,6 +57,6 @@ export const OverlaySettings = () => {
           />
         )}
       </section>
-    </>
+    </div>
   );
 };

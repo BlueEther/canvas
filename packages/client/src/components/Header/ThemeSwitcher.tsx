@@ -26,7 +26,7 @@ export function ThemeSwitcher() {
   if(!mounted) return null
 
   return (
-    <Button onClick={() => { setToggle(!isToggled) }} variant="ghost">
+    <Button onClick={() => { setToggle(!isToggled) }} variant="faded">
       <Classic toggled={isToggled} placeholder={undefined} />
       <p>{theme === 'dark' ? "Dark" : "Light"}</p>
     </Button>
