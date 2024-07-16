@@ -1,9 +1,16 @@
 import { Slider, Spinner, Switch } from "@nextui-org/react";
 import { useAppContext } from "../../contexts/AppContext";
+import useSound from "use-sound";
+import African3 from '../../sounds/African3.mp3'
 
 export const OverlaySettings = () => {
-  const { blankOverlay, setBlankOverlay, heatmapOverlay, setHeatmapOverlay, pixelPulses, setPixelPulses } =
+  const { blankOverlay, setBlankOverlay, heatmapOverlay, setHeatmapOverlay, pixelPulses, setPixelPulses, uiClickSound } =
     useAppContext();
+
+  const [African3Sound] = useSound(
+    African3,
+    { volume: 0.5 }
+  );
 
   return (
     <div className="flex flex-col gap-4 p-2">
@@ -15,7 +22,12 @@ export const OverlaySettings = () => {
         <Switch
           isSelected={blankOverlay.enabled}
           onValueChange={(v) =>
-            setBlankOverlay((vv) => ({ ...vv, enabled: v }))
+            {
+              setBlankOverlay((vv) => ({ ...vv, enabled: v }))
+              if (v && uiClickSound) {
+                African3Sound()
+              }
+            }
           }
         >
           Blank Canvas Overlay
@@ -37,7 +49,12 @@ export const OverlaySettings = () => {
         <Switch
           isSelected={heatmapOverlay.enabled}
           onValueChange={(v) =>
-            setHeatmapOverlay((vv) => ({ ...vv, enabled: v }))
+            {
+              setHeatmapOverlay((vv) => ({ ...vv, enabled: v }))
+              if (v && uiClickSound) {
+                African3Sound()
+              }
+            }
           }
         >
           {heatmapOverlay.loading && <Spinner size="sm" />}
@@ -60,7 +77,12 @@ export const OverlaySettings = () => {
         <Switch
           isSelected={pixelPulses}
           onValueChange={(v) =>
-            setPixelPulses(v)
+            {
+              setPixelPulses(v)
+              if (v && uiClickSound) {
+                African3Sound()
+              }
+            }
           }
         >
           New Pixel Pulses

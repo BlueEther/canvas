@@ -3,6 +3,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { Button, Divider } from "@nextui-org/react";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import African3 from '../sounds/African3.mp3'
+import useSound from "use-sound";
+import { useAppContext } from "../contexts/AppContext";
 
 /**
  * Information sidebar
@@ -12,6 +15,13 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons";
  * @returns
  */
 export const SidebarBase = ({children, shown, icon, setSidebarShown, title, description, side}: { children: string | JSX.Element | JSX.Element[], icon: IconProp, shown: boolean, setSidebarShown: (value: boolean) => void, title: string, description: string, side: "Left" | "Right" }) => {
+  const { uiClickSound } = useAppContext();
+
+  const [African3Sound] = useSound(
+    African3,
+    { volume: 0.5 }
+  );
+  
   return (
     <div>
       <motion.div
@@ -44,7 +54,12 @@ export const SidebarBase = ({children, shown, icon, setSidebarShown, title, desc
             
           </div>
 
-          <Button size="sm" isIconOnly onClick={() => setSidebarShown(false)} variant="solid" className="ml-4">
+          <Button size="sm" isIconOnly onClick={() => {
+            setSidebarShown(false)
+            if (uiClickSound) {
+              African3Sound()
+            }
+          }} variant="solid" className="ml-4">
             <FontAwesomeIcon icon={faXmark} />
           </Button>
         </header>
