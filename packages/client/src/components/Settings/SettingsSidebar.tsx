@@ -5,6 +5,7 @@ import { Button, Divider } from "@nextui-org/react";
 import { TemplateSettings } from "./TemplateSettings";
 import { ChatSettings } from "./ChatSettings";
 import { OverlaySettings } from "../Overlay/OverlaySettings";
+import { AudioSettings } from "./AudioSettings";
 
 export const SettingsSidebar = () => {
   const { settingsSidebar, setSettingsSidebar, setShowKeybinds } = useAppContext();
@@ -17,6 +18,8 @@ export const SettingsSidebar = () => {
         <ChatSettings />
         <Divider />
         <OverlaySettings />
+        <Divider />
+        <AudioSettings />
         <Divider />
         <section>
           <Button

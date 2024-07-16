@@ -5,6 +5,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { faGear, faHammer } from "@fortawesome/free-solid-svg-icons";
 import React, { lazy } from "react";
+import African3 from '../../sounds/African3.mp3'
+import useSound from "use-sound";
 
 const OpenChatButton = lazy(() => import("../Chat/OpenChatButton"));
 
@@ -15,14 +17,24 @@ const DynamicChat = () => {
 };
 
 export const HeaderRight = () => {
-  const { setSettingsSidebar, hasAdmin } = useAppContext();
+  const { setSettingsSidebar, hasAdmin, uiClickSound } = useAppContext();
+  
+  const [African3Sound] = useSound(
+    African3,
+    { volume: 0.5 }
+  );
 
   return (
     <div className="box flex flex-col gap-2">
       <User />
       <div className="flex gap-2">
         <Button 
-          onClick={() => setSettingsSidebar(true)}
+          onClick={() => {
+            setSettingsSidebar(true)
+            if (uiClickSound) {
+              African3Sound()
+            }
+          }}
           variant="faded"
         >
           <FontAwesomeIcon icon={faGear} />

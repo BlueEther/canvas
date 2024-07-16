@@ -1,11 +1,19 @@
 import { Switch } from "@nextui-org/react";
 import { useAppContext } from "../../contexts/AppContext";
 import React, { lazy } from "react";
+import African3 from '../../sounds/African3.mp3'
+import useSound from "use-sound";
 
+            
 const InnerChatSettings = lazy(() => import("../Chat/InnerChatSettings"));
 
 export const ChatSettings = () => {
-  const { loadChat, setLoadChat } = useAppContext();
+  const { loadChat, setLoadChat, uiClickSound } = useAppContext();
+
+  const [African3Sound] = useSound(
+    African3,
+    { volume: 0.5 }
+  );
 
   return (
     <div className="flex flex-col p-2">
@@ -14,7 +22,12 @@ export const ChatSettings = () => {
           <Switch
             size="sm"
             isSelected={loadChat || false}
-            onValueChange={setLoadChat}
+            onValueChange={(bool: boolean) => {
+              setLoadChat(bool)
+              if (uiClickSound && bool) {
+                African3Sound()
+              }
+            }}
           />
           <h2 className="text-xl">Chat</h2>
         </div>

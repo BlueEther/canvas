@@ -25,6 +25,21 @@ interface IAppContext {
   loadChat: boolean;
   setLoadChat: (v: boolean) => void;
 
+  placeSound: boolean;
+  setPlaceSound: (v: boolean) => void;
+  globalPlaceSound: boolean;
+  setGlobalPlaceSound: (v: boolean) => void;
+  disconnectSound: boolean;
+  setDisconnectSound: (v: boolean) => void;
+  reconnectSound: boolean;
+  setReconnectSound: (v: boolean) => void;
+  pixelAvailableSound: boolean;
+  setPixelAvailableSound: (v: boolean) => void;
+  pixelUndoSound: boolean;
+  setPixelUndoSound: (v: boolean) => void;
+  uiClickSound: boolean;
+  setUiClickSound: (v: boolean) => void;
+
   infoSidebar: boolean;
   setInfoSidebar: (v: boolean) => void;
   settingsSidebar: boolean;
@@ -104,6 +119,15 @@ export const AppContext = ({ children }: PropsWithChildren) => {
 
   const [pixels, setPixels] = useState({ available: 0 });
   const [undo, setUndo] = useState<{ available: true; expireAt: number }>();
+
+  // --- audio ---
+  const [placeSound, setPlaceSound] = useState(false);
+  const [globalPlaceSound, setGlobalPlaceSound] = useState(false);
+  const [disconnectSound, setDisconnectSound] = useState(false);
+  const [reconnectSound, setReconnectSound] = useState(false);
+  const [pixelAvailableSound, setPixelAvailableSound] = useState(false);
+  const [pixelUndoSound, setPixelUndoSound] = useState(false);
+  const [uiClickSound, setUiClickSound] = useState(false);
 
   // overlays visible
   const [infoSidebar, setInfoSidebar] = useState(false);
@@ -240,6 +264,20 @@ export const AppContext = ({ children }: PropsWithChildren) => {
         setInfoSidebar,
         showModModal,
         setShowModModal,
+        placeSound,
+        setPlaceSound,
+        globalPlaceSound,
+        setGlobalPlaceSound,
+        disconnectSound,
+        setDisconnectSound,
+        reconnectSound,
+        setReconnectSound,
+        pixelAvailableSound,
+        setPixelAvailableSound,
+        pixelUndoSound,
+        setPixelUndoSound,
+        uiClickSound,
+        setUiClickSound
       }}
     >
       {!config && (

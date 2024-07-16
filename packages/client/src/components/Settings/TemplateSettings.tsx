@@ -1,6 +1,9 @@
 import { useTemplateContext } from "../../contexts/TemplateContext";
 import { Input, Select, SelectItem, Slider, Switch } from "@nextui-org/react";
-
+import African3 from '../../sounds/African3.mp3'
+import { useAppContext } from "../../contexts/AppContext";
+import useSound from "use-sound";
+  
 export const TemplateSettings = () => {
   const {
     enable,
@@ -21,6 +24,13 @@ export const TemplateSettings = () => {
     setShowMobileTools,
   } = useTemplateContext();
 
+  const { uiClickSound } = useAppContext()
+
+  const [African3Sound] = useSound(
+    African3,
+    { volume: 0.5 }
+  );
+
   return (
     <div className="flex flex-col p-2">
       <header className="flex flex-col gap-2">
@@ -28,7 +38,12 @@ export const TemplateSettings = () => {
           <Switch
             size="sm"
             isSelected={enable || false}
-            onValueChange={setEnable}
+            onValueChange={(bool: boolean) => {
+              setEnable(bool)
+              if (uiClickSound && bool) {
+                African3Sound()
+              }
+            }}
           />
           <h2 className="text-xl">Template</h2>
         </div>
